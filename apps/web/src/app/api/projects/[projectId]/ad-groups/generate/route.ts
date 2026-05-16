@@ -41,8 +41,8 @@ export async function POST(request: Request, context: RouteContext) {
       {
         projectId,
         requestId: parsed.data.requestId ?? crypto.randomUUID(),
-        demoMode: parsed.data.demoMode ?? false,
-        forceFallback: parsed.data.forceFallback ?? false,
+        demoMode: parsed.data.demoMode ?? shouldUseDeterministicFallback(),
+        forceFallback: parsed.data.forceFallback ?? shouldUseDeterministicFallback(),
         campaignDefaults: parsed.data.campaignDefaults
       },
       {
@@ -91,6 +91,11 @@ export async function POST(request: Request, context: RouteContext) {
       { status: error.status }
     );
   }
+}
+
+function shouldUseDeterministicFallback(): boolean {
+  return process.env.DEMO_MODE === "seeded"
+    || (process.env.DEMO_MODE === "auto" && !process.env.OPENAI_API_KEY);
 }
 
 function normalizeGenerationRouteError(caught: unknown) {

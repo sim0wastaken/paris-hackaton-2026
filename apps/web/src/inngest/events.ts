@@ -4,5 +4,6 @@ export const MOTIVE_EVENTS = {
   extractionRequested: "motive/extraction.requested",
   creativesRequested: "motive/creatives.requested",
   fakeDeploymentRequested: "motive/deployment.fake_requested",
-  monitoringRequested: "motive/monitoring.requested"
+  monitoringRequested: "motive/monitoring.requested",
+  demoExtractionReplayRequested: "demo/extraction.replay.requested"
 } as const;

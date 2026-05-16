@@ -1,12 +1,20 @@
 import { EmptyState } from "@/components/empty-state";
+import { MonitoringDashboard } from "@/components/monitoring-dashboard";
+import { createSupabaseDeploymentRepository } from "@/lib/motive/supabase-deployments";
 
-export default function MonitoringPage() {
-  return (
-    <EmptyState eyebrow="Blocked" title="Monitoring unlocks after fake deploy.">
-      <p className="max-w-2xl text-sm leading-6 text-[var(--ink-3)]">
-        Spec 08 will persist story-driven KPI snapshots with quality score,
-        insight, and recommended action.
-      </p>
-    </EmptyState>
-  );
+export default async function MonitoringPage({
+  params
+}: {
+  params: Promise<{ projectId: string }>;
+}) {
+  const { projectId } = await params;
+  const monitoringData = await createSupabaseDeploymentRepository().getMonitoringData(projectId);
+
+  if (!monitoringData) {
+    return (
+      <EmptyState eyebrow="Project missing" title="No project workspace was found." />
+    );
+  }
+
+  return <MonitoringDashboard initialData={monitoringData} />;
 }

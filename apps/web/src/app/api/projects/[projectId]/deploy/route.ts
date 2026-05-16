@@ -1,18 +1,15 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { CreativeGenerationError, runCreativeGeneration } from "@/lib/motive/creatives";
-import { createSupabaseCreativeGenerationRepository } from "@/lib/motive/supabase-creatives";
-import { generateFalImage } from "@/lib/providers/fal";
+import { FakeDeployError, runFakeDeploy } from "@/lib/motive/deployments";
+import { createSupabaseDeploymentRepository } from "@/lib/motive/supabase-deployments";
 import { generateOpenAIStructuredObject } from "@/lib/providers/openai";
 
-const generateCreativesRequestSchema = z.object({
+const deployRequestSchema = z.object({
   requestId: z.string().min(1).optional(),
-  ad_group_ids: z.array(z.string().min(1)).optional(),
-  variant_count: z.number().int().min(1).max(3).optional(),
-  generate_assets: z.boolean().optional(),
-  regenerate: z.boolean().optional(),
-  demoMode: z.boolean().optional(),
+  creative_variant_ids: z.array(z.string().min(1)).optional(),
+  generate_performance: z.boolean().optional(),
+  export_format: z.literal("openai_ads_api").optional(),
   forceFallback: z.boolean().optional()
 });
 
@@ -20,15 +17,30 @@ type RouteContext = {
   params: Promise<{ projectId: string }> | { projectId: string };
 };
 
+export async function GET(_request: Request, context: RouteContext) {
+  const { projectId } = await context.params;
+  const data = await createSupabaseDeploymentRepository().getMonitoringData(projectId);
+  if (!data) {
+    return NextResponse.json(
+      {
+        error: "project_not_found",
+        message: `Project not found: ${projectId}`
+      },
+      { status: 404 }
+    );
+  }
+  return NextResponse.json(data);
+}
+
 export async function POST(request: Request, context: RouteContext) {
   const { projectId } = await context.params;
   const payload = await request.json().catch(() => ({}));
-  const parsed = generateCreativesRequestSchema.safeParse(payload);
+  const parsed = deployRequestSchema.safeParse(payload);
 
   if (!parsed.success) {
     return NextResponse.json(
       {
-        error: "invalid_creative_generation_request",
+        error: "invalid_deploy_request",
         issues: parsed.error.issues
       },
       { status: 400 }
@@ -36,23 +48,27 @@ export async function POST(request: Request, context: RouteContext) {
   }
 
   try {
-    const result = await runCreativeGeneration(
+    const result = await runFakeDeploy(
       {
         projectId,
         requestId: parsed.data.requestId ?? crypto.randomUUID(),
-        adGroupIds: parsed.data.ad_group_ids,
-        variantCount: parsed.data.variant_count,
-        generateAssets: parsed.data.generate_assets ?? process.env.DEMO_MODE !== "seeded",
-        regenerate: parsed.data.regenerate ?? false,
-        demoMode: parsed.data.demoMode ?? shouldUseDeterministicFallback(),
+        creativeVariantIds: parsed.data.creative_variant_ids,
+        generatePerformance: parsed.data.generate_performance ?? true,
         forceFallback: parsed.data.forceFallback ?? shouldUseDeterministicFallback()
       },
       {
-        repository: createSupabaseCreativeGenerationRepository(),
-        provider: {
+        repository: createSupabaseDeploymentRepository(),
+        synthesisProvider: {
           isConfigured: () => Boolean(process.env.OPENAI_API_KEY),
-          async generate(input) {
-            const result = await generateOpenAIStructuredObject(
+          async generate<T>(input: {
+            requestId: string;
+            model: string;
+            schemaName: string;
+            schema: z.ZodType<T>;
+            system: string;
+            prompt: string;
+          }) {
+            const result = await generateOpenAIStructuredObject<T>(
               {
                 requestId: input.requestId,
                 schemaName: input.schemaName,
@@ -77,17 +93,13 @@ export async function POST(request: Request, context: RouteContext) {
               model: result.data.model
             };
           }
-        },
-        assetProvider: {
-          isConfigured: () => Boolean(process.env.FAL_KEY),
-          generateImage: generateFalImage
         }
       }
     );
 
     return NextResponse.json(result);
   } catch (caught) {
-    const error = normalizeCreativeRouteError(caught);
+    const error = normalizeDeployRouteError(caught);
     return NextResponse.json(
       {
         error: error.code,
@@ -104,25 +116,23 @@ function shouldUseDeterministicFallback(): boolean {
     || (process.env.DEMO_MODE === "auto" && !process.env.OPENAI_API_KEY);
 }
 
-function normalizeCreativeRouteError(caught: unknown) {
-  if (caught instanceof CreativeGenerationError) {
+function normalizeDeployRouteError(caught: unknown) {
+  if (caught instanceof FakeDeployError) {
     return {
       code: caught.code,
       message: caught.message,
       retryable: caught.retryable,
       status: caught.code === "project_not_found"
         ? 404
-        : caught.code === "no_approved_ad_groups" || caught.code === "missing_source_grounding"
+        : caught.code === "no_approved_creatives"
           ? 409
-          : caught.code === "openai_not_configured"
-            ? 503
-            : 400
+          : 400
     };
   }
 
   return {
-    code: "creative_generation_failed",
-    message: caught instanceof Error ? caught.message : "Creative generation failed.",
+    code: "fake_deploy_failed",
+    message: caught instanceof Error ? caught.message : "Fake deploy failed.",
     retryable: true,
     status: 500
   };
