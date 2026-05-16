@@ -16,7 +16,17 @@ import {
   type PhaseOutput,
 } from "./extraction-schemas";
 import type { ProjectRecord, SourceRecord } from "./projects";
-import type { AdGroup, BrandFeature, Campaign, Conversation, HumanReview, LandingGap, ProductFeedItem } from "./types";
+import type {
+  AdGroup,
+  BrandFeature,
+  Campaign,
+  Conversation,
+  CreativeVariant,
+  ExtractionPhase,
+  HumanReview,
+  LandingGap,
+  ProductFeedItem
+} from "./types";
 
 export const SPEC_04_PHASES = [
   "source_recap",
@@ -33,7 +43,7 @@ export type RunStatus = "queued" | "running" | "succeeded" | "failed" | "cancell
 export type ExtractionRunRecord = {
   id: string;
   project_id: string;
-  phase: Spec04ExtractionPhase;
+  phase: ExtractionPhase;
   status: RunStatus;
   model: string | null;
   provider: string;
@@ -60,6 +70,7 @@ export type ExtractionReviewData = {
   landing_gaps: LandingGap[];
   campaigns: Campaign[];
   ad_groups: AdGroup[];
+  creative_variants: CreativeVariant[];
   product_feed_items: ProductFeedItem[];
   human_reviews: HumanReview[];
 };
@@ -242,10 +253,13 @@ export async function runExtractionPipeline(
   return { status: "succeeded", projectId: input.projectId, phases: [...SPEC_04_PHASES] };
 }
 
-function findRun(runs: ExtractionRunRecord[], phase: Spec04ExtractionPhase): ExtractionRunRecord {
+function findRun(
+  runs: ExtractionRunRecord[],
+  phase: Spec04ExtractionPhase
+): ExtractionRunRecord & { phase: Spec04ExtractionPhase } {
   const run = runs.find((item) => item.phase === phase);
   if (!run) throw new Error(`Missing extraction run for phase ${phase}`);
-  return run;
+  return run as ExtractionRunRecord & { phase: Spec04ExtractionPhase };
 }
 
 function parseExistingOutput(phase: Spec04ExtractionPhase, value: Record<string, unknown>): PhaseOutput | null {
@@ -458,7 +472,7 @@ function buildError(
   code: string,
   message: string,
   retryable: boolean,
-  run: ExtractionRunRecord
+  run: ExtractionRunRecord & { phase: Spec04ExtractionPhase }
 ): ExtractionErrorPayload {
   return {
     code,

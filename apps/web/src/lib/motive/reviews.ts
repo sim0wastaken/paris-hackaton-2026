@@ -3,6 +3,8 @@ import { z } from "zod";
 import {
   buyerRoleValues,
   constraintSchema,
+  assetGenerationStatusValues,
+  creativeAssetTypeValues,
   featureTypeValues,
   intentTypeValues,
   jsonObjectSchema,
@@ -17,7 +19,8 @@ export const reviewableEntityTypeValues = [
   "brand_feature",
   "conversation",
   "landing_gap",
-  "ad_group"
+  "ad_group",
+  "creative_variant"
 ] as const;
 
 export type ReviewableEntityType = (typeof reviewableEntityTypeValues)[number];
@@ -126,6 +129,22 @@ const reviewPatchSchemas: Record<ReviewableEntityType, z.ZodObject> = {
     feature_ids: uuidArray,
     landing_gap_ids: uuidArray,
     product_feed_item_ids: uuidArray,
+    metadata: jsonObjectSchema
+  }).partial().strict(),
+  creative_variant: z.object({
+    title: nonEmptyString.max(50),
+    description: nonEmptyString.max(100),
+    creative_angle: nonEmptyString,
+    asset_type: z.enum(creativeAssetTypeValues),
+    asset_prompt: z.string().trim().nullable(),
+    asset_url: z.url().nullable(),
+    asset_generation_status: z.enum(assetGenerationStatusValues),
+    openai_file_id: z.string().trim().nullable(),
+    target_url: z.url(),
+    openai_ad_status: z.enum(["paused", "active", "archived"]).or(z.string().min(1)),
+    provider_request_json: jsonObjectSchema,
+    provider_response_json: jsonObjectSchema,
+    openai_validation_json: jsonObjectSchema,
     metadata: jsonObjectSchema
   }).partial().strict()
 };

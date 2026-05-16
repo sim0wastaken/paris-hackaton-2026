@@ -2,7 +2,7 @@
 
 Date: 2026-05-16
 Owner: Worker D
-Status: Draft
+Status: Implemented
 Phase: Approved ad groups -> persisted creative variants
 Depends on: Spec 02 database contract, Spec 06 ad-group generation, Spec 05 HITL review
 
