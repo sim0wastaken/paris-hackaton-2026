@@ -42,13 +42,13 @@ export function SourceStatusPanel({
   }, [refresh]);
 
   return (
-    <section className="rounded-lg border border-[#d9dfd8] bg-white p-5 shadow-sm">
+    <section className="card">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase text-[#195b8f]">
+          <p className="kicker">
             Sources
           </p>
-          <h2 className="mt-2 text-xl font-semibold text-[#17201c]">
+          <h2 className="t-h4 mt-3">
             {workspace.project.name}
           </h2>
         </div>
@@ -64,14 +64,14 @@ export function SourceStatusPanel({
       </div>
 
       {error ? (
-        <p className="mt-4 rounded-md border border-[#efc0bd] bg-[#fff0ee] px-3 py-2 text-sm text-[#a3382f]">
+        <p className="error-callout mt-4">
           {error}
         </p>
       ) : null}
 
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
         <button
-          className="inline-flex items-center gap-2 rounded-md border border-[#d9dfd8] px-3 py-2 text-sm font-medium text-[#17201c]"
+          className="btn btn-ghost btn-sm"
           onClick={() => refresh().catch((caught) => setError(caught instanceof Error ? caught.message : "Project refresh failed"))}
           type="button"
         >
@@ -80,7 +80,7 @@ export function SourceStatusPanel({
         </button>
         {summary.usable === 0 ? (
           <button
-            className="inline-flex items-center gap-2 rounded-md border border-[#17201c] bg-[#17201c] px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn btn-primary btn-sm"
             disabled={addingDemo}
             onClick={async () => {
               setAddingDemo(true);
@@ -112,19 +112,19 @@ function SourceCard({ source }: { source: SourceRecord }) {
   const textLength = (source.extracted_text ?? source.raw_text ?? "").length;
 
   return (
-    <article className="grid gap-3 rounded-md border border-[#d9dfd8] bg-[#fbfcf8] p-3 md:grid-cols-[1fr_auto]">
+    <article className="source-card grid gap-3 p-3 md:grid-cols-[1fr_auto]">
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           {source.type === "product_feed" ? (
-            <Database aria-hidden="true" size={16} />
+            <Database aria-hidden="true" className="text-[var(--acid-2)]" size={16} />
           ) : (
-            <FileText aria-hidden="true" size={16} />
+            <FileText aria-hidden="true" className="text-[var(--acid-2)]" size={16} />
           )}
-          <h3 className="truncate text-sm font-semibold text-[#17201c]">
+          <h3 className="truncate text-sm font-semibold text-[var(--ink)]">
             {source.name}
           </h3>
         </div>
-        <p className="mt-2 text-xs text-[#66706b]">
+        <p className="mt-2 text-xs text-[var(--ink-3)]">
           {source.type} · {textLength.toLocaleString()} characters
           {source.error ? ` · ${source.error}` : ""}
         </p>

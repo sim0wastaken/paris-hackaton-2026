@@ -176,7 +176,7 @@ export function CreativeGrid({ initialData }: { initialData: ExtractionReviewDat
   if (approvedAdGroups.length === 0 && data.creative_variants.length === 0) {
     return (
       <EmptyState eyebrow="Creatives" title="Approve an ad group first.">
-        <p className="max-w-2xl text-sm leading-6 text-[#66706b]">
+        <p className="max-w-2xl text-sm leading-6 text-[var(--ink-3)]">
           Creative generation uses approved ad groups plus their linked conversations,
           proof points, landing gaps, and product feed rows.
         </p>
@@ -186,12 +186,12 @@ export function CreativeGrid({ initialData }: { initialData: ExtractionReviewDat
 
   return (
     <section className="grid gap-4">
-      <div className="rounded-lg border border-[#d9dfd8] bg-white px-4 py-4 shadow-sm">
+      <div className="card">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="grid gap-2">
             <div className="flex flex-wrap items-center gap-2">
-              <Sparkles aria-hidden="true" className="text-[#195b8f]" size={18} />
-              <h1 className="text-lg font-semibold text-[#17201c]">Creative variants</h1>
+              <Sparkles aria-hidden="true" className="text-[var(--acid-2)]" size={18} />
+              <h1 className="text-lg font-semibold text-[var(--ink)]">Creative variants</h1>
               <StatusBadge status={connection === "live" ? "available" : "current"}>
                 {connection === "live" ? "Realtime live" : "Polling updates"}
               </StatusBadge>
@@ -210,7 +210,7 @@ export function CreativeGrid({ initialData }: { initialData: ExtractionReviewDat
             </div>
           </div>
           <button
-            className="inline-flex items-center gap-2 rounded-md border border-[#17201c] bg-[#17201c] px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn btn-primary btn-sm"
             disabled={adGroupsNeedingVariants.length === 0 || generating !== null}
             onClick={() => void generateCreatives(adGroupsNeedingVariants.map((group) => group.id))}
             type="button"
@@ -220,14 +220,14 @@ export function CreativeGrid({ initialData }: { initialData: ExtractionReviewDat
           </button>
         </div>
         {adGroupsNeedingVariants.length === 0 ? (
-          <p className="mt-3 text-sm text-[#66706b]">
+          <p className="mt-3 text-sm text-[var(--ink-3)]">
             Every approved ad group has an active creative. Regenerate from an individual group for another variant.
           </p>
         ) : null}
       </div>
 
       {error ? (
-        <p className="rounded-md border border-[#efc0bd] bg-[#fff0ee] px-3 py-2 text-sm text-[#a3382f]">
+        <p className="error-callout">
           {error}
         </p>
       ) : null}
@@ -237,18 +237,18 @@ export function CreativeGrid({ initialData }: { initialData: ExtractionReviewDat
         {visibleAdGroups.map((group) => {
           const variants = data.creative_variants.filter((variant) => variant.ad_group_id === group.id);
           return (
-            <section className="grid gap-3 rounded-lg border border-[#d9dfd8] bg-white p-4 shadow-sm" key={group.id}>
+            <section className="card grid gap-3" key={group.id}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="grid gap-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-base font-semibold text-[#17201c]">{group.name}</h2>
+                    <h2 className="text-base font-semibold text-[var(--ink)]">{group.name}</h2>
                     <StatusBadge status={reviewBadgeStatus(group.review_status)}>{group.review_status}</StatusBadge>
                     <StatusBadge status="available">{group.status}</StatusBadge>
                   </div>
-                  <p className="max-w-3xl text-sm leading-6 text-[#3f4944]">{group.rationale}</p>
+                  <p className="max-w-3xl text-sm leading-6 text-[var(--ink-2)]">{group.rationale}</p>
                 </div>
                 <button
-                  className="inline-flex items-center gap-2 rounded-md border border-[#d9dfd8] px-3 py-2 text-sm font-medium text-[#17201c] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="btn btn-ghost btn-sm"
                   disabled={generating !== null}
                   onClick={() => void generateCreatives([group.id], true)}
                   type="button"
@@ -258,7 +258,7 @@ export function CreativeGrid({ initialData }: { initialData: ExtractionReviewDat
                 </button>
               </div>
               {variants.length === 0 ? (
-                <p className="rounded-md border border-dashed border-[#cbd5c8] px-3 py-4 text-sm text-[#66706b]">
+                <p className="rounded-md border border-dashed border-[var(--line-3)] px-3 py-4 text-sm text-[var(--ink-3)]">
                   No creative variants yet for this ad group.
                 </p>
               ) : (
@@ -351,8 +351,8 @@ function CreativeCard({
       <div className="grid gap-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <p className="text-xs font-semibold uppercase text-[#66706b]">{adGroup.name}</p>
-            <h3 className="mt-1 text-base font-semibold text-[#17201c]">{variant.title}</h3>
+            <p className="text-xs font-semibold uppercase text-[var(--ink-3)]">{adGroup.name}</p>
+            <h3 className="mt-1 text-base font-semibold text-[var(--ink)]">{variant.title}</h3>
           </div>
           <div className="flex flex-wrap gap-2">
             <StatusBadge status={reviewBadgeStatus(variant.review_status)}>{variant.review_status}</StatusBadge>
@@ -362,14 +362,14 @@ function CreativeCard({
           </div>
         </div>
 
-        <div className="aspect-square overflow-hidden rounded-md border border-[#d9dfd8] bg-[#f6f8f3]">
+        <div className="aspect-square overflow-hidden rounded-md border border-[var(--line)] bg-[var(--bg-2)]">
           {renderableAssetUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img alt="" className="h-full w-full object-cover" onError={() => setImageFailed(true)} src={renderableAssetUrl} />
           ) : (
             <div className="flex h-full flex-col justify-between gap-4 p-4">
-              <ImageIcon aria-hidden="true" className="text-[#195b8f]" size={24} />
-              <p className="line-clamp-6 text-sm leading-6 text-[#3f4944]">
+              <ImageIcon aria-hidden="true" className="text-[var(--acid-2)]" size={24} />
+              <p className="line-clamp-6 text-sm leading-6 text-[var(--ink-2)]">
                 {variant.asset_prompt ?? "No prompt stored for this creative."}
               </p>
             </div>
@@ -377,29 +377,29 @@ function CreativeCard({
         </div>
 
         <div className="grid gap-2">
-          <p className="text-sm leading-6 text-[#3f4944]">{variant.description}</p>
+          <p className="text-sm leading-6 text-[var(--ink-2)]">{variant.description}</p>
           <div className="flex flex-wrap gap-2">
             <StatusBadge status="available">{variant.creative_angle}</StatusBadge>
             <StatusBadge status="available">{variant.openai_ad_type}</StatusBadge>
             <StatusBadge status="current">{variant.openai_ad_status}</StatusBadge>
           </div>
           {variant.error ? (
-            <p className="rounded-md border border-[#efc0bd] bg-[#fff0ee] px-2 py-1 text-xs text-[#a3382f]">
+            <p className="error-callout text-xs">
               {variant.error}
             </p>
           ) : null}
         </div>
 
         {editing ? (
-          <div className="grid gap-3 rounded-md border border-[#d9dfd8] bg-white p-3">
+          <div className="card-inset grid gap-3">
             <CreativeInput label="Title" maxLength={50} onChange={(value) => updateDraft("title", value)} value={draft.title} />
             <CreativeInput label="Description" maxLength={100} onChange={(value) => updateDraft("description", value)} value={draft.description} />
             <CreativeInput label="Angle" onChange={(value) => updateDraft("creative_angle", value)} value={draft.creative_angle} />
             <CreativeInput label="Target URL" onChange={(value) => updateDraft("target_url", value)} value={draft.target_url} />
-            <label className="grid gap-1 text-xs font-semibold uppercase text-[#66706b]">
+            <label className="field-label grid gap-1">
               Asset prompt
               <textarea
-                className="min-h-24 rounded-md border border-[#d9dfd8] px-3 py-2 text-sm normal-case text-[#17201c] outline-none focus:border-[#195b8f]"
+                className="textarea min-h-24 normal-case"
                 onChange={(event) => updateDraft("asset_prompt", event.target.value)}
                 value={draft.asset_prompt}
               />
@@ -411,8 +411,8 @@ function CreativeCard({
           </div>
         ) : null}
 
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#edf0e8] pt-3">
-          <a className="max-w-full truncate text-xs text-[#195b8f] underline-offset-2 hover:underline" href={variant.target_url ?? "#"}>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--line)] pt-3">
+          <a className="max-w-full truncate text-xs text-[var(--acid-2)] underline-offset-2 hover:underline" href={variant.target_url ?? "#"}>
             {variant.target_url ?? "Missing target URL"}
           </a>
           <div className="flex flex-wrap gap-2">
@@ -426,7 +426,7 @@ function CreativeCard({
           </div>
         </div>
         {localError ? (
-          <p className="text-xs text-[#a3382f]">{localError}</p>
+          <p className="text-xs text-[var(--warn)]">{localError}</p>
         ) : null}
       </div>
     </article>
@@ -445,10 +445,10 @@ function CreativeInput({
   value: string;
 }) {
   return (
-    <label className="grid gap-1 text-xs font-semibold uppercase text-[#66706b]">
+    <label className="field-label grid gap-1">
       {label}
       <input
-        className="rounded-md border border-[#d9dfd8] px-3 py-2 text-sm normal-case text-[#17201c] outline-none focus:border-[#195b8f]"
+        className="input normal-case"
         maxLength={maxLength}
         onChange={(event) => onChange(event.target.value)}
         value={value}
@@ -470,7 +470,7 @@ function ActionButton({
 }) {
   return (
     <button
-      className="inline-flex items-center gap-1.5 rounded-md border border-[#d9dfd8] px-2.5 py-1.5 text-xs font-medium text-[#17201c] disabled:cursor-not-allowed disabled:opacity-50"
+      className="btn btn-ghost btn-sm"
       disabled={disabled}
       onClick={onClick}
       type="button"
@@ -516,23 +516,23 @@ function creativeDraft(variant: CreativeVariant) {
 function cardClass(variant: CreativeVariant): string {
   const base = "rounded-md border p-3";
   if (variant.review_status === "rejected" || variant.status === "rejected") {
-    return `${base} border-[#efc0bd] bg-[#fff7f5] opacity-75`;
+    return `${base} border-[var(--warn-line)] bg-[var(--warn-soft)] opacity-75`;
   }
   if (variant.review_status === "approved" || variant.status === "approved") {
-    return `${base} border-[#b8d8bd] bg-[#f6fbf4]`;
+    return `${base} border-[var(--accent-soft)] bg-[var(--bg-2)]`;
   }
-  return `${base} border-[#d9dfd8] bg-[#fbfcf8]`;
+  return `${base} border-[var(--line)] bg-[var(--bg-2)]`;
 }
 
 function reviewBadgeStatus(status: string) {
-  if (status === "approved") return "available" as const;
+  if (status === "approved") return "complete" as const;
   if (status === "rejected") return "failed" as const;
-  if (status === "edited" || status === "enriched") return "complete" as const;
+  if (status === "edited" || status === "enriched") return "current" as const;
   return "current" as const;
 }
 
 function assetBadgeStatus(status: CreativeVariant["asset_generation_status"]) {
-  if (status === "ready") return "available" as const;
+  if (status === "ready") return "complete" as const;
   if (status === "failed") return "failed" as const;
   if (status === "pending") return "current" as const;
   return "blocked" as const;

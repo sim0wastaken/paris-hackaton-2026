@@ -12,11 +12,11 @@ export default function Error({
   reset: () => void;
 }) {
   return (
-    <main className="mx-auto w-full max-w-4xl px-5 py-10">
+    <main className="app-main max-w-4xl">
       <EmptyState
         action={
           <button
-            className="inline-flex items-center gap-2 rounded-md border border-[#17201c] bg-[#17201c] px-3 py-2 text-sm font-medium text-white"
+            className="btn btn-primary"
             onClick={reset}
             type="button"
           >
@@ -27,7 +27,7 @@ export default function Error({
         eyebrow="Runtime error"
         title="The workbench could not render this view."
       >
-        <p className="text-sm text-[#66706b]">{error.message}</p>
+        <p className="text-sm text-[var(--ink-3)]">{error.message}</p>
       </EmptyState>
     </main>
   );

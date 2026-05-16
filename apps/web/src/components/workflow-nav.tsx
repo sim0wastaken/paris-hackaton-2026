@@ -73,12 +73,12 @@ export function WorkflowNav({
       {items.map((item) => (
         <Link
           aria-current={item.state === "current" ? "page" : undefined}
-          className="flex min-h-20 items-start justify-between gap-3 rounded-md border border-[#d9dfd8] bg-white p-3 shadow-sm"
+          className={`workflow-item ${item.state === "current" ? "active" : ""}`}
           href={item.href}
           key={item.id}
         >
           <span>
-            <span className="block text-sm font-semibold text-[#17201c]">
+            <span className="block text-sm font-semibold text-[var(--ink)]">
               {item.label}
             </span>
             <span className="mt-2 block">
@@ -103,8 +103,9 @@ export function WorkflowNav({
 }
 
 function WorkflowIcon({ state }: { state: WorkflowStepState }) {
-  if (state === "complete") return <Check aria-hidden="true" size={18} />;
-  if (state === "blocked") return <Lock aria-hidden="true" size={18} />;
-  if (state === "current") return <Radio aria-hidden="true" size={18} />;
-  return <CircleDashed aria-hidden="true" size={18} />;
+  const className = "workflow-icon";
+  if (state === "complete") return <Check aria-hidden="true" className={className} size={18} />;
+  if (state === "blocked") return <Lock aria-hidden="true" className={className} size={18} />;
+  if (state === "current") return <Radio aria-hidden="true" className={className} size={18} />;
+  return <CircleDashed aria-hidden="true" className={className} size={18} />;
 }
