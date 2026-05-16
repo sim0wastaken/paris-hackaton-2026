@@ -10,6 +10,8 @@ Pinned versions for every dep. Updated whenever a dep lands. Consult before runn
 | pnpm | 11.1.2 | Root `packageManager` and `npx pnpm@11.1.2` | Workspace package manager. |
 | Supabase CLI | 2.98.2 | Root `package.json` | Local DB commands. |
 | Inngest CLI | 1.19.4 | Root `package.json` | Local Inngest Dev Server. |
+| Vercel CLI | 54.1.0 | Installed globally via `npm i -g vercel@54.1.0` | Deploys + env management + Marketplace integration installs. |
+| psql | 14.22 (Homebrew) | System | Used to push remote Supabase migrations + seed (skips `supabase login` flow). |
 | React UMD | 18.3.1 | `Motive - Landing + SaaS (4)/Motive Landing.html` | Static landing prototype. |
 | Babel standalone | 7.29.0 | `Motive - Landing + SaaS (4)/Motive Landing.html` | Browser JSX transform for prototype only. |
 
@@ -24,6 +26,7 @@ Pinned versions for every dep. Updated whenever a dep lands. Consult before runn
 | @supabase/supabase-js | 2.105.4 | `apps/web/package.json` | Supabase service-role client. |
 | @supabase/ssr | 0.10.3 | `apps/web/package.json` | Browser/server SSR clients. |
 | inngest | 4.4.0 | `apps/web/package.json` | Event client and function registry. |
+| @fal-ai/client | 1.10.1 | `apps/web/package.json` | Server-side fal.ai queue-backed image generation for Spec 07 creatives. |
 | lucide-react | 1.16.0 | `apps/web/package.json` | UI icons. |
 | server-only | 0.0.1 | `apps/web/package.json` | Server-only import guard for service-role client. |
 | tailwindcss | 4.3.0 | `apps/web/package.json` | Styling. |

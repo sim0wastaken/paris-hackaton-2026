@@ -34,6 +34,7 @@ describe("env parsing", () => {
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.OPENAI_MODEL).toBe("gpt-5-mini");
+      expect(result.data.OPENAI_EXTRACTION_MODEL).toBeUndefined();
       expect(result.data.OPENAI_EXTRACTION_PROMPT_VERSION).toBe("2026-05-16");
       expect(result.data.MOTIVE_DEMO_MODE).toBe(true);
     }

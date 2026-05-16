@@ -27,16 +27,19 @@ npx pnpm@11.1.2 dev
 - 2026-05-16: `npx pnpm@11.1.2 dev` served `http://localhost:3000`.
 - Intake accepted `https://example.com` plus optional context and routed to `/projects/demo-project`.
 - Project shell rendered workflow nav: Intake, Extraction / Review, Creatives, Monitoring.
-- Review page rendered the extraction phase rail and progressive-output placeholder panels.
-- `POST /api/projects/demo-project/extract` returned `{"status":"queued", ...}` with HTTP 200.
+- Review page renders the live phase rail, source status, source recap, feature map, conversation, landing-gap, and draft ad-group panels.
+- Spec 04 demo replay verified through `POST /api/projects`: six extraction phases succeeded, 6 features / 4 conversations / 4 landing gaps / 2 draft ad groups materialized, and the project moved to `review`.
+- No-key non-demo extraction verified: `source_recap` fails with `openai_not_configured`, downstream phases are marked `skipped_dependency_failed`, and prior/domain rows are not erased.
+- Spec 05 review actions verified through `POST /api/projects/:id/reviews`: approve, edit, reject, and enrich update the target entity and insert one `human_reviews` row with persisted `before_json` and `after_json`.
+- Spec 06 ad-group generation verified through `POST /api/projects/:id/ad-groups/generate`: approved conversations/features/gaps become one OpenAI Ads-compatible campaign plus draft ad groups with `context_hints`, bid defaults, linked conversations, persisted `extraction_runs` input/output, and deterministic fallback when provider use is skipped. Generated ad groups remain reviewable through the existing audit-backed approve/edit/reject/enrich flow.
+- Spec 07 creative generation verified through `POST /api/projects/:id/creatives`: approved ad groups become `creative_variants` with title, description, creative angle, target URL, asset prompt, `creative_text` run audit, optional fal.ai image generation, prompt-only fallback when `FAL_KEY` is absent, and audit-backed approve/edit/reject review.
 
 ## What is stubbed
 
 | Stub | Where | Cross-ref | Lift when |
 |------|-------|-----------|-----------|
 | MCP servers | Configured at harness, not in-repo | Spec §7.1 | Provision gitnexus, context7, github, chrome-devtools, playwright, sourcegraph |
-| Persistence schema | `supabase/migrations/` | Spec 02 | Create core migration and seed data |
-| OpenAI extraction materialization | `apps/web/src/inngest/extraction.ts` placeholder | Spec 04 | Replace placeholder ack with phase-by-phase persisted extraction |
+| Live OpenAI provider calls | `apps/web/src/lib/providers/openai.ts` | Spec 04 | Add `OPENAI_API_KEY` and optional `OPENAI_EXTRACTION_MODEL`; demo replay works without keys |
 | Real ad-platform deployment | Fake deploy only | OpenAI-first hackathon plan | After demo workflow works |
 | Pioneer classifier / retraining | Deferred out of critical path | OpenAI-first hackathon plan | After stored extraction + HITL data exists |
 
@@ -47,11 +50,9 @@ npx pnpm@11.1.2 dev
 
 ## Next N hours priorities
 
-1. Build OpenAI extraction phases and persist every input/output.
-2. Build HITL review pages for validating extracted ideas and proposed ad groups.
-3. Generate and persist ad-group creatives: title, description, image/video prompt or asset.
-4. Build fake deploy and story-driven monitoring dashboard.
-5. Use Supabase Realtime + Inngest/background jobs so extraction phases appear progressively in HITL instead of behind a spinner.
+1. Build fake deploy and story-driven monitoring dashboard.
+2. Harden the seeded demo path around extraction, ad groups, creatives, and monitoring.
+3. Use the stored `human_reviews`, extraction outputs, ad groups, creatives, and simulated performance rows as the later Pioneer substrate.
 
 ## Pointers (compaction-survive)
 
@@ -85,4 +86,4 @@ The product acceptance contract is:
 
 ## Deployment target
 
-_TBD — name one (e.g. "GCP Cloud Run, eu-west", "Fly.io global"). See spec §17.10._
+Production is deployed on Vercel at `https://paris-hackaton-2026.vercel.app/`, with Supabase provisioned through the Vercel Marketplace in `cdg1`.

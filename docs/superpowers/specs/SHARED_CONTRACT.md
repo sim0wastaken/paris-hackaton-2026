@@ -20,6 +20,11 @@ This file is the single source of truth for cross-spec names, ownership, OpenAI 
 
 Spec 04 must stop at reviewed extraction material and draft ad-group ideas. It must not write `creative_variants` or `performance_snapshots`.
 
+## Persistence Conventions
+
+- `extraction_runs` rows are unique by `(project_id, phase, attempt)`. Retries, reruns, and generation attempts must increment `attempt`; `prompt_version` records prompt compatibility and is not the uniqueness key.
+- Canonical Supabase Storage bucket for uploaded or copied source material is `motive-sources`. Older references to `source-files` are non-canonical.
+
 ## Canonical Labels
 
 Use these labels everywhere unless the user explicitly changes the product ontology.
@@ -67,6 +72,13 @@ Use these labels everywhere unless the user explicitly changes the product ontol
 - `security`
 - `performance`
 - `other`
+
+`landing_gaps.severity`:
+
+- OpenAI label `low` stores as `2`.
+- OpenAI label `medium` stores as `3`.
+- OpenAI label `high` stores as `5`.
+- Preserve the original label in `landing_gaps.metadata.severity_label` when available.
 
 `constraint.type`:
 

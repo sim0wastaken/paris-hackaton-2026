@@ -261,6 +261,7 @@ export const creativeVariantSchema = baseRowSchema.extend({
   provider_request_json: jsonObjectSchema,
   provider_response_json: jsonObjectSchema,
   openai_validation_json: jsonObjectSchema,
+  error: z.string().nullable(),
   status: z.enum(creativeStatusValues),
   review_status: z.enum(reviewStatusValues),
   metadata: jsonObjectSchema,
