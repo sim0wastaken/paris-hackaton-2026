@@ -7,22 +7,24 @@ Write scope: `docs/superpowers/specs/2026-05-16-04-streaming-openai-extraction-s
 
 ## Problem / User Value
 
-Motive's core demo is not "submit URL, wait, then see results." The valuable experience is watching campaign intelligence appear phase by phase: source recap, feature map, conversations, intent labels, landing gaps, ad groups, creative text, and monitoring synthesis.
+Motive's core demo is not "submit URL, wait, then see results." The valuable experience is watching campaign intelligence appear phase by phase: source recap, feature map, conversations, intent labels, landing gaps, and draft ad-group ideas.
 
 This spec defines the background extraction engine that turns source text into persisted, reviewable workflow objects. The system must make latency visible and useful by writing each phase status and output to the database as it happens. The HITL page subscribes to those writes and fills progressively.
 
+Shared enums, label vocabularies, OpenAI Ads compatibility, and phase ownership are defined in `docs/superpowers/specs/SHARED_CONTRACT.md`.
+
 ## Scope
 
-Implement the OpenAI-first extraction pipeline for these phases:
+Implement the OpenAI-first extraction pipeline through draft ad-group ideas for these phases:
 
 1. `source_recap`
 2. `feature_map`
 3. `conversation_map`
 4. `intent_classification`
 5. `landing_gaps`
-6. `ad_groups`
-7. `creative_text`
-8. `monitoring_synthesis`
+6. `ad_groups` draft ideas only; canonical campaign/ad-group generation is owned by Spec 06.
+7. `creative_text` is owned by Spec 07, after approved ad groups exist.
+8. `monitoring_synthesis` is owned by Spec 08, after fake deploy exists.
 
 The pipeline must:
 
@@ -69,7 +71,7 @@ Required columns from Spec 02 plus recommended additions:
 
 - `id`
 - `project_id`
-- `phase`: enum containing all eight phases in this spec.
+- `phase`: shared enum from Spec 02. This spec writes only `source_recap`, `feature_map`, `conversation_map`, `intent_classification`, `landing_gaps`, and `ad_groups`; `creative_text` and `monitoring_synthesis` are downstream phases owned by Specs 07-08.
 - `model`
 - `prompt_version`
 - `input_json`
@@ -86,15 +88,18 @@ Required columns from Spec 02 plus recommended additions:
   - `provider_usage_json`
   - `materialized_ids_json`
 
-Domain tables updated:
+Domain tables updated by this spec:
 
 - `brand_features`: from `feature_map`.
 - `conversations`: from `conversation_map` and `intent_classification`.
 - `landing_gaps`: from `landing_gaps`.
 - `ad_groups`: from `ad_groups`.
-- `creative_variants`: from `creative_text`.
-- `performance_snapshots`: from `monitoring_synthesis`.
-- `projects`: status moves through `extracting`, `review`, `creative_ready`, or `failed`.
+- `projects`: status moves through `extracting`, `review`, or `failed`.
+
+Tables intentionally not written by this spec:
+
+- `creative_variants`: owned by Spec 07 after ad groups are approved.
+- `performance_snapshots`: owned by Spec 08 after fake deploy.
 
 Do not delete failed or superseded `extraction_runs`. They are the audit trail and future Pioneer training/eval substrate.
 
@@ -223,7 +228,7 @@ Output schema contract:
     confidence: "low" | "medium" | "high";
   }>;
   constraints: Array<{
-    type: "budget" | "timeline" | "integration" | "team_size" | "compliance" | "technical" | "other";
+    type: "budget" | "timeline" | "integration" | "team_size" | "compliance" | "migration_object" | "approval_process" | "geography" | "existing_tool" | "technical" | "other";
     value: string;
     evidence: string;
     source_refs: string[];
@@ -341,11 +346,11 @@ Output schema contract:
 {
   classifications: Array<{
     conversation_temp_id: string;
-    stage: "awareness" | "consideration" | "decision" | "retention";
-    intent_type: "problem_aware" | "comparison" | "pricing" | "integration" | "implementation" | "proof" | "risk" | "urgency" | "general";
+    stage: "problem_aware" | "solution_compare" | "vendor_evaluation" | "pricing_check" | "security_review" | "ready_to_buy" | "post_purchase";
+    intent_type: "workflow_pain" | "migration_risk" | "proof_request" | "budget_validation" | "trust_check" | "integration_check" | "urgency_timeline" | "competitive_switch";
     buyer_role: string;
     constraints: Array<{
-      type: "budget" | "timeline" | "integration" | "team_size" | "compliance" | "procurement" | "technical" | "other";
+      type: "budget" | "timeline" | "integration" | "team_size" | "compliance" | "migration_object" | "approval_process" | "geography" | "existing_tool" | "technical" | "other";
       value: string;
       evidence: string;
       source_refs: string[];
@@ -386,7 +391,7 @@ Output schema contract:
   gaps: Array<{
     temp_id: string;
     conversation_temp_id: string;
-    gap_type: "proof" | "comparison" | "setup_path" | "pricing" | "trust" | "compliance" | "integration" | "security" | "performance" | "other";
+    gap_type: "proof" | "comparison" | "setup_path" | "pricing_clarity" | "trust_compliance" | "integration_depth" | "security" | "performance" | "other";
     severity: "low" | "medium" | "high";
     description: string;
     suggested_fix: string;
@@ -404,7 +409,7 @@ Materialization:
 
 ### 6. `ad_groups`
 
-Purpose: propose campaign-ready groupings from conversations, features, and gaps.
+Purpose: propose draft group ideas from conversations, features, and gaps. Spec 06 owns canonical `campaigns` and OpenAI-compatible `ad_groups` after HITL.
 
 Input:
 
@@ -427,6 +432,7 @@ Output schema contract:
     temp_id: string;
     name: string;
     primary_intent: string;
+    context_hints: string[];
     conversation_temp_ids: string[];
     angle: string;
     rationale: string;
@@ -440,98 +446,19 @@ Output schema contract:
 
 Materialization:
 
-- Insert `ad_groups` rows with `status = "draft"`.
+- Prefer storing draft ideas in `extraction_runs.output_json` and let Spec 06 create canonical `campaigns` and `ad_groups` from approved HITL rows.
+- If implementation inserts draft `ad_groups` here for realtime demo continuity, mark them `status = "draft"` and include `context_hints` as a JSON array.
 - Store resolved `conversation_ids` as JSONB or array, per Spec 02.
 
-### 7. `creative_text`
+## Downstream Phase Ownership
 
-Purpose: create first-pass text variants for each draft ad group.
+Spec 02 may keep `creative_text` and `monitoring_synthesis` in the shared `extraction_phase` enum because they are OpenAI-backed provider phases. They are not materialized by this extraction pipeline:
 
-Input:
+- Spec 06 owns canonical `campaigns` and OpenAI-compatible `ad_groups`. Extraction drafts cannot bypass HITL approval.
+- Spec 07 owns `creative_text`, writes `creative_variants`, and handles optional fal.ai asset generation.
+- Spec 08 owns `monitoring_synthesis`, writes `performance_snapshots`, and requires coherent story KPIs after fake deploy.
 
-- Draft ad groups.
-- Linked conversations.
-- Brand features.
-- Landing gaps.
-
-Prompt contract:
-
-- Produce title, description, angle, and image/video prompt text.
-- Keep copy specific to conversation constraints.
-- Avoid making claims not present in source references.
-- This is a draft text phase; final asset generation belongs to Spec 07.
-
-Output schema contract:
-
-```ts
-{
-  variants: Array<{
-    temp_id: string;
-    ad_group_temp_id: string;
-    title: string;
-    description: string;
-    creative_angle: string;
-    primary_message: string;
-    asset_type: "image" | "video" | "none";
-    asset_prompt: string;
-    source_refs: string[];
-    compliance_notes: string[];
-    rationale: string;
-  }>;
-}
-```
-
-Materialization:
-
-- Insert `creative_variants` rows with `status = "draft"`.
-- Set `asset_url = null`; asset generation is downstream.
-
-### 8. `monitoring_synthesis`
-
-Purpose: generate coherent simulated monitoring rows for the demo story.
-
-Input:
-
-- Draft or approved ad groups.
-- Draft creative text variants.
-- Landing gaps.
-- Conversations and intent labels.
-
-Prompt contract:
-
-- Metrics are simulated and must be internally labeled as simulated.
-- Metrics must tell a plausible story tied to specificity, intent fit, proof, pricing clarity, setup path, and unresolved landing gaps.
-- Do not randomize numbers independently from the narrative.
-
-Output schema contract:
-
-```ts
-{
-  snapshots: Array<{
-    temp_id: string;
-    ad_group_temp_id: string;
-    creative_variant_temp_id: string;
-    impressions: number;
-    clicks: number;
-    ctr: number;
-    conversions: number;
-    cvr: number;
-    spend: number;
-    quality_score: number;
-    insight: string;
-    recommended_action: string;
-    story_driver: "specificity" | "intent_fit" | "proof_gap" | "pricing_gap" | "setup_gap" | "trust_gap" | "generic_copy";
-    simulated_label: string;
-    notes: string;
-  }>;
-}
-```
-
-Materialization:
-
-- Insert `performance_snapshots` rows.
-- Store `simulated_label` in `notes` or metadata if no dedicated column exists.
-- This phase can be skipped in the first smoke build only if Spec 08 owns it, but the prompt and schema contract must remain defined here.
+This boundary prevents the extraction pipeline from bypassing HITL approval.
 
 ## Inngest Orchestration
 
@@ -574,11 +501,7 @@ Sequencing:
 12. `landing_gaps.materialize`
 13. `ad_groups.call_openai`
 14. `ad_groups.materialize`
-15. `creative_text.call_openai`
-16. `creative_text.materialize`
-17. `monitoring_synthesis.call_openai`
-18. `monitoring_synthesis.materialize`
-19. `mark-project-review-ready`
+15. `mark-project-review-ready`
 
 Use `step.sendEvent()` for optional analytics or phase-completed events, but the product UI must depend on persisted database rows and Supabase Realtime, not ephemeral Inngest events.
 
@@ -591,8 +514,6 @@ Tables that should be in the `supabase_realtime` publication:
 - `conversations`
 - `landing_gaps`
 - `ad_groups`
-- `creative_variants`
-- `performance_snapshots`
 - Optional: `sources`
 
 Client subscriptions on the HITL page:
@@ -602,8 +523,6 @@ Client subscriptions on the HITL page:
 - `conversations`: listen to `INSERT` and `UPDATE`, filter `project_id=eq.${projectId}`.
 - `landing_gaps`: listen to `INSERT` and `UPDATE`, filter `project_id=eq.${projectId}`.
 - `ad_groups`: listen to `INSERT` and `UPDATE`, filter `project_id=eq.${projectId}`.
-- `creative_variants`: listen to `INSERT` and `UPDATE` if the review or creative preview panel is visible.
-- `performance_snapshots`: listen to `INSERT` if monitoring preview is visible.
 
 UI behavior:
 
@@ -659,7 +578,7 @@ Provider retry handling:
 
 Phase rail:
 
-- Shows all eight phases immediately.
+- Shows the six extraction/HITL phases immediately.
 - Status icon per phase: queued, running, succeeded, failed.
 - Displays elapsed time for running phase if available.
 - Clicking a phase scrolls to its panel.
@@ -673,8 +592,7 @@ Panels:
 - Intent columns fill when `intent_classification` updates conversations.
 - Landing gaps appear as badges/cards tied to conversations.
 - Ad groups appear as draft cards.
-- Creative text preview appears when variants insert.
-- Monitoring preview appears when snapshots insert or can defer to monitoring page.
+- Creative generation and monitoring are shown as disabled next workflow steps until the user approves ad groups/creatives.
 
 No spinner-only extraction:
 
@@ -697,7 +615,7 @@ No spinner-only extraction:
 ## Acceptance Criteria
 
 - `POST /api/projects/[id]/extract` or equivalent event trigger starts extraction without blocking the request on all OpenAI calls.
-- All eight phases are represented in `extraction_runs`.
+- The six extraction/HITL phases owned by this spec are represented in `extraction_runs`: `source_recap`, `feature_map`, `conversation_map`, `intent_classification`, `landing_gaps`, and `ad_groups`.
 - Every phase persists `input_json`, `output_json`, model, prompt version, status, timestamps, and error when applicable.
 - OpenAI outputs are validated against phase-specific Zod schemas.
 - Successful phases materialize rows into the correct domain tables.
@@ -710,17 +628,16 @@ No spinner-only extraction:
 ## Demo Script
 
 1. Complete Spec 03 intake and land on the project review page.
-2. Point to the phase rail with all eight phases queued.
+2. Point to the phase rail with the six extraction/HITL phases queued.
 3. Watch `source_recap` move to running, then succeeded; recap panel fills.
 4. Watch `feature_map` succeed; feature/value prop rows appear.
 5. Watch `conversation_map` insert conversation rows.
 6. Watch `intent_classification` update each conversation with stage, intent, buyer role, and constraints.
 7. Watch `landing_gaps` add gap cards tied to conversations.
 8. Watch `ad_groups` create draft ad-group cards.
-9. Watch `creative_text` create title/description/asset prompt drafts.
-10. Watch `monitoring_synthesis` create simulated insight rows or hand off to the monitoring page.
-11. Approve or edit at least one row while later phases are still running to demonstrate HITL is live.
-12. If a provider fails during the live demo, switch to seeded replay and show that the same tables and phase rail update progressively.
+9. Approve or edit at least one row while later phases are still running to demonstrate HITL is live.
+10. Continue to Spec 07 for creative generation and Spec 08 for story monitoring.
+11. If a provider fails during the live demo, switch to seeded replay and show that the same tables and phase rail update progressively.
 
 ## Research Notes
 
@@ -749,8 +666,7 @@ No spinner-only extraction:
 
 ## Open Questions / Risks
 
-- Spec 02 must confirm whether `extraction_runs.phase` includes all eight names here or whether `creative_text` and `monitoring_synthesis` are separate generation phases.
+- Spec 02 includes `creative_text` and `monitoring_synthesis` in the shared enum, but Spec 07 and Spec 08 own those phases.
 - If Spec 02 does not include `materialized_ids_json`, materializer traceability should use `output_json.materialized_ids` instead.
 - If realtime publication setup is delayed, polling can satisfy development but the final demo should use Supabase Realtime for the visible "rows appear live" moment.
-- Monitoring synthesis overlaps with Spec 08; this spec defines the prompt/schema contract, while Spec 08 can own final dashboard UX and fake deploy timing.
-- Creative text overlaps with Spec 07; this spec can generate draft text, while Spec 07 can own regeneration, approval workflow, and asset generation.
+- Do not add creative or monitoring materialization back into this spec unless the user explicitly changes the HITL-first product direction.

@@ -12,10 +12,12 @@ The demo needs a satisfying final loop: approved creatives become a launched cam
 
 The user value is an explainable dashboard that helps a marketer decide what to keep, fix, or regenerate. The strategic value is the Pioneer bridge: every `performance_snapshots` row becomes an outcome-labeled example that a future classifier can learn from.
 
+This spec follows `docs/superpowers/specs/SHARED_CONTRACT.md` for OpenAI-compatible deploy payload shape and KPI scoring.
+
 ## Goals
 
 - Let the user fake-deploy approved creative variants with one clear action.
-- Persist a `deployments` row containing the deploy payload and selected creative/ad-group context.
+- Persist a `deployments` row containing an OpenAI Ads-shaped campaign/ad-group/ad payload plus selected Motive context.
 - Generate `performance_snapshots` with coherent KPIs, `quality_score`, `insight`, and `recommended_action`.
 - Make KPI generation deterministic enough to explain live while allowing GPT to synthesize human-readable insights.
 - Show a dashboard whose charts and tables support one clear story for the future Pioneer pitch.
@@ -86,15 +88,33 @@ Read approved rows:
 
 Only approved variants are deployable. Rejected/pending variants remain visible in Creatives but are excluded from deploy payloads.
 
-### `ad_groups`
+### `campaigns`
 
 Read:
 
 - `id`
 - `project_id`
 - `name`
+- `objective`
+- `lifetime_spend_limit_micros`
+- `countries`
+- `custom_instruction`
+- `status`
+
+### `ad_groups`
+
+Read:
+
+- `id`
+- `project_id`
+- `campaign_id`
+- `name`
+- `context_hints`
+- `billing_event_type`
+- `max_bid_micros`
 - `rationale`
 - `conversation_ids`
+- `product_feed_item_ids`
 - `status`
 
 ### `landing_gaps`, `conversations`, `brand_features`
@@ -105,6 +125,14 @@ Read for quality scoring and explanations:
 - Landing gap type, description, suggested fix, review status.
 - Feature/proof-point type and review status.
 
+### `product_feeds`, `product_feed_items`
+
+Read only when present:
+
+- Feed metadata for ecommerce/product-feed payload context.
+- Approved product items linked from `ad_groups.product_feed_item_ids`.
+- Item title, description, link, image link, price, availability, brand, and product type.
+
 ### `deployments`
 
 Write:
@@ -112,7 +140,7 @@ Write:
 - `id`
 - `project_id`
 - `status`: `fake_deployed`
-- `payload_json`: selected ad groups, creative variants, generated asset URLs/prompts, deploy timestamp, actor, provider label `simulated`
+- `payload_json`: OpenAI Ads-shaped `campaign`, `ad_groups`, and `ads` arrays plus optional `product_feed` / `product_feed_items` context, Motive-owned rationale, creative angles, generated asset URLs/prompts, deploy timestamp, actor, provider label `simulated`
 - `created_at`
 - `updated_at`
 
@@ -132,7 +160,8 @@ Required:
 - `ad_group_id`
 - `creative_variant_id`
 - `deployment_id`
-- `snapshot_date` or `period_label`
+- `period_start`
+- `period_end`
 - `impressions`
 - `clicks`
 - `ctr`
@@ -254,7 +283,8 @@ Request:
 ```json
 {
   "creative_variant_ids": ["uuid"],
-  "generate_performance": true
+  "generate_performance": true,
+  "export_format": "openai_ads_api"
 }
 ```
 
@@ -272,9 +302,12 @@ Response:
 Rules:
 
 - Validate project exists.
+- Validate campaign exists or create a default approved campaign from Spec 06 defaults.
 - Validate all creative variants belong to project.
+- Include approved product-feed rows in payload only when selected ad groups link to them; do not require product-feed data for the B2B SaaS demo path.
 - Reject if no approved variants are selected.
 - Exclude pending/rejected variants even if IDs are provided.
+- Validate OpenAI compatibility before writing a successful fake deploy payload: campaign objective/budget/countries, ad group context hints/bid, creative title/body limits, target URL, and image requirements.
 - Write deployment row before generating snapshots.
 - If monitoring generation fails after deployment is written, keep deployment and show dashboard failure/retry.
 - The endpoint is idempotent only if the same deployment should be reused. V1 may create a new deployment per click but should confirm in UI to avoid accidental duplicates.
@@ -373,7 +406,8 @@ Realtime events:
 ## Acceptance Criteria
 
 - Given at least one approved creative, when the user clicks fake deploy, then a `deployments` row is created with `status = fake_deployed`.
-- The deployment payload includes selected creative IDs, ad group IDs, title, description, creative angle, asset prompt, and optional asset URL.
+- The deployment payload includes an OpenAI Ads-shaped campaign, ad groups with `context_hints`, and ads with `chat_card` title/body/target URL/image fields, plus Motive-owned creative IDs, ad group IDs, creative angle, asset prompt, and optional asset URL/file ID.
+- Payload validation flags non-exportable video assets and non-square/missing image assets before marking the package OpenAI-compatible.
 - Pending/rejected creative variants cannot be deployed.
 - Performance snapshots are generated for deployed creatives.
 - Every snapshot includes valid `quality_score`, `insight`, and `recommended_action`.

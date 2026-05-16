@@ -11,6 +11,8 @@ Motive needs a runnable app foundation before any extraction, review, creative, 
 
 This scaffold must keep v1 OpenAI-first and independent from Pioneer. The foundation should make the happy path obvious: Intake -> Extraction/Review -> Creatives -> Monitoring.
 
+All later implementation must reference `docs/superpowers/specs/SHARED_CONTRACT.md` for shared phase names, OpenAI Ads compatibility, KPI scoring, label vocabularies, and cross-spec ownership.
+
 ## Goals
 
 - Boot a Next.js App Router app from `apps/web` with TypeScript, Tailwind, and a minimal workflow shell.

@@ -11,16 +11,20 @@ The demo starts when a user gives Motive a brand homepage URL and optional conte
 
 The user value is speed and trust: the user should see that Motive captured the source, understands whether extraction succeeded, and can keep going even if Tavily, file parsing, or provider credentials are unavailable during a live hackathon demo.
 
+This spec follows `docs/superpowers/specs/SHARED_CONTRACT.md` for product-feed support and source-to-campaign compatibility.
+
 ## Scope
 
 - Create a project from a brand or homepage URL.
 - Accept optional context as pasted text or Markdown in the first build.
+- Accept optional product feed input for ecommerce brands as pasted CSV/JSONL or uploaded feed file if storage is ready.
 - Represent every submitted or discovered source as a `sources` row.
+- Represent every submitted product feed as `product_feeds` plus `product_feed_items` rows.
 - Run a lean source ingestion step that tries Tavily Extract for the primary URL when `TAVILY_API_KEY` is configured.
 - Optionally use Tavily Search/Map/Crawl in a constrained way only when the homepage content is too thin.
 - Provide a manual text fallback that fully supports the demo without Tavily.
 - Route immediately to the project workspace or review page after project creation.
-- Surface source status per source: queued, processing, processed, failed, skipped, or needs_manual_text.
+- Surface source status per source: pending, processing, processed, failed, skipped, or needs_manual_text.
 - Trigger the streaming OpenAI extraction pipeline after at least one usable source text bundle exists.
 - Support a seeded demo source path so the demo works without live providers.
 
@@ -30,6 +34,7 @@ The user value is speed and trust: the user should see that Motive captured the 
 - No production-grade document ingestion pipeline.
 - No OCR, screenshot parsing, spreadsheet parsing, or rich PDF understanding in the critical path.
 - No real competitor research sweep unless later specs explicitly add it.
+- No million-SKU feed processing in the critical path. V1 must support a small representative feed end-to-end and keep the full-scale feed importer additive.
 - No Pioneer, GLiNER2, fine-tuning, or classifier dependency.
 - No blocking intake on all source extraction work completing.
 - No whole-page waiting screen after submit.
@@ -55,6 +60,7 @@ Optional fields:
 
 - `project_name`: if empty, derive from hostname or source recap later.
 - `extra_context`: freeform plain text or Markdown, max 50,000 characters for v1.
+- `product_feed_sample`: optional pasted CSV or JSONL for ecommerce brands.
 - `demo_mode`: internal toggle or query param that uses seeded source text and bypasses providers.
 
 Validation:
@@ -73,10 +79,11 @@ Source types:
 - `text`: pasted user context.
 - `markdown`: pasted Markdown or uploaded Markdown if implemented.
 - `pdf`: optional file metadata only unless PDF text extraction is completed.
+- `product_feed`: uploaded or pasted ecommerce feed source metadata.
 
 Source statuses:
 
-- `queued`: source row has been created but no processing has started.
+- `pending`: source row has been created but no processing has started.
 - `processing`: ingestion job is attempting extraction.
 - `processed`: `raw_text` or `extracted_text` is usable by OpenAI.
 - `failed`: extraction failed and no usable text exists for that source.
@@ -135,6 +142,27 @@ PDF stance:
 - The UI should ask the user to paste the key PDF text into the context box if PDF parsing is not implemented.
 - Do not add OCR or complex parser dependencies in the hackathon critical path.
 
+## Product Feed Intake
+
+Motive must support ecommerce/product-feed ads end-to-end without blocking the B2B SaaS demo path.
+
+P0 path:
+
+- Accept a small pasted product feed sample in CSV or JSONL.
+- Create one `product_feeds` row with `status = "processed"` when parsing succeeds.
+- Create `product_feed_items` rows using Google Shopping-style fields where present: `id`, `title`, `description`, `link`, `image_link`, `availability`, `price`, `brand`, `google_product_category`, and `product_type`.
+- Store the raw row in `product_feed_items.raw_json` for replay/export.
+- Also create a `sources` row of type `product_feed` or metadata-linked text summary so Spec 04 can use product context in extraction.
+
+Fallback:
+
+- If parsing fails, keep the raw feed as a `sources` row with `status = "needs_manual_text"` and ask the user to paste 3-5 representative products as text.
+- Do not block non-ecommerce demos on feed errors.
+
+Non-goal:
+
+- Do not implement large-file streaming, feed validation at 1M SKU scale, or merchant-center-grade diagnostics during the hackathon.
+
 ## Data Model Touched
 
 `projects`:
@@ -150,6 +178,12 @@ PDF stance:
 - Recommended supporting fields if Spec 02 allows them:
   - `metadata_json`: provider request IDs, Tavily usage, normalized URL, content type, file size, favicon, discovered URL source.
   - `error_json`: provider status, error message, retry-after, failed URLs.
+
+`product_feeds` and `product_feed_items`:
+
+- Create when the user provides product feed context.
+- Must follow Spec 02 and `SHARED_CONTRACT.md`.
+- Feed rows are optional for B2B SaaS projects but required for ecommerce demo coverage.
 
 `extraction_runs`:
 

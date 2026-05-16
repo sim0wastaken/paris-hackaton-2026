@@ -8,14 +8,16 @@ Depends on: Spec 02 database contract, Spec 06 ad-group generation, Spec 05 HITL
 
 ## Problem / User Value
 
-After a reviewer approves ad groups, Motive needs to turn campaign structure into reviewable creative assets fast enough for a hackathon demo. The user value is a concrete output package per approved ad group: ad title, ad description, creative angle, and an image/video prompt or generated asset that can be approved and then fake-deployed.
+After a reviewer approves ad groups, Motive needs to turn campaign structure into reviewable creative assets fast enough for a hackathon demo. The user value is a concrete output package per approved ad group: OpenAI Ads-compatible ad title, ad body/description, creative angle, and square image prompt/generated asset that can be approved and then fake-deployed.
+
+This spec follows `docs/superpowers/specs/SHARED_CONTRACT.md` for OpenAI Ads title/body/image limits and export mapping.
 
 The feature must make the future Pioneer story visible without depending on Pioneer. Each generated creative stores enough prompt, output, and review data to become later training/evaluation material for a smaller classifier or creative-quality model.
 
 ## Goals
 
 - Generate at least one usable creative variant for every approved ad group.
-- Persist title, description, creative angle, image/video prompt, optional asset URL, provider metadata, and review status.
+- Persist title, description/body, creative angle, image prompt, optional asset URL/file ID, provider metadata, asset generation status, and review status.
 - Keep fal.ai optional so the demo can continue with prompt-only creative cards when no `FAL_KEY` is present or generation fails.
 - Make review decisions explicit and auditable through `creative_variants` and `human_reviews`.
 - Produce assets that are grounded in approved conversations, brand features, landing gaps, and ad-group rationale rather than generic ad copy.
@@ -35,7 +37,7 @@ The feature must make the future Pioneer story visible without depending on Pion
 
 - No real ad-platform creative upload. Fake deploy is handled in Spec 08.
 - No multi-channel campaign planner. V1 produces channel-agnostic paid-social/search-style creative cards that can support the demo.
-- No full video rendering dependency for the live demo. The data model supports `asset_type = video`, but image generation is the default because it is faster and lower risk.
+- No full video rendering dependency for the live demo. The data model may support `asset_type = video` for Motive-owned future-channel assets, but OpenAI Ads export is image-only today.
 - No brand asset ingestion or design-system enforcement beyond prompt grounding from stored sources.
 - No automatic creative learning loop. The feature stores the rows that make that loop possible later.
 
@@ -46,6 +48,8 @@ The feature must make the future Pioneer story visible without depending on Pion
 - fal.ai JavaScript client: `@fal-ai/client` supports `fal.subscribe()` for queue-backed generation with queue updates, and exposes queue/result APIs. Source: https://docs.fal.ai/api-reference/client-libraries/javascript/index
 - fal.ai server credentials: server-side code should use `FAL_KEY`; browser code must not expose the key and should go through a proxy if client-side calls are ever needed. Source: https://fal.ai/docs/documentation/model-apis/inference/client-setup
 - fal.ai model choice: default to `fal-ai/flux/schnell` for hackathon image generation because it is documented as a fast text-to-image model, supports 1-4 default steps, exposes `prompt`, `image_size`, `num_images`, `seed`, and returns generated image URLs. Source: https://fal.ai/docs/model-api-reference/image-generation-api/flux-schnell
+- OpenAI Ads bulk upload requires ad titles within 16-24 recommended characters and 50 maximum, ad copy within 32-48 recommended characters and 100 maximum, valid landing page URLs, and square PNG/JPG images no larger than 1200x1200. Source: [OpenAI Bulk Upload Campaign Schema Checklist](https://help.openai.com/en/articles/20001218).
+- OpenAI launch guidance describes ChatGPT ads as ad title, copy, landing page URL, and image, with context-hint ad groups under campaigns. Source: [OpenAI Launch Campaigns](https://help.openai.com/es-419/articles/20001209-launch-campaigns).
 - fal.ai workflow option: workflows can chain multiple models behind one endpoint, but v1 should use a direct model endpoint for speed and fewer moving parts. Source: https://fal.ai/docs/documentation/model-apis/workflows
 - Next.js route handlers: API endpoints live in `app/**/route.ts`, support standard HTTP methods, and use Web Request/Response APIs. Source: https://nextjs.org/docs/app/getting-started/route-handlers
 - Context7 grounding used: `/vercel/next.js` for route handler/server mutation boundaries and `/fal-ai/fal-js` for subscribe/queue usage.
@@ -61,6 +65,7 @@ Read only:
 - `name`
 - `rationale`
 - `conversation_ids`
+- `product_feed_item_ids`
 - `status`
 
 Only ad groups with `status = approved` or `status = creative_generated` are eligible. Draft/rejected ad groups must not generate creatives.
@@ -78,8 +83,13 @@ Create/update rows with:
 - `asset_type`: `image` / `video` / `none`
 - `asset_prompt`
 - `asset_url`: nullable
+- `asset_generation_status`: `not_requested` / `pending` / `skipped` / `ready` / `failed`
+- `openai_file_id`: nullable, when an uploaded file ID is available
+- `target_url`: required before fake deploy/OpenAI export
+- `openai_ad_type`: `chat_card`
+- `openai_ad_status`: `paused` / `active` / `archived`; default `paused`
 - `review_status`: `pending` / `approved` / `edited` / `rejected`
-- `asset_generation_status`: `skipped` / `queued` / `running` / `succeeded` / `failed`
+- `status`: `draft` / `approved` / `rejected` / `archived`
 - `provider`: nullable, expected `openai` for copy and `fal.ai` for rendered assets
 - `provider_request_json`: JSONB, copy generation input and fal input when called
 - `provider_response_json`: JSONB, structured OpenAI output and fal response when called
@@ -87,13 +97,13 @@ Create/update rows with:
 - `created_at`
 - `updated_at`
 
-If Spec 02 standardizes this column as `status` instead of `review_status`, implementers should treat `status` as the review status and avoid adding a duplicate column. The UI label must still say review status.
+Spec 02 keeps workflow `status`, `review_status`, and `asset_generation_status` separate. Do not create extra status columns in application code.
 
 ### `extraction_runs`
 
 Write one run for the text generation phase:
 
-- `phase = creative_generation`
+- `phase = creative_text`
 - `input_json`: approved ad groups plus selected conversations/features/gaps
 - `output_json`: raw structured output
 - `model`
@@ -101,7 +111,7 @@ Write one run for the text generation phase:
 - `status`
 - `error`
 
-Optional asset generation may either write another `extraction_runs` row with `phase = creative_asset_generation` if that enum exists, or store fal request/response directly on `creative_variants.provider_*_json`. Do not block on adding a new enum if Spec 02 has already locked the phase list.
+Optional asset generation stores fal request/response directly on `creative_variants.provider_*_json`. Do not add `creative_asset_generation` to `extraction_runs.phase` for v1 unless Spec 02 is explicitly amended.
 
 ### `human_reviews`
 
@@ -124,6 +134,7 @@ The generation service receives:
 - approved `brand_features`
 - approved or edited `landing_gaps` linked to those conversations
 - optional brand/project context from `projects.extra_context`
+- optional approved product feed items linked by `ad_groups.product_feed_item_ids`
 
 For each ad group, build a compact context object:
 
@@ -132,15 +143,16 @@ For each ad group, build a compact context object:
   "ad_group": {
     "id": "uuid",
     "name": "Gmail migration - fast setup",
-    "rationale": "Targets teams blocked by timeline and setup uncertainty"
+    "rationale": "Targets teams blocked by timeline and setup uncertainty",
+    "product_feed_item_ids": []
   },
   "conversations": [
     {
       "id": "uuid",
       "text": "Can we move from spreadsheets to a CRM by Friday?",
-      "stage": "evaluation",
-      "intent_type": "migration",
-      "buyer_role": "ops_lead",
+      "stage": "vendor_evaluation",
+      "intent_type": "migration_risk",
+      "buyer_role": "operations",
       "constraints_json": {
         "timeline": "by Friday",
         "integration": "Gmail"
@@ -160,6 +172,16 @@ For each ad group, build a compact context object:
       "description": "Landing page says easy setup but lacks Gmail proof",
       "suggested_fix": "Add a setup path module and migration checklist"
     }
+  ],
+  "product_feed_items": [
+    {
+      "id": "uuid",
+      "title": "Starter migration package",
+      "description": "Assisted Gmail setup for small teams",
+      "price": "$199",
+      "availability": "in_stock",
+      "product_type": "Services > CRM migration"
+    }
   ]
 }
 ```
@@ -173,6 +195,7 @@ Prompt intent:
 - Generate campaign-ready variants, not generic slogans.
 - Tie each title/description to at least one conversation constraint and one brand feature or proof point.
 - Include the landing gap when relevant so the prompt can become a monitoring explanation later.
+- Use product-feed item details only when they are linked to the ad group; do not turn a B2B SaaS ad group into a shopping ad without product context.
 - Avoid unsupported factual claims. If a needed proof point is missing, frame the copy as a testable angle rather than a promise.
 - Produce one primary variant per ad group for v1; allow `variant_count` to become configurable later.
 
@@ -185,12 +208,14 @@ type CreativeGenerationOutput = {
     title: string;
     description: string;
     creative_angle: string;
-    asset_type: "image" | "video" | "none";
+    asset_type: "image" | "none";
     asset_prompt: string;
+    target_url: string;
     grounding: {
       conversation_ids: string[];
       brand_feature_ids: string[];
       landing_gap_ids: string[];
+      product_feed_item_ids: string[];
       quality_signals: Array<
         | "specific_constraint"
         | "proof_aligned"
@@ -205,13 +230,14 @@ type CreativeGenerationOutput = {
 };
 ```
 
-Text guidance:
+Text and OpenAI Ads guidance:
 
-- `title`: short ad headline, target 35-70 characters.
-- `description`: one concise sentence, target 90-160 characters.
+- `title`: target 16-24 characters, hard maximum 50.
+- `description`: maps to OpenAI ad body/copy; target 32-48 characters, hard maximum 100.
 - `creative_angle`: plain-language strategy label, e.g. `Timeline proof`, `Setup anxiety`, `Pricing clarity`.
 - `asset_prompt`: visual generation prompt, no UI instructions, no forbidden brand/logo claims unless the source text includes them.
-- `asset_type`: default `image`; use `none` if the input lacks enough visual context or provider asset generation is disabled.
+- `target_url`: must be a valid reachable URL, usually the project brand URL or a user-edited landing URL.
+- `asset_type`: default `image`; use `none` only if provider asset generation is disabled. OpenAI-compatible deploy requires a square image URL/file ID.
 
 ## fal.ai Asset Generation
 
@@ -220,7 +246,7 @@ fal.ai is optional and must never block the demo.
 Default model:
 
 - `fal-ai/flux/schnell`
-- `image_size = landscape_16_9` for dashboard/deploy preview cards, or `landscape_4_3` if implementation prefers the model default.
+- `image_size = square_hd` or provider equivalent. The final asset must be square PNG/JPG and no larger than 1200x1200 for OpenAI Ads compatibility.
 - `num_images = 1`
 - `num_inference_steps = 4`
 - `enable_safety_checker = true`
@@ -231,7 +257,7 @@ Server behavior:
 
 1. If `FAL_KEY` is absent, do not call fal.ai.
 2. Persist the OpenAI-generated `asset_prompt`.
-3. Set `asset_generation_status = skipped`, `asset_type = image` or `none`, and `asset_url = null`.
+3. Set `asset_generation_status = "skipped"`, `asset_type = image` or `none`, and `asset_url = null`.
 4. Show the card as prompt-only with a "generation skipped" provider badge.
 
 If fal.ai is available:
@@ -239,14 +265,14 @@ If fal.ai is available:
 1. Call from server-side route handler or background job only.
 2. Use `fal.subscribe("fal-ai/flux/schnell", { input, logs: true, onQueueUpdate })`.
 3. Persist request JSON before the call.
-4. Persist response JSON and first safe image URL on success.
-5. If the response has safety flags, empty images, or no URL, mark `asset_generation_status = failed`, keep the prompt, and do not delete the creative row.
+4. Persist response JSON and first safe image URL on success; set `asset_generation_status = "ready"`.
+5. If the response has safety flags, empty images, or no URL, mark `asset_generation_status = "failed"`, keep the prompt, and do not delete the creative row.
 
 Video:
 
 - `asset_type = video` is allowed in the model/schema for future support.
-- V1 should not call a video model during the live demo unless the team explicitly adds a stable provider path.
-- If the OpenAI output recommends video, persist the prompt but set `asset_generation_status = skipped` unless a video provider is configured.
+- V1 should not call a video model during the live demo.
+- OpenAI Ads export is image-only today. If the app stores a video concept, keep it as Motive-owned non-exportable future-channel headroom and generate an image creative for the OpenAI-compatible path.
 
 ## API / Server Boundaries
 
@@ -370,10 +396,13 @@ Interactions:
 
 - Given a project with at least one approved ad group, when the user clicks `Generate creatives`, then the system creates at least one `creative_variants` row per approved ad group.
 - Each created variant has non-empty `title`, `description`, `creative_angle`, and `asset_prompt`.
+- Each created variant obeys OpenAI Ads copy limits: title <= 50 characters and description/body <= 100 characters.
+- Each OpenAI-exportable creative has a valid `target_url`.
 - Each created variant persists a review status.
 - Each OpenAI generation call is represented in `extraction_runs` with input, output, model, prompt version, status, and any error.
-- If `FAL_KEY` is absent, generation still succeeds with `asset_generation_status = skipped`, `asset_url = null`, and the prompt visible in the UI.
+- If `FAL_KEY` is absent, generation still succeeds with `asset_generation_status = "skipped"`, `asset_url = null`, and the prompt visible in the UI.
 - If fal.ai succeeds, the first generated image URL is persisted in `asset_url`.
+- If an OpenAI upload/file endpoint is later wired, the returned file ID is persisted in `openai_file_id`; bulk upload can use `asset_url` only when it is directly public and opens to the image.
 - If fal.ai fails, the creative remains reviewable and the failure is visible at card level.
 - The user can approve, reject, and edit a creative, and each action writes a `human_reviews` row.
 - Only approved creative variants are eligible for fake deploy in Spec 08.
@@ -393,7 +422,7 @@ Interactions:
 ## Open Questions / Risks
 
 - Should the first version generate one variant per ad group or three alternatives? Recommendation: one for demo speed, with regeneration for breadth.
-- Does Spec 02 standardize `creative_variants.status` or `review_status`? Recommendation: use one canonical review status field and avoid duplicate state.
+- Spec 02 is authoritative: `creative_variants.status` is workflow state, `review_status` is human review state, and `asset_generation_status` is asset state.
 - Will generated fal.ai media URLs be persisted as external URLs only, or copied into Supabase Storage? Recommendation: external URL for v1, storage copy post-demo.
 - Should media prompt edits trigger an automatic fal.ai retry? Recommendation: manual retry to avoid surprise provider spend.
 - Which OpenAI model is configured for the demo? Requirement: it must support Structured Outputs for the selected API path.

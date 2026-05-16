@@ -10,6 +10,8 @@ The review workspace is where Motive stops looking like a batch AI report and st
 
 The user value is confidence and control. A marketer or founder can see exactly what OpenAI extracted from the brand/source context, correct it before it becomes campaign structure, and leave an audit trail that later becomes Pioneer training data.
 
+This spec follows `docs/superpowers/specs/SHARED_CONTRACT.md` for canonical labels, phase ownership, and OpenAI Ads-compatible downstream fields.
+
 ## Scope
 
 Build the project review route and client workspace for:

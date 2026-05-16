@@ -10,16 +10,27 @@ Motive needs to turn validated extraction rows into a campaign structure a user 
 
 The user value is fast campaign architecture without losing control. The model proposes tight groups from approved evidence only; the user can regenerate, edit, enrich, approve, or reject before creatives are generated.
 
+This spec follows `docs/superpowers/specs/SHARED_CONTRACT.md`. It owns canonical `campaigns` and OpenAI-compatible `ad_groups`.
+
 ## Scope
 
-Build the generation contract and review flow for `ad_groups`:
+Build the generation contract and review flow for `campaigns` and `ad_groups`:
 
 - Inputs are approved extraction rows only:
   - `conversations.review_status = "approved"`
   - `brand_features.review_status = "approved"`
   - `landing_gaps.review_status = "approved"`
-- Generate campaign-ready ad groups with:
+- Generate one default campaign per project unless the user explicitly asks for multiple:
   - `name`
+  - `objective`: `Clicks` by default
+  - `lifetime_spend_limit_micros`: default `5000000`
+  - `countries`: default `["US"]`
+  - `custom_instruction`
+- Generate OpenAI-compatible ad groups with:
+  - `name`
+  - `context_hints`
+  - `billing_event_type`
+  - `max_bid_micros`
   - `rationale`
   - `conversation_ids`
   - `status`
@@ -33,11 +44,12 @@ Build the generation contract and review flow for `ad_groups`:
 ## Non-goals
 
 - Real Google Ads, Meta, TikTok, or LinkedIn campaign creation.
-- Keyword bidding, budgets, account hierarchy, match types, or delivery settings.
-- Creative copy/image/video generation. That belongs to Spec 07.
+- Live OpenAI Ads API mutation. This spec must still produce OpenAI-compatible campaign/ad-group payloads for fake deploy and bulk/API export.
+- Keyword match types. OpenAI ad groups use context hints, not keyword clusters.
+- Creative copy/image generation. Future video concepts may be stored for non-OpenAI channels, but v1 OpenAI Ads export is image/chat-card only and belongs to Spec 07.
 - Monitoring and KPI generation. That belongs to Spec 08.
 - Pioneer classification or training. Pioneer uses this data after V1.
-- Multi-campaign planning across channels. V1 creates a single campaign workspace with ad groups.
+- Multi-channel planning. V1 creates one OpenAI-compatible campaign workspace with ad groups.
 
 ## Research Notes
 
@@ -47,7 +59,7 @@ Build the generation contract and review flow for `ad_groups`:
 - Next.js Server Components should keep data fetching and secrets on the server; Client Components are for interactivity. OpenAI calls and Supabase privileged writes must stay in server actions, route handlers, or Inngest jobs. Source: [Next.js Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components).
 - Next.js Server Actions are server-side async functions for mutations and can be invoked from Client Components through event handlers or forms. This fits approve/edit/regenerate actions. Source: [Next.js Updating Data](https://nextjs.org/docs/app/getting-started/updating-data).
 - Supabase Realtime can subscribe to `ad_groups` inserts/updates with a project filter, so generated groups can appear in the existing HITL workspace or a dedicated ad-group panel. Source: [Supabase Realtime Postgres Changes](https://supabase.com/docs/guides/realtime/postgres-changes).
-- Google Ads defines an ad group as one or more ads sharing similar targets, and recommends organizing ad groups by a common theme. Motive should adapt that to "conversation theme" rather than keyword or bid mechanics. Source: [Google Ads Help: Ad group definition](https://support.google.com/google-ads/answer/6298?hl=en-EN) and [Google Ads Help: How ad groups work](https://support.google.com/google-ads/answer/2375404).
+- OpenAI Ads Manager structures campaigns around campaigns, ad groups, and ads. Ad groups represent themes, intents, and context hint clusters; bulk upload expects context hints as a JSON array. Sources: [OpenAI Launch Campaigns](https://help.openai.com/es-419/articles/20001209-launch-campaigns) and [OpenAI Bulk Upload Campaign Schema Checklist](https://help.openai.com/en/articles/20001218).
 
 ## Product Principle
 
@@ -82,6 +94,12 @@ type AdGroupGenerationInput = {
     offer?: string;
     constraints?: string[];
   };
+  campaign_defaults: {
+    objective: "Clicks" | "Views";
+    lifetime_spend_limit_micros: number;
+    countries: string[];
+    custom_instruction?: string;
+  };
   approved_conversations: Array<{
     id: string;
     text: string;
@@ -104,6 +122,14 @@ type AdGroupGenerationInput = {
     gap_type: string;
     description: string;
     suggested_fix: string;
+  }>;
+  approved_product_feed_items?: Array<{
+    id: string;
+    title: string;
+    description?: string;
+    price?: string;
+    availability?: string;
+    product_type?: string;
   }>;
   existing_ad_groups: Array<{
     id: string;
@@ -128,12 +154,24 @@ OpenAI must return a strict object:
 
 ```ts
 type AdGroupGenerationOutput = {
+  campaign: {
+    name: string;
+    objective: "Clicks" | "Views";
+    lifetime_spend_limit_micros: number;
+    countries: string[];
+    custom_instruction: string;
+    rationale: string;
+  };
   ad_groups: Array<{
     name: string;
     rationale: string;
+    context_hints: string[];
+    billing_event_type: "click" | "view";
+    max_bid_micros: number;
     conversation_ids: string[];
     linked_feature_ids: string[];
     linked_landing_gap_ids: string[];
+    linked_product_feed_item_ids: string[];
     status: "draft";
     confidence: number; // 0..1
   }>;
@@ -146,13 +184,21 @@ type AdGroupGenerationOutput = {
 
 Validation rules before persistence:
 
-- `name` is 3-60 characters, human-readable, and not generic.
+- Campaign `name` is at least 3 characters and unique inside the project.
+- Campaign `objective` is `Clicks` or `Views`.
+- Campaign `lifetime_spend_limit_micros` is at least `1000000`.
+- Campaign `countries` is a non-empty country-code array and defaults to `["US"]`.
+- Ad group `name` is at least 3 characters, human-readable, and not generic.
+- `context_hints` is a non-empty JSON array of distinct phrases. Each phrase should be broad enough for semantic targeting but specific enough to reflect approved conversations.
+- `billing_event_type` defaults to `click` for `Clicks` campaigns and `view` for `Views` campaigns.
+- `max_bid_micros` is positive and defaults to `3000000` unless user changes it.
 - `rationale` is 1-3 sentences and references the shared intent/conversation theme.
 - `conversation_ids` contains only approved conversation IDs from input.
 - Each group has at least one linked conversation.
 - Prefer 2-5 groups for the demo; never create more groups than approved conversations.
 - One conversation can appear in more than one group only if the rationale explains the overlap. Default is one primary group per conversation.
 - `linked_feature_ids` and `linked_landing_gap_ids` must reference approved rows only.
+- `linked_product_feed_item_ids` must reference approved product rows only; keep it empty for the B2B SaaS demo path.
 - `status` is always `draft` on generation. Human approval changes it to `approved`.
 
 ## Prompt Contract
@@ -192,6 +238,14 @@ Approved landing gaps:
 - description
 - suggested_fix
 
+Approved product feed items, if present:
+- id
+- title
+- description
+- price
+- availability
+- product_type
+
 Existing ad groups:
 - id
 - name
@@ -203,6 +257,9 @@ Instructions:
 - Produce 2-5 ad groups unless the approved evidence supports fewer.
 - Each ad group must target one clear conversation theme.
 - Include only approved conversation ids.
+- Include product feed item ids only when the ad group is explicitly product/shopping oriented.
+- Generate context_hints as JSON-array-ready strings, not comma-separated text.
+- Use campaign custom_instruction to bias ad-group generation toward the approved strategic focus.
 - Prefer specificity over broad channel or persona labels.
 - Avoid duplicates and near-duplicates.
 - Use names that can become creative briefs.
@@ -271,12 +328,30 @@ Materialize each valid output into `ad_groups`:
 {
   id,
   project_id,
+  campaign_id,
   name,
   rationale,
+  context_hints,
+  billing_event_type,
+  max_bid_micros,
   conversation_ids,
   status: "draft",
   created_at,
   updated_at
+}
+```
+
+Materialize the campaign first:
+
+```ts
+{
+  project_id,
+  name,
+  objective: "Clicks",
+  lifetime_spend_limit_micros: 5000000,
+  countries: ["US"],
+  custom_instruction,
+  status: "draft"
 }
 ```
 

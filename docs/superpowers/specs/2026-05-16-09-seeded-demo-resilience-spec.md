@@ -11,6 +11,8 @@ The hackathon demo cannot depend on a perfect network, fresh API credits, or lon
 
 This spec defines the no-surprises path. It gives the team a deterministic seed project, a replayable extraction sequence, provider fallbacks, and a fast reset so a failed live call never turns into a stalled presentation.
 
+Seed data must obey `docs/superpowers/specs/SHARED_CONTRACT.md`, including canonical labels, OpenAI-compatible campaign/ad-group/ad shapes, and 1-100 story KPI scores.
+
 ## Goals
 
 - Provide one seeded project that exercises the same tables, UI states, and realtime paths as live provider output.
@@ -117,10 +119,12 @@ The seeded path touches every demo-facing table because its purpose is to exerci
 - `conversations`: seeded buying conversations with stage, intent, buyer role, constraints, source refs, and review status.
 - `landing_gaps`: seeded gaps tied to conversations and campaign implications.
 - `ad_groups`: seeded draft/approved campaign groups with rationales and linked conversations.
+- `campaigns`: one seeded OpenAI-compatible campaign with budget, country targeting, objective, and custom instruction.
 - `creative_variants`: seeded title, description, angle, visual prompt, optional asset URL, and status.
 - `human_reviews`: seeded and live review actions so audit/history UI is exercised.
 - `deployments`: fake deploy row for demo continuity.
 - `performance_snapshots`: seeded story KPI rows with quality score, insight, and recommended action.
+- `product_feeds` / `product_feed_items`: optional ecommerce fixture rows to prove product-feed support without blocking the B2B SaaS demo.
 
 No new table is required for v1. If spec 02 adds generic JSON metadata fields, use them for `demo_seed_version`, `demo_run_id`, and `provider_mode`; otherwise use deterministic IDs plus existing provider JSON columns.
 
@@ -225,7 +229,7 @@ Include conversations that exercise future Pioneer labels:
 - Stage: `solution_compare`; intent: `migration_risk`; buyer role: `revenue_lead`; constraint: "import existing inbox labels".
 - Stage: `vendor_evaluation`; intent: `proof_request`; buyer role: `customer_success`; constraint: "prove setup works before Friday".
 - Stage: `pricing_check`; intent: `budget_validation`; buyer role: `operations`; constraint: "under 500 USD/month".
-- Stage: `security_review`; intent: `trust_check`; buyer role: `ops_lead`; constraint: "SOC 2 proof missing".
+- Stage: `security_review`; intent: `trust_check`; buyer role: `operations`; constraint: "SOC 2 proof missing".
 
 ### Required Seeded Ad Groups
 
@@ -244,6 +248,9 @@ Each approved ad group needs at least:
 - `asset_type`
 - `asset_prompt`
 - `status`
+- `target_url`
+
+Seeded OpenAI-exportable creatives must obey title <= 50 characters, description/body <= 100 characters, and square image requirements if an asset URL is present.
 
 At least two seeded creatives should intentionally be generic or gap-misaligned so monitoring can show why they underperform.
 
@@ -374,7 +381,7 @@ The replay function should use deterministic event IDs or `demo_run_id` dedupe k
 | Inngest Dev Server unavailable | Reset endpoint inserts baseline complete rows and returns `replay_started = false` with instructions to start Inngest. |
 | OpenAI failure in `auto` mode | Persist failed live `extraction_runs` row, then write seeded fixture phase with `provider_mode = seeded_fixture`. |
 | Tavily failure | Use seeded source text and record failure in `sources.metadata` or `extraction_runs.error`. |
-| fal.ai failure | Persist prompt-only creative, status `asset_skipped`, and keep creative review usable. |
+| fal.ai failure | Persist prompt-only creative, set `asset_generation_status = "skipped"` or `"failed"` depending on the failure, and keep creative review usable. |
 | Reset double-click | Second request returns current `demo_run_id` or cancels/restarts safely; no duplicate child rows. |
 | Hosted remote reset requested without guard | Return 403. |
 
@@ -403,7 +410,7 @@ The replay function should use deterministic event IDs or `demo_run_id` dedupe k
 1. Open the app.
 2. Click "Use demo project".
 3. Confirm the review page opens immediately.
-4. Confirm phase rail advances through all eight phases.
+4. Confirm the review phase rail advances through the six extraction/HITL phases.
 5. Confirm recap, features, conversations, intents/stages, landing gaps, and ad groups appear without refreshing.
 6. Edit one conversation and approve it.
 7. Approve one ad group.

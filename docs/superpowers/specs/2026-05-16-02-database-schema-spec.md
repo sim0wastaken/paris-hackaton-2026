@@ -11,6 +11,8 @@ Motive's demo is only credible if every AI input, output, review action, generat
 
 This spec defines the complete Postgres contract before workflow implementation so extraction, HITL review, creative generation, fake deploy, and monitoring workers can build independently against the same durable model.
 
+This spec is subordinate to `docs/superpowers/specs/SHARED_CONTRACT.md` for shared phase names, OpenAI Ads compatibility, label vocabularies, KPI scoring, and phase ownership.
+
 ## Goals
 
 - Define concrete Supabase Postgres tables, columns, enums, indexes, realtime posture, and RLS posture for the full demo loop.
@@ -28,11 +30,14 @@ P0 schema tables:
 - `brand_features`
 - `conversations`
 - `landing_gaps`
+- `campaigns`
 - `ad_groups`
 - `creative_variants`
 - `human_reviews`
 - `deployments`
 - `performance_snapshots`
+- `product_feeds`
+- `product_feed_items`
 
 P0 database features:
 
@@ -51,7 +56,7 @@ P0 database features:
 - No enterprise tenant/org model in v1.
 - No billing, invitation, team role, SSO, or user administration schema.
 - No Pioneer training tables yet. V1 only stores enough normalized rows and JSON payloads to export later.
-- No real ad-platform campaign/ad IDs beyond fake deployment payload fields.
+- No live ad-platform mutation in v1. The schema must still produce OpenAI Ads-compatible campaign/ad-group/ad payloads for fake deploy and bulk/API export.
 - No data warehouse, vector store, or analytics mart.
 - No irreversible destructive migrations during the hackathon; prefer additive migrations after the first core migration.
 
@@ -64,6 +69,7 @@ P0 database features:
 - Supabase Storage docs support direct standard uploads for small files and note that unique paths avoid overwrite/CDN staleness. Source: [Supabase Storage standard uploads](https://supabase.com/docs/guides/storage/uploads/standard-uploads).
 - PostgreSQL JSONB is appropriate for provider request/response payloads and source references that need auditability but do not need heavy relational querying in v1.
 - Future Pioneer export should come from normalized rows plus `human_reviews`, `extraction_runs`, `creative_variants`, and `performance_snapshots`; no Pioneer dependency is required in this schema.
+- OpenAI Ads compatibility is grounded in the campaign -> ad group -> ad hierarchy. Campaigns own objective, budget, dates, and country targeting; ad groups own context hints and bidding defaults; ads/creative variants own title, body, landing URL, and image asset references. See `SHARED_CONTRACT.md`.
 
 ## Migration Files
 
@@ -102,7 +108,8 @@ create type source_type as enum (
   'pdf',
   'markdown',
   'text',
-  'screenshot'
+  'screenshot',
+  'product_feed'
 );
 
 create type source_status as enum (
@@ -110,7 +117,8 @@ create type source_status as enum (
   'processing',
   'processed',
   'failed',
-  'skipped'
+  'skipped',
+  'needs_manual_text'
 );
 
 create type extraction_phase as enum (
@@ -150,9 +158,11 @@ create type feature_type as enum (
 );
 
 create type review_entity_type as enum (
+  'extraction_run',
   'brand_feature',
   'conversation',
   'landing_gap',
+  'campaign',
   'ad_group',
   'creative_variant',
   'performance_snapshot'
@@ -173,19 +183,37 @@ create type ad_group_status as enum (
   'rejected'
 );
 
+create type campaign_objective as enum (
+  'Views',
+  'Clicks'
+);
+
+create type campaign_status as enum (
+  'draft',
+  'approved',
+  'deployed',
+  'rejected'
+);
+
 create type creative_asset_type as enum (
   'image',
   'video',
   'none'
 );
 
+create type asset_generation_status as enum (
+  'not_requested',
+  'pending',
+  'skipped',
+  'ready',
+  'failed'
+);
+
 create type creative_status as enum (
   'draft',
   'approved',
   'rejected',
-  'asset_pending',
-  'asset_ready',
-  'asset_failed'
+  'archived'
 );
 
 create type deployment_status as enum (
@@ -196,6 +224,14 @@ create type deployment_status as enum (
 create type performance_snapshot_kind as enum (
   'simulated',
   'imported'
+);
+
+create type product_feed_status as enum (
+  'draft',
+  'uploaded',
+  'processed',
+  'failed',
+  'export_ready'
 );
 ```
 
@@ -427,9 +463,48 @@ create index landing_gaps_project_conversation_idx on landing_gaps(project_id, c
 create index landing_gaps_project_type_idx on landing_gaps(project_id, gap_type);
 ```
 
+### `campaigns`
+
+Stores campaign-level budget, dates, geo targeting, and custom instructions. This layer is required for OpenAI Ads compatibility.
+
+```sql
+create table campaigns (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  project_id uuid not null references projects(id) on delete cascade,
+  extraction_run_id uuid references extraction_runs(id) on delete set null,
+  name text not null check (char_length(name) >= 3),
+  objective campaign_objective not null default 'Clicks',
+  status campaign_status not null default 'draft',
+  start_date date,
+  end_date date,
+  lifetime_spend_limit_micros bigint not null default 5000000 check (lifetime_spend_limit_micros >= 1000000),
+  countries text[] not null default array['US']::text[],
+  custom_instruction text,
+  rationale text,
+  review_status review_status not null default 'pending',
+  metadata jsonb not null default '{}'::jsonb
+);
+```
+
+Indexes:
+
+```sql
+create index campaigns_project_created_idx on campaigns(project_id, created_at desc);
+create index campaigns_project_status_idx on campaigns(project_id, status);
+create index campaigns_project_review_idx on campaigns(project_id, review_status);
+```
+
+Notes:
+
+- V1 may create one campaign per project by default.
+- `custom_instruction` stores Motive-owned bias/instructions used when generating ad groups, copy, and future video/channel assets.
+- `countries` defaults to `US` because current buy-side availability is US-focused; later markets can add `CA`, `AU`, `NZ`, or other supported delivery countries when verified.
+
 ### `ad_groups`
 
-Stores campaign-ready groupings generated from validated conversations/features/gaps.
+Stores OpenAI-compatible ad groups generated from validated conversations/features/gaps. Motive-internal rationale remains local; exportable targeting is `context_hints`.
 
 ```sql
 create table ad_groups (
@@ -437,14 +512,19 @@ create table ad_groups (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   project_id uuid not null references projects(id) on delete cascade,
+  campaign_id uuid references campaigns(id) on delete cascade,
   extraction_run_id uuid references extraction_runs(id) on delete set null,
-  name text not null,
+  name text not null check (char_length(name) >= 3),
   rationale text not null,
+  context_hints jsonb not null default '[]'::jsonb,
+  billing_event_type text not null default 'click',
+  max_bid_micros bigint not null default 3000000 check (max_bid_micros > 0),
   target_stage text,
   target_intent text,
   conversation_ids uuid[] not null default '{}'::uuid[],
   feature_ids uuid[] not null default '{}'::uuid[],
   landing_gap_ids uuid[] not null default '{}'::uuid[],
+  product_feed_item_ids uuid[] not null default '{}'::uuid[],
   status ad_group_status not null default 'draft',
   review_status review_status not null default 'pending',
   metadata jsonb not null default '{}'::jsonb
@@ -455,16 +535,21 @@ Indexes:
 
 ```sql
 create index ad_groups_project_created_idx on ad_groups(project_id, created_at desc);
+create index ad_groups_campaign_created_idx on ad_groups(campaign_id, created_at desc);
 create index ad_groups_project_status_idx on ad_groups(project_id, status);
 create index ad_groups_project_review_idx on ad_groups(project_id, review_status);
 create index ad_groups_conversation_ids_gin_idx on ad_groups using gin (conversation_ids);
+create index ad_groups_context_hints_gin_idx on ad_groups using gin (context_hints);
+create index ad_groups_product_feed_item_ids_gin_idx on ad_groups using gin (product_feed_item_ids);
 ```
 
 Arrays are acceptable for the hackathon because ad-group relationships are read mostly as project-scoped bundles. If relation-level analytics become important, replace with join tables after v1.
 
+`target_stage`, `target_intent`, `rationale`, linked feature IDs, linked landing gap IDs, and linked product feed item IDs are Motive-owned fields. OpenAI export uses `name`, `context_hints`, and `bidding_config`; product-feed exports can additionally include `product_feed_item_ids` context from the deployment payload.
+
 ### `creative_variants`
 
-Stores copy variants, creative angles, image/video prompts, and optional generated asset references.
+Stores OpenAI-compatible ad creative variants plus Motive-owned creative strategy fields. For OpenAI Ads today, valid export is image/chat-card oriented. Video prompts may be stored for future channels, but OpenAI export must use image assets.
 
 ```sql
 create table creative_variants (
@@ -474,16 +559,25 @@ create table creative_variants (
   project_id uuid not null references projects(id) on delete cascade,
   ad_group_id uuid not null references ad_groups(id) on delete cascade,
   extraction_run_id uuid references extraction_runs(id) on delete set null,
-  title text not null,
-  description text not null,
+  title text not null check (char_length(title) between 3 and 50),
+  description text not null check (char_length(description) <= 100),
   creative_angle text not null,
   asset_type creative_asset_type not null default 'none',
   asset_prompt text,
   asset_url text,
   asset_storage_path text,
+  asset_generation_status asset_generation_status not null default 'not_requested',
+  asset_width integer,
+  asset_height integer,
+  asset_mime_type text,
+  openai_file_id text,
+  target_url text,
+  openai_ad_type text not null default 'chat_card',
+  openai_ad_status text not null default 'paused',
   provider text,
   provider_request_json jsonb not null default '{}'::jsonb,
   provider_response_json jsonb not null default '{}'::jsonb,
+  openai_validation_json jsonb not null default '{}'::jsonb,
   status creative_status not null default 'draft',
   review_status review_status not null default 'pending',
   metadata jsonb not null default '{}'::jsonb
@@ -498,6 +592,14 @@ create index creative_variants_project_status_idx on creative_variants(project_i
 create index creative_variants_ad_group_idx on creative_variants(ad_group_id, created_at desc);
 create index creative_variants_project_review_idx on creative_variants(project_id, review_status);
 ```
+
+OpenAI compatibility rules:
+
+- Title target: 16-24 characters recommended, 50 maximum.
+- Description/body target: 32-48 characters recommended, 100 maximum.
+- OpenAI Ads export is `type = "chat_card"`.
+- OpenAI-compatible image assets must be PNG/JPG, square, maximum 1200x1200, and publicly accessible for bulk upload. API upload may require `openai_file_id`; store it when available.
+- `asset_type = "video"` is allowed only as Motive-owned future-channel headroom; mark it non-exportable for OpenAI Ads v1.
 
 ### `human_reviews`
 
@@ -577,9 +679,11 @@ create table performance_snapshots (
   conversions integer not null default 0 check (conversions >= 0),
   cvr numeric(7,4) not null default 0 check (cvr >= 0),
   spend numeric(12,2) not null default 0 check (spend >= 0),
-  quality_score numeric(4,2) not null check (quality_score >= 0 and quality_score <= 10),
+  quality_score integer not null check (quality_score >= 1 and quality_score <= 100),
   insight text not null,
   recommended_action text not null,
+  metric_basis_json jsonb not null default '{}'::jsonb,
+  confidence text not null default 'medium',
   notes text,
   provider_request_json jsonb not null default '{}'::jsonb,
   provider_response_json jsonb not null default '{}'::jsonb,
@@ -599,6 +703,68 @@ create index performance_snapshots_quality_idx on performance_snapshots(project_
 
 Quality fields are required because monitoring must tell a coherent story, not show random KPI mocks.
 
+Canonical period fields are `period_start` and `period_end`. UI labels such as "Week 1" or a snapshot date should be derived, not stored as separate canonical columns.
+
+### `product_feeds`
+
+Stores ecommerce/product-feed import and export metadata for shopping/product-feed ads.
+
+```sql
+create table product_feeds (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  project_id uuid not null references projects(id) on delete cascade,
+  name text not null,
+  source_type text not null default 'manual',
+  source_uri text,
+  storage_path text,
+  format text,
+  status product_feed_status not null default 'draft',
+  item_count integer not null default 0 check (item_count >= 0),
+  provider_request_json jsonb not null default '{}'::jsonb,
+  provider_response_json jsonb not null default '{}'::jsonb,
+  error text,
+  metadata jsonb not null default '{}'::jsonb
+);
+```
+
+### `product_feed_items`
+
+Stores Google Shopping-style product rows. Keep fields close to common feed vocabulary so ecommerce brands can be supported end-to-end.
+
+```sql
+create table product_feed_items (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  project_id uuid not null references projects(id) on delete cascade,
+  product_feed_id uuid not null references product_feeds(id) on delete cascade,
+  item_id text not null,
+  title text not null,
+  description text,
+  link text,
+  image_link text,
+  availability text,
+  price text,
+  brand text,
+  google_product_category text,
+  product_type text,
+  condition text,
+  raw_json jsonb not null default '{}'::jsonb,
+  review_status review_status not null default 'pending',
+  metadata jsonb not null default '{}'::jsonb
+);
+```
+
+Indexes:
+
+```sql
+create index product_feeds_project_created_idx on product_feeds(project_id, created_at desc);
+create index product_feed_items_project_feed_idx on product_feed_items(project_id, product_feed_id);
+create unique index product_feed_items_feed_item_idx on product_feed_items(product_feed_id, item_id);
+```
+
 ## Realtime Posture
 
 Add to `supabase_realtime` publication:
@@ -610,11 +776,14 @@ alter publication supabase_realtime add table extraction_runs;
 alter publication supabase_realtime add table brand_features;
 alter publication supabase_realtime add table conversations;
 alter publication supabase_realtime add table landing_gaps;
+alter publication supabase_realtime add table campaigns;
 alter publication supabase_realtime add table ad_groups;
 alter publication supabase_realtime add table creative_variants;
 alter publication supabase_realtime add table human_reviews;
 alter publication supabase_realtime add table deployments;
 alter publication supabase_realtime add table performance_snapshots;
+alter publication supabase_realtime add table product_feeds;
+alter publication supabase_realtime add table product_feed_items;
 ```
 
 Primary client subscriptions:
@@ -761,7 +930,7 @@ Creative/fake deploy pattern:
 - Live review filling in: inserted `brand_features`, `conversations`, `landing_gaps`, and `ad_groups` rows with `review_status = 'pending'`.
 - Human validation: target row `review_status` changes and append-only `human_reviews` rows appear.
 - Creative generation ready: approved ad groups exist.
-- Creative review: `creative_variants.review_status` and `creative_variants.status` drive draft/approved/rejected/asset states.
+- Creative review: `creative_variants.review_status` and `creative_variants.status` drive draft/approved/rejected workflow state; `creative_variants.asset_generation_status` independently drives asset progress and failure state.
 - Fake deployed: `deployments.status = 'fake_deployed'` and project status can move to `deployed`.
 - Monitoring ready: `performance_snapshots` exists with `quality_score`, `insight`, and `recommended_action`.
 - Recoverable failure: per-row `status = 'failed'` and `error` columns preserve enough context for retry UI.
@@ -781,7 +950,7 @@ Creative/fake deploy pattern:
 The schema supports a future export without new v1 tables:
 
 - Inputs: `sources.extracted_text`, `brand_features`, `conversations`, `landing_gaps`.
-- Labels: `conversations.stage`, `conversations.intent_type`, `constraints_json`, `ad_groups.target_intent`.
+- Labels: `conversations.stage`, `conversations.intent_type`, `constraints_json`, and Motive-owned ad-group fields such as `target_intent` plus exportable `context_hints`.
 - Corrections: `human_reviews.before_json`, `human_reviews.after_json`, `action`.
 - Outcomes: `creative_variants`, `performance_snapshots.quality_score`, `insight`, `recommended_action`.
 - Provenance: `extraction_runs.model`, `prompt_version`, `input_json`, `output_json`.

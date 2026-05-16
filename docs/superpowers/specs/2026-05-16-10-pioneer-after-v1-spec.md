@@ -11,6 +11,8 @@ OpenAI should power the first complete Motive workflow, but repeated GPT labelin
 
 The user value is a faster and cheaper campaign-intelligence loop that improves from Motive-specific corrections and outcomes. The demo-day value is an honest narrative: Motive creates the dataset today; Pioneer can specialize on it tomorrow.
 
+This spec follows `docs/superpowers/specs/SHARED_CONTRACT.md` for canonical labels, story KPI fields, and the distinction between Motive-owned signals and OpenAI Ads-native fields.
+
 ## Positioning
 
 Use this language:
@@ -151,11 +153,13 @@ Only export rows with enough provenance:
 | Source table | Required source fields | Export use |
 | --- | --- | --- |
 | `conversations` | `text`, `stage`, `intent_type`, `buyer_role`, `constraints_json`, `source_refs`, `review_status` | Primary classification and constraint extraction rows. |
-| `ad_groups` | `name`, `rationale`, `conversation_ids`, `status` | Ad-group label head and campaign grouping supervision. |
-| `creative_variants` | `title`, `description`, `creative_angle`, `ad_group_id`, `status` | Creative-angle classification and outcome features. |
+| `campaigns` | `name`, `objective`, `countries`, `custom_instruction`, `status` | Campaign-level segmentation and export context. |
+| `ad_groups` | `name`, `context_hints`, `rationale`, `conversation_ids`, `status` | Ad-group label head, context-hint supervision, and campaign grouping supervision. |
+| `creative_variants` | `title`, `description`, `creative_angle`, `ad_group_id`, `target_url`, `status` | Creative-angle classification and outcome features. |
 | `human_reviews` | `entity_type`, `entity_id`, `action`, `before_json`, `after_json`, `comment` | Label correction authority and feedback signal. |
 | `performance_snapshots` | `quality_score`, `insight`, `recommended_action`, KPI fields | Outcome proxy and later campaign-performance labels. |
 | `extraction_runs` | `model`, `prompt_version`, `input_json`, `output_json` | Provenance and OpenAI baseline labels. |
+| `product_feed_items` | `title`, `description`, `price`, `availability`, `product_type`, `raw_json`, `review_status` | Ecommerce/product-feed classifier and shopping-ad enrichment path. |
 
 Rows should include `project_id`, source row IDs, review status, and `is_seeded_demo` or equivalent provenance flag. Seeded demo rows can validate the exporter but should not be mixed with real training data unless the dataset name marks them as demo.
 
@@ -168,7 +172,7 @@ Use Pioneer/GLiNER2 classification for repeated labels:
 - `stage`: `problem_aware`, `solution_compare`, `vendor_evaluation`, `pricing_check`, `security_review`, `ready_to_buy`, `post_purchase`.
 - `intent_type`: `workflow_pain`, `migration_risk`, `proof_request`, `budget_validation`, `trust_check`, `integration_check`, `urgency_timeline`, `competitive_switch`.
 - `buyer_role`: `founder`, `revenue_lead`, `marketing_lead`, `customer_success`, `operations`, `security`, `finance`, `unknown`.
-- `landing_gap_type`: `proof`, `comparison`, `setup_path`, `pricing_clarity`, `trust_compliance`, `integration_depth`.
+- `landing_gap_type`: `proof`, `comparison`, `setup_path`, `pricing_clarity`, `trust_compliance`, `integration_depth`, `security`, `performance`, `other`.
 - `ad_group`: one of the approved ad group IDs or stable slugs generated from `ad_groups.name`.
 - `creative_angle`: `specific_timeline`, `proof_heavy`, `migration_setup`, `pricing_clarity`, `trust_compliance`, `generic_value_prop`, `integration_specific`.
 
