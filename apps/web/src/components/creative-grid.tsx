@@ -73,6 +73,7 @@ export function CreativeGrid({ initialData }: { initialData: ExtractionReviewDat
   }, [projectId]);
 
   useEffect(() => {
+    if (connection === "live") return;
     const controller = new AbortController();
     const interval = setInterval(() => {
       refresh(controller.signal).catch((caught) => {
@@ -86,7 +87,7 @@ export function CreativeGrid({ initialData }: { initialData: ExtractionReviewDat
       controller.abort();
       clearInterval(interval);
     };
-  }, [refresh]);
+  }, [connection, refresh]);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -154,6 +155,7 @@ export function CreativeGrid({ initialData }: { initialData: ExtractionReviewDat
           entityType: "creative_variant",
           entityId: input.entityId,
           action: input.action,
+          requestId: crypto.randomUUID(),
           patch: input.patch ?? {},
           comment: input.comment ?? null,
           expectedUpdatedAt: input.expectedUpdatedAt ?? null

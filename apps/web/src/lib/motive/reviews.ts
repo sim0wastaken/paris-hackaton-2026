@@ -27,6 +27,7 @@ export type ReviewableEntityType = (typeof reviewableEntityTypeValues)[number];
 
 export type ReviewActionInput = {
   projectId: string;
+  requestId: string | null;
   entityType: ReviewableEntityType;
   entityId: string;
   action: ReviewAction;
@@ -78,6 +79,7 @@ const reviewActionInputSchema = z.object({
   entityType: reviewableEntityTypeSchema,
   entityId: looseUuidSchema,
   action: z.enum(reviewActionValues),
+  requestId: z.string().trim().min(1).nullable().optional(),
   patch: jsonObjectSchema.optional().default({}),
   comment: z.string().trim().max(2_000).nullable().optional(),
   expectedUpdatedAt: z.string().min(1).nullable().optional(),
@@ -158,6 +160,7 @@ export function parseReviewActionInput(projectId: string, payload: unknown): Rev
 
   return {
     projectId,
+    requestId: parsed.data.requestId ?? null,
     entityType: parsed.data.entityType,
     entityId: parsed.data.entityId,
     action: parsed.data.action,
@@ -198,7 +201,10 @@ export function buildReviewRpcArgs(input: ReviewActionInput): ReviewActionRpcArg
     p_comment: input.comment,
     p_expected_updated_at: input.expectedUpdatedAt,
     p_reviewer_user_id: input.reviewerUserId,
-    p_metadata: { reviewer: "demo_user" }
+    p_metadata: {
+      reviewer: "demo_user",
+      ...(input.requestId ? { request_id: input.requestId } : {})
+    }
   };
 }
 

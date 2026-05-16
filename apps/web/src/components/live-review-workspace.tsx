@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { AlertCircle, Check, CheckCircle2, Layers3, Pencil, RefreshCw, Sparkles, WandSparkles, X } from "lucide-react";
+import { AlertCircle, Check, CheckCheck, CheckCircle2, Layers3, Pencil, RefreshCw, Sparkles, WandSparkles, X } from "lucide-react";
 
 import { ExtractionPhaseRail } from "./extraction-phase-rail";
 import { SourceStatusPanel } from "./source-status-panel";
@@ -47,6 +47,7 @@ export function LiveReviewWorkspace({
   const [announcement, setAnnouncement] = useState("");
   const [retrying, setRetrying] = useState(false);
   const [generatingAdGroups, setGeneratingAdGroups] = useState(false);
+  const [approvingAll, setApprovingAll] = useState(false);
   const projectId = initialData.project.id;
   const sourceRecap = data.extraction_runs.find((run) => run.phase === "source_recap");
   const failedRun = data.extraction_runs.find((run) => run.status === "failed");
@@ -60,6 +61,56 @@ export function LiveReviewWorkspace({
     () => data.sources.some((source) => source.metadata.demo === true || source.metadata.is_seeded_demo === true),
     [data.sources]
   );
+  const bulkApprovalTargets = useMemo(() => {
+    const targets: ReviewSubmitInput[] = [];
+    const hasApprovedReview = (entityType: ReviewableEntityType, entityId: string) => data.human_reviews.some(
+      (review) => review.entity_type === entityType && review.entity_id === entityId && review.action === "approve"
+    );
+
+    if (sourceRecap?.status === "succeeded" && !hasApprovedReview("extraction_run", sourceRecap.id)) {
+      targets.push({
+        entityType: "extraction_run",
+        entityId: sourceRecap.id,
+        action: "approve",
+        expectedUpdatedAt: sourceRecap.updated_at
+      });
+    }
+
+    data.brand_features
+      .filter((row) => isBulkApprovable(row.review_status))
+      .forEach((row) => targets.push({
+        entityType: "brand_feature",
+        entityId: row.id,
+        action: "approve",
+        expectedUpdatedAt: row.updated_at
+      }));
+    data.conversations
+      .filter((row) => isBulkApprovable(row.review_status))
+      .forEach((row) => targets.push({
+        entityType: "conversation",
+        entityId: row.id,
+        action: "approve",
+        expectedUpdatedAt: row.updated_at
+      }));
+    data.landing_gaps
+      .filter((row) => isBulkApprovable(row.review_status))
+      .forEach((row) => targets.push({
+        entityType: "landing_gap",
+        entityId: row.id,
+        action: "approve",
+        expectedUpdatedAt: row.updated_at
+      }));
+    data.ad_groups
+      .filter((row) => isBulkApprovable(row.review_status))
+      .forEach((row) => targets.push({
+        entityType: "ad_group",
+        entityId: row.id,
+        action: "approve",
+        expectedUpdatedAt: row.updated_at
+      }));
+
+    return targets;
+  }, [data.ad_groups, data.brand_features, data.conversations, data.human_reviews, data.landing_gaps, sourceRecap]);
   const phaseCounts = useMemo(() => ({
     source_recap: sourceRecap?.status === "succeeded" ? 1 : 0,
     feature_map: data.brand_features.length,
@@ -145,6 +196,7 @@ export function LiveReviewWorkspace({
           entityType: input.entityType,
           entityId: input.entityId,
           action: input.action,
+          requestId: crypto.randomUUID(),
           patch: input.patch ?? {},
           comment: input.comment ?? null,
           expectedUpdatedAt: input.expectedUpdatedAt ?? null
@@ -163,6 +215,24 @@ export function LiveReviewWorkspace({
       setPendingAction(null);
     }
   }, [projectId]);
+
+  async function approveAll() {
+    setApprovingAll(true);
+    setReviewError(null);
+    try {
+      let approvedCount = 0;
+      for (const target of bulkApprovalTargets) {
+        await submitReview(target);
+        approvedCount += 1;
+      }
+      await refresh();
+      setAnnouncement(`Approved ${approvedCount} review rows.`);
+    } catch (caught) {
+      setReviewError(caught instanceof Error ? caught.message : "Approve all failed");
+    } finally {
+      setApprovingAll(false);
+    }
+  }
 
   async function retryExtraction() {
     setRetrying(true);
@@ -229,7 +299,17 @@ export function LiveReviewWorkspace({
               {data.human_reviews.length} review events
             </span>
           </div>
-          {failedRun ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              className="inline-flex items-center gap-2 rounded-md border border-[#2c7a4b] bg-[#2c7a4b] px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={approvingAll || bulkApprovalTargets.length === 0}
+              onClick={() => void approveAll()}
+              type="button"
+            >
+              <CheckCheck aria-hidden="true" size={16} />
+              {approvingAll ? "Approving..." : `Approve all${bulkApprovalTargets.length > 0 ? ` (${bulkApprovalTargets.length})` : ""}`}
+            </button>
+            {failedRun ? (
             <button
               className="inline-flex items-center gap-2 rounded-md border border-[#17201c] bg-[#17201c] px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
               disabled={retrying || usableSourceIds.length === 0}
@@ -239,7 +319,8 @@ export function LiveReviewWorkspace({
               <RefreshCw aria-hidden="true" size={16} />
               {retrying ? "Queueing..." : "Retry extraction"}
             </button>
-          ) : null}
+            ) : null}
+          </div>
         </div>
 
         {error ? (
@@ -932,6 +1013,10 @@ function reviewBadgeStatus(status: string) {
   if (status === "rejected") return "failed";
   if (status === "edited" || status === "enriched") return "current";
   return "available";
+}
+
+function isBulkApprovable(status: string) {
+  return status !== "approved" && status !== "rejected";
 }
 
 function rowCardClass(status: string) {

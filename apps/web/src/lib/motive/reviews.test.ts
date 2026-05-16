@@ -15,6 +15,7 @@ describe("Spec 05 review actions", () => {
       entityType: "brand_feature",
       entityId,
       action: "approve",
+      requestId: "req_review_001",
       comment: "Strong enough for downstream ad groups."
     });
 
@@ -28,7 +29,7 @@ describe("Spec 05 review actions", () => {
       p_patch: {},
       p_comment: "Strong enough for downstream ad groups.",
       p_reviewer_user_id: null,
-      p_metadata: { reviewer: "demo_user" }
+      p_metadata: { reviewer: "demo_user", request_id: "req_review_001" }
     });
   });
 

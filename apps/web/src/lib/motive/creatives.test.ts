@@ -21,8 +21,14 @@ const gapId = "40000000-0000-4000-8000-000000000001";
 const productId = "50000000-0000-4000-8000-000000000001";
 
 describe("Spec 07 creative generation", () => {
-  it("builds generation input from approved ad groups and approved grounding only", () => {
-    const input = buildCreativeGenerationInput(reviewDataFixture());
+  it("builds generation input from accepted ad groups and accepted grounding", () => {
+    const data = reviewDataFixture();
+    data.conversations[0]!.review_status = "edited";
+    data.brand_features[0]!.review_status = "enriched";
+    data.landing_gaps[0]!.review_status = "edited";
+    data.product_feed_items[0]!.review_status = "enriched";
+    data.ad_groups[0]!.review_status = "edited";
+    const input = buildCreativeGenerationInput(data);
 
     expect(input.ad_group_contexts).toHaveLength(1);
     expect(input.ad_group_contexts[0]?.ad_group.id).toBe(adGroupId);
@@ -81,6 +87,63 @@ describe("Spec 07 creative generation", () => {
     expect(result.creative_variants[0]?.asset_generation_status).toBe("skipped");
     expect(result.generation_run?.phase).toBe("creative_text");
     expect(repository.variants[0]?.title.length).toBeLessThanOrEqual(50);
+  });
+
+  it("persists raw provider output when creative validation fails", async () => {
+    const repository = createMemoryCreativeRepository(reviewDataFixture());
+    const invalidOutput = {
+      variants: [
+        {
+          ad_group_id: adGroupId,
+          title: "x".repeat(51),
+          description: "Launch Gmail follow-up before urgent buyer threads go cold.",
+          creative_angle: "Timeline proof",
+          asset_type: "image",
+          asset_prompt: "Square ad image.",
+          target_url: "https://atlasdesk.example/pricing",
+          grounding: {
+            conversation_ids: [conversationId],
+            brand_feature_ids: [featureId],
+            landing_gap_ids: [gapId],
+            product_feed_item_ids: [productId],
+            quality_signals: ["specific_constraint"]
+          },
+          risks: []
+        }
+      ]
+    };
+    const provider: StructuredCreativeProvider = {
+      isConfigured: () => true,
+      async generate<T>() {
+        return {
+          output: invalidOutput as T,
+          raw: { provider: "openai", output: invalidOutput },
+          responseId: "resp_invalid",
+          usage: { output_tokens: 200 },
+          model: "gpt-test"
+        };
+      }
+    };
+    const assetProvider: CreativeAssetProvider = {
+      isConfigured: () => false,
+      async generateImage() {
+        throw new Error("fal.ai should not be called after validation failure");
+      }
+    };
+
+    await expect(
+      runCreativeGeneration(
+        {
+          projectId,
+          requestId: "req_invalid_provider_output",
+          demoMode: false
+        },
+        { repository, provider, assetProvider }
+      )
+    ).rejects.toMatchObject({ code: "invalid_creative_output" });
+
+    expect(repository.runs[0]?.status).toBe("failed");
+    expect(repository.runs[0]?.output_json).toEqual({ provider: "openai", output: invalidOutput });
   });
 });
 
@@ -304,10 +367,11 @@ function createMemoryCreativeRepository(data: ExtractionReviewData) {
       });
       return run;
     },
-    async updateGenerationRunFailed(runId, error) {
+    async updateGenerationRunFailed(runId, error, outputJson = {}) {
       const run = getRun(runId);
       Object.assign(run, {
         status: "failed" as const,
+        output_json: outputJson,
         error: JSON.stringify(error),
         completed_at: "2026-05-16T08:00:01Z"
       });

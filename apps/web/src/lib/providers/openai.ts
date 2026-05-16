@@ -1,6 +1,8 @@
 import type { ProviderOptions, ProviderResult } from "./types";
 import { z, type ZodType } from "zod";
 
+const reasoningEffortSchema = z.enum(["none", "low", "medium", "high", "xhigh"]);
+
 export async function generateOpenAIText(
   input: {
     prompt: string;
@@ -11,6 +13,7 @@ export async function generateOpenAIText(
 ): Promise<ProviderResult<{ text: string; model: string }>> {
   const apiKey = options.apiKey ?? process.env.OPENAI_API_KEY;
   const model = options.model ?? process.env.OPENAI_MODEL ?? "gpt-5-mini";
+  const reasoningEffort = parseReasoningEffort(process.env.OPENAI_REASONING_EFFORT);
   const fetcher = options.fetcher ?? fetch;
 
   if (!apiKey) {
@@ -30,6 +33,7 @@ export async function generateOpenAIText(
     },
     body: JSON.stringify({
       model,
+      reasoning: reasoningEffort ? { effort: reasoningEffort } : undefined,
       input: [
         input.system ? { role: "system", content: input.system } : undefined,
         { role: "user", content: input.prompt }
@@ -79,6 +83,7 @@ export async function generateOpenAIStructuredObject<T>(
 > {
   const apiKey = options.apiKey ?? process.env.OPENAI_API_KEY;
   const model = options.model ?? process.env.OPENAI_EXTRACTION_MODEL ?? process.env.OPENAI_MODEL ?? "gpt-5-mini";
+  const reasoningEffort = parseReasoningEffort(process.env.OPENAI_REASONING_EFFORT);
   const fetcher = options.fetcher ?? fetch;
 
   if (!apiKey) {
@@ -101,6 +106,7 @@ export async function generateOpenAIStructuredObject<T>(
     },
     body: JSON.stringify({
       model,
+      reasoning: reasoningEffort ? { effort: reasoningEffort } : undefined,
       input: [
         input.system ? { role: "system", content: input.system } : undefined,
         { role: "user", content: input.prompt }
@@ -154,6 +160,11 @@ export async function generateOpenAIStructuredObject<T>(
     raw,
     requestId: input.requestId
   };
+}
+
+function parseReasoningEffort(value: unknown): z.infer<typeof reasoningEffortSchema> | undefined {
+  const result = reasoningEffortSchema.safeParse(value);
+  return result.success ? result.data : undefined;
 }
 
 function extractResponseText(raw: unknown): string {

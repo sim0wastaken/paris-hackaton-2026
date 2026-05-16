@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Link as LinkIcon, Sparkles } from "lucide-react";
 
+import { buildDemoResetHeaders, readBrowserDemoOperatorToken } from "@/lib/motive/demo-reset-client";
 import { MAX_EXTRA_CONTEXT_CHARS, normalizeBrandUrl } from "@/lib/motive/projects";
 
 export function IntakeWorkbench() {
@@ -120,7 +121,7 @@ export function IntakeWorkbench() {
             try {
               const response = await fetch("/api/demo/reset", {
                 method: "POST",
-                headers: { "content-type": "application/json" },
+                headers: buildDemoResetHeaders(readBrowserDemoOperatorToken()),
                 body: JSON.stringify({
                   replay: true,
                   requested_by: "intake"

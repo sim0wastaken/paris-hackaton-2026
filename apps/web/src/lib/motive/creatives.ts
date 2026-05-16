@@ -1,6 +1,7 @@
 import { z, type ZodType } from "zod";
 
 import type { ExtractionReviewData, ExtractionRunRecord } from "./extraction";
+import { isAcceptedReviewStatus } from "./review-status";
 import type { AdGroup, BrandFeature, Conversation, CreativeVariant, LandingGap, ProductFeedItem } from "./types";
 import type { ProviderResult } from "@/lib/providers/types";
 
@@ -219,7 +220,7 @@ export function buildCreativeGenerationInput(
   const approvedAdGroups = data.ad_groups.filter((group) => {
     const selected = requestedIds.size === 0 || requestedIds.has(group.id);
     const eligibleStatus = group.status === "approved" || group.status === "creative_generated";
-    return selected && eligibleStatus && group.review_status === "approved";
+    return selected && eligibleStatus && isAcceptedReviewStatus(group.review_status);
   });
 
   if (approvedAdGroups.length === 0) {
@@ -381,6 +382,7 @@ export async function runCreativeGeneration(
     requestId: input.requestId
   });
 
+  let failedOutputJson: Record<string, unknown> = {};
   try {
     let providerResult: Awaited<ReturnType<typeof callCreativeProvider>> | null = null;
     let output: CreativeGenerationOutput;
@@ -404,6 +406,7 @@ export async function runCreativeGeneration(
         provider: deps.provider,
         model: preferredModel
       });
+      failedOutputJson = asFailureOutputJson(providerResult.raw ?? providerResult.output);
       output = validateCreativeGenerationOutput(providerResult.output, generationInput);
       source = "openai";
     }
@@ -444,7 +447,7 @@ export async function runCreativeGeneration(
     });
   } catch (caught) {
     const error = normalizeCreativeError(caught);
-    await deps.repository.updateGenerationRunFailed(run.id, error);
+    await deps.repository.updateGenerationRunFailed(run.id, error, failedOutputJson);
     throw new CreativeGenerationError(error.code, error.message, error.retryable);
   }
 }
@@ -469,7 +472,7 @@ function buildAdGroupContext(group: AdGroup, data: ExtractionReviewData): Creati
       product_feed_item_ids: group.product_feed_item_ids
     },
     conversations: data.conversations
-      .filter((row) => row.review_status === "approved" && conversationIds.has(row.id))
+      .filter((row) => isAcceptedReviewStatus(row.review_status) && conversationIds.has(row.id))
       .map((row) => ({
         id: row.id,
         text: row.text,
@@ -479,7 +482,7 @@ function buildAdGroupContext(group: AdGroup, data: ExtractionReviewData): Creati
         constraints_json: row.constraints_json
       })),
     brand_features: data.brand_features
-      .filter((row) => row.review_status === "approved" && featureIds.has(row.id))
+      .filter((row) => isAcceptedReviewStatus(row.review_status) && featureIds.has(row.id))
       .map((row) => ({
         id: row.id,
         type: row.type,
@@ -487,7 +490,7 @@ function buildAdGroupContext(group: AdGroup, data: ExtractionReviewData): Creati
         description: row.description
       })),
     landing_gaps: data.landing_gaps
-      .filter((row) => (row.review_status === "approved" || row.review_status === "edited") && landingGapIds.has(row.id))
+      .filter((row) => isAcceptedReviewStatus(row.review_status) && landingGapIds.has(row.id))
       .map((row) => ({
         id: row.id,
         gap_type: row.gap_type,
@@ -495,7 +498,7 @@ function buildAdGroupContext(group: AdGroup, data: ExtractionReviewData): Creati
         suggested_fix: row.suggested_fix
       })),
     product_feed_items: data.product_feed_items
-      .filter((row) => row.review_status === "approved" && productIds.has(row.id))
+      .filter((row) => isAcceptedReviewStatus(row.review_status) && productIds.has(row.id))
       .map((row) => ({
         id: row.id,
         title: row.title,
@@ -743,6 +746,12 @@ function normalizeCreativeError(caught: unknown) {
     message: caught instanceof Error ? caught.message : "Creative generation failed.",
     retryable: true
   };
+}
+
+function asFailureOutputJson(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : { raw: value };
 }
 
 function normalizeWhitespace(value: string): string {

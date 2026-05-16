@@ -1,6 +1,7 @@
 import { z, type ZodType } from "zod";
 
 import type { ExtractionReviewData, ExtractionRunRecord } from "./extraction";
+import { isAcceptedReviewStatus } from "./review-status";
 import {
   campaignObjectiveValues,
   type AdGroup,
@@ -242,7 +243,7 @@ export function buildAdGroupGenerationInput(
         "Bias ad groups toward approved buyer conversations, proof needs, and OpenAI Ads context hints."
     },
     approved_conversations: data.conversations
-      .filter((conversation) => conversation.review_status === "approved")
+      .filter((conversation) => isAcceptedReviewStatus(conversation.review_status))
       .map((conversation) => ({
         id: conversation.id,
         text: conversation.text,
@@ -253,7 +254,7 @@ export function buildAdGroupGenerationInput(
         source_refs: conversation.source_refs
       })),
     approved_brand_features: data.brand_features
-      .filter((feature) => feature.review_status === "approved")
+      .filter((feature) => isAcceptedReviewStatus(feature.review_status))
       .map((feature) => ({
         id: feature.id,
         type: feature.type,
@@ -262,7 +263,7 @@ export function buildAdGroupGenerationInput(
         source_refs: feature.source_refs
       })),
     approved_landing_gaps: data.landing_gaps
-      .filter((gap) => gap.review_status === "approved")
+      .filter((gap) => isAcceptedReviewStatus(gap.review_status))
       .map((gap) => ({
         id: gap.id,
         conversation_id: gap.conversation_id,
@@ -271,7 +272,7 @@ export function buildAdGroupGenerationInput(
         suggested_fix: gap.suggested_fix
       })),
     approved_product_feed_items: ((data.product_feed_items ?? []) as ProductFeedItem[])
-      .filter((item) => item.review_status === "approved")
+      .filter((item) => isAcceptedReviewStatus(item.review_status))
       .map((item) => ({
         id: item.id,
         title: item.title,

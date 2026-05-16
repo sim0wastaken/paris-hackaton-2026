@@ -28,6 +28,7 @@ const serverEnvSchema = clientEnvSchema.extend({
   DATABASE_URL: requiredString,
   OPENAI_API_KEY: optionalString,
   OPENAI_MODEL: optionalString.default("gpt-5-mini"),
+  OPENAI_REASONING_EFFORT: z.enum(["none", "low", "medium", "high", "xhigh"]).optional(),
   OPENAI_EXTRACTION_MODEL: optionalString,
   OPENAI_EXTRACTION_PROMPT_VERSION: optionalString.default("2026-05-16"),
   TAVILY_API_KEY: optionalString,

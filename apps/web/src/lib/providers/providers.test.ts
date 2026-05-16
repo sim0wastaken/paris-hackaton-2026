@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { generateFalImage } from "./fal";
 import { generateOpenAIStructuredObject, generateOpenAIText } from "./openai";
@@ -6,6 +6,12 @@ import { extractUrlWithTavily } from "./tavily";
 import { z } from "zod";
 
 describe("provider client boundaries", () => {
+  const originalReasoningEffort = process.env.OPENAI_REASONING_EFFORT;
+
+  afterEach(() => {
+    process.env.OPENAI_REASONING_EFFORT = originalReasoningEffort;
+  });
+
   it("skips OpenAI calls when no API key is configured", async () => {
     const fetcher = vi.fn<typeof fetch>();
 
@@ -17,6 +23,27 @@ describe("provider client boundaries", () => {
     expect(result.status).toBe("skipped");
     expect(result.provider).toBe("openai");
     expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("passes configured reasoning effort to OpenAI Responses calls", async () => {
+    process.env.OPENAI_REASONING_EFFORT = "low";
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({ id: "resp_002", output_text: "Ready" }), {
+        status: 200,
+        headers: { "content-type": "application/json" }
+      })
+    );
+
+    await generateOpenAIText(
+      { prompt: "Summarize this source", requestId: "req_reasoning" },
+      { apiKey: "sk_test", model: "gpt-5.5", fetcher }
+    );
+
+    const body = JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body));
+    expect(body).toMatchObject({
+      model: "gpt-5.5",
+      reasoning: { effort: "low" }
+    });
   });
 
   it("requests OpenAI structured outputs and parses the returned object", async () => {

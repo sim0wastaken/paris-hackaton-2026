@@ -19,8 +19,13 @@ const pendingFeatureId = "20000000-0000-4000-8000-000000000002";
 const gapId = "30000000-0000-4000-8000-000000000001";
 
 describe("Spec 06 ad-group generation", () => {
-  it("builds generation input from approved extraction rows only", () => {
-    const input = buildAdGroupGenerationInput(reviewDataFixture());
+  it("builds generation input from accepted extraction rows only", () => {
+    const data = reviewDataFixture();
+    data.conversations[0]!.review_status = "edited";
+    data.conversations[1]!.review_status = "enriched";
+    data.brand_features[0]!.review_status = "edited";
+    data.landing_gaps[0]!.review_status = "enriched";
+    const input = buildAdGroupGenerationInput(data);
 
     expect(input.approved_conversations.map((row) => row.id)).toEqual([
       conversationOneId,

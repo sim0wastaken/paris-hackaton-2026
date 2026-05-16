@@ -7,6 +7,7 @@ import { Activity, BarChart3, Check, Rocket, RotateCcw, RotateCw } from "lucide-
 import { EmptyState } from "./empty-state";
 import { StatusBadge } from "./status-badge";
 import type { MonitoringData } from "@/lib/motive/deployments";
+import { buildDemoResetHeaders, readBrowserDemoOperatorToken } from "@/lib/motive/demo-reset-client";
 import type { CreativeVariant, PerformanceSnapshot } from "@/lib/motive/types";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
@@ -73,6 +74,7 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
   }, [projectId]);
 
   useEffect(() => {
+    if (connection === "live") return;
     const controller = new AbortController();
     const interval = setInterval(() => {
       refresh(controller.signal).catch((caught) => {
@@ -86,7 +88,7 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
       controller.abort();
       clearInterval(interval);
     };
-  }, [refresh]);
+  }, [connection, refresh]);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -148,7 +150,7 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
     try {
       const response = await fetch("/api/demo/reset", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: buildDemoResetHeaders(readBrowserDemoOperatorToken()),
         body: JSON.stringify({
           project_id: projectId,
           replay: true,
