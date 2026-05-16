@@ -152,7 +152,8 @@ OpenAI Ads rules to preserve:
 - Image is required for OpenAI-compatible ad assets: PNG/JPG, square, maximum 1200x1200, publicly accessible.
 - The API upload path may require an uploaded file ID; bulk upload uses image URLs. Store both when available.
 - Video creatives can exist as Motive-owned future-channel assets, but OpenAI Ads export is image-only today.
-- Prompt Share of Voice and landing gaps are Motive-owned analysis. They are not OpenAI Ads Manager metrics.
+- Landing gaps are Motive-owned analysis, computed from Motive's GPT-5 + Tavily extraction; they are not OpenAI Ads Manager metrics.
+- Prompt Share of Voice is deferred for v1: not computed, not stored, and not surfaced in any product surface. Treat any older references as out of scope.
 
 ## Product Feed / Shopping Ads Contract
 
@@ -200,7 +201,6 @@ Motive-internal fields may include:
 - `quality_score`
 - `insight`
 - `recommended_action`
-- `prompt_share_scan` or similar future scan artifacts
 
 OpenAI-exported fields must be explicitly generated and validated:
 

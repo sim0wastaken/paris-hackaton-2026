@@ -116,12 +116,6 @@ function HeroDashboard() {
               <span className="chip dim">+ 3</span>
             </div>
           </div>
-          <div className="side-section">
-            <div className="side-label">Prompt SoV</div>
-            <div className="sov-num">38<span>%</span></div>
-            <div className="sov-bar"><div style={{ width: "38%" }}></div></div>
-            <div className="side-foot">↑ 12 vs. last scan</div>
-          </div>
         </aside>
 
         <main className="dash-main">
@@ -481,61 +475,6 @@ function Workflow() {
   );
 }
 
-/* ---------------- Prompt SoV dashboard ---------------- */
-function PromptSoV() {
-  const dims = [
-    { k: "Category visibility", you: 38, comp: 71, q: "Does AI describe the market with you in it?" },
-    { k: "Use-case fit",        you: 52, comp: 64, q: "Are you connected to the jobs-to-be-done?" },
-    { k: "Competitor adjacency", you: 29, comp: 80, q: "Which alternatives does AI compare you with?" },
-    { k: "Trust surface",       you: 61, comp: 70, q: "Enough proof for AI and humans?" },
-    { k: "Conversion path",     you: 44, comp: 58, q: "Does the page answer the user's actual context?" }
-  ];
-  return (
-    <section className="sov" id="sov" data-screen-label="Prompt SoV">
-      <div className="section-head">
-        <div className="kicker mono">04 / Prompt Share of Voice</div>
-        <h2 className="h2">Before you spend, know if you're even legible.</h2>
-        <p className="sub-lede">Five dimensions of AI-mediated visibility, scored against your category and your three closest competitors. The pre-spend metric you didn't have last year.</p>
-      </div>
-      <div className="sov-card">
-        <div className="sov-head">
-          <div>
-            <div className="sov-tag mono">PROMPT SHARE OF VOICE · acmecrm.io</div>
-            <div className="sov-sub">Scan from May 8, 2026 · n = 1,240 conversations</div>
-          </div>
-          <div className="sov-overall">
-            <div className="sov-overall-num">44<span>/100</span></div>
-            <div className="sov-overall-cap">overall · category median 63</div>
-          </div>
-        </div>
-        <div className="sov-rows">
-          {dims.map(d => (
-            <div key={d.k} className="sov-row">
-              <div className="sov-row-l">
-                <div className="sov-row-k">{d.k}</div>
-                <div className="sov-row-q">{d.q}</div>
-              </div>
-              <div className="sov-row-r">
-                <div className="sov-track">
-                  <div className="sov-comp" style={{ width: d.comp + "%" }}></div>
-                  <div className="sov-you" style={{ width: d.you + "%" }}></div>
-                  <div className="sov-tick" style={{ left: d.comp + "%" }}></div>
-                </div>
-                <div className="sov-vals mono"><b>{d.you}</b> <span>vs {d.comp}</span></div>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="sov-legend">
-          <span><i className="lg-you"></i>You</span>
-          <span><i className="lg-comp"></i>Top 3 competitors (median)</span>
-          <span className="sov-ctaline">Closing the gap on <b>Competitor adjacency</b> alone is worth ~14 pts of inferred shortlist rate.</span>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 /* ---------------- Sample output ---------------- */
 const SAMPLE_ROWS = [
   {
@@ -648,7 +587,7 @@ function Offer() {
     "Offer-to-intent matrix",
     "Context hints (JSON, bulk-ready)",
     "Ad group structure",
-    "50–100 ad title / copy variants",
+    "50–150 ad title / copy variants",
     "Landing-page gap analysis",
     "Competitor positioning risks",
     "Tracking + UTM + pixel checklist",
@@ -742,7 +681,6 @@ function FinalCTA() {
           <span>· ad group structure</span>
           <span>· creative coverage</span>
           <span>· landing gaps</span>
-          <span>· prompt share of voice</span>
           <span>· measurement loops</span>
           <span>· agent-readable feeds</span>
         </div>
@@ -757,7 +695,7 @@ function Footer() {
       <div className="foot-inner">
         <Brand />
         <div className="foot-cols">
-          <div><div className="fc-k mono">Product</div><a href="#product">Modules</a><a href="#workflow">Workflow</a><a href="#sov">Prompt SoV</a></div>
+          <div><div className="fc-k mono">Product</div><a href="#product">Modules</a><a href="#workflow">Workflow</a></div>
           <div><div className="fc-k mono">Get started</div><a href="#offer">Readiness sprint</a><a href="#sample">Sample output</a><a href="#">Agency program</a></div>
           <div><div className="fc-k mono">Company</div><a href="#founder">Founder</a><a href="#">Manifesto</a><a href="#">Contact</a></div>
         </div>
@@ -795,7 +733,6 @@ function MotiveApp() {
         <Problem />
         <ProductModules />
         <Workflow />
-        <PromptSoV />
         <SampleOutput />
         <Audience />
         <Offer />

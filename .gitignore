@@ -1,6 +1,11 @@
-# === Language build / cache (uncomment as the stack lands) ===
+# === Language build / cache ===
 # Python:        __pycache__/ .venv/ .pytest_cache/ .mypy_cache/ .ruff_cache/ .uv/ *.egg-info/ dist/ build/
-# Node / TS:     node_modules/ .next/ .turbo/ *.tsbuildinfo .parcel-cache/
+# Node / TS (active for apps/web monorepo):
+node_modules/
+.next/
+.turbo/
+*.tsbuildinfo
+.parcel-cache/
 # Go:            bin/ vendor/ *.test
 # Rust:          target/
 # Java / Kotlin: build/ .gradle/ out/

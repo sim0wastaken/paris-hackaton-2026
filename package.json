@@ -1,0 +1,13 @@
+{
+  "name": "motive-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "pnpm --filter @motive/web dev",
+    "build": "pnpm --filter @motive/web build",
+    "start": "pnpm --filter @motive/web start",
+    "lint": "pnpm --filter @motive/web lint",
+    "typecheck": "pnpm --filter @motive/web typecheck"
+  },
+  "packageManager": "pnpm@11.1.2"
+}

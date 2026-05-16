@@ -397,6 +397,7 @@ Interactions:
 - Given a project with at least one approved ad group, when the user clicks `Generate creatives`, then the system creates at least one `creative_variants` row per approved ad group.
 - Each created variant has non-empty `title`, `description`, `creative_angle`, and `asset_prompt`.
 - Each created variant obeys OpenAI Ads copy limits: title <= 50 characters and description/body <= 100 characters.
+- Character limits are enforced at the API write boundary via Zod schema validation on `creative_variants` insert/update; they are not only requested in the LLM prompt. A variant whose model output exceeds limits is rejected by the writer, logged in `extraction_runs.output_json`, and surfaced as a retryable error in the UI.
 - Each OpenAI-exportable creative has a valid `target_url`.
 - Each created variant persists a review status.
 - Each OpenAI generation call is represented in `extraction_runs` with input, output, model, prompt version, status, and any error.
