@@ -85,15 +85,31 @@ em, i { font-style: normal; }
   transition: transform .15s ease, background .2s ease, color .2s ease, border-color .2s ease;
   white-space: nowrap;
   cursor: pointer;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.35);
 }
 .btn-lg { padding: 16px 24px; font-size: 16px; }
-.btn-primary { background: var(--acid); color: var(--acid-on); }
-.btn-primary:hover { background: var(--ink); color: var(--bg); transform: translateY(-1px); }
+.btn-primary {
+  background: var(--acid);
+  color: var(--acid-on);
+  border-color: color-mix(in srgb, var(--acid) 80%, white 20%);
+}
+.btn-primary:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+  transform: translateY(-1px);
+}
 .btn-ghost {
-  background: transparent; color: var(--ink-2);
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  color: var(--ink);
   border-color: var(--line-3);
 }
-.btn-ghost:hover { color: var(--ink); border-color: var(--ink-3); background: var(--surface); }
+.btn-ghost:hover {
+  color: var(--bg);
+  border-color: var(--acid);
+  background: var(--acid);
+  transform: translateY(-1px);
+}
 .btn .arr { display: inline-block; transition: transform .2s ease; }
 .btn:hover .arr { transform: translateX(2px); }
 

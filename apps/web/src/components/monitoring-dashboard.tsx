@@ -172,7 +172,7 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
   if (deployableCreatives.length === 0 && data.performance_snapshots.length === 0) {
     return (
       <EmptyState eyebrow="Monitoring" title="Approve at least one creative before deploy.">
-        <p className="max-w-2xl text-sm leading-6 text-[#66706b]">
+        <p className="max-w-2xl text-sm leading-6 text-[var(--ink-3)]">
           The monitoring loop starts after reviewed creative variants become a simulated campaign package.
         </p>
       </EmptyState>
@@ -181,12 +181,12 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
 
   return (
     <section className="grid gap-4">
-      <div className="rounded-lg border border-[#d9dfd8] bg-white px-4 py-4 shadow-sm">
+      <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-4 py-4 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="grid gap-2">
             <div className="flex flex-wrap items-center gap-2">
-              <Activity aria-hidden="true" className="text-[#195b8f]" size={18} />
-              <h1 className="text-lg font-semibold text-[#17201c]">Monitoring</h1>
+              <Activity aria-hidden="true" className="text-[var(--acid-2)]" size={18} />
+              <h1 className="text-lg font-semibold text-[var(--ink)]">Monitoring</h1>
               <StatusBadge status={connection === "live" ? "available" : "current"}>
                 {connection === "live" ? "Realtime live" : "Polling updates"}
               </StatusBadge>
@@ -196,14 +196,14 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
               <StatusBadge status="available">{data.deployments.length} fake deploys</StatusBadge>
               <StatusBadge status="available">{latestSnapshots.length} KPI rows</StatusBadge>
             </div>
-            <p className="text-sm font-medium text-[#a05d1a]">
+            <p className="text-sm font-medium text-[var(--warn)]">
               Simulated hackathon KPIs - not connected to an ad platform.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
             {isSeededDemo ? (
               <button
-                className="inline-flex items-center gap-2 rounded-md border border-[#d9dfd8] bg-white px-3 py-2 text-sm font-medium text-[#17201c] disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn btn-ghost btn-sm"
                 disabled={resettingDemo}
                 onClick={() => void resetDemo()}
                 type="button"
@@ -213,7 +213,7 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
               </button>
             ) : null}
             <button
-              className="inline-flex items-center gap-2 rounded-md border border-[#17201c] bg-[#17201c] px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn btn-primary btn-sm"
               disabled={deploying || selectedDeployableIds.length === 0}
               onClick={() => void fakeDeploy()}
               type="button"
@@ -224,29 +224,29 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
           </div>
         </div>
         {latestDeployment ? (
-          <p className="mt-3 text-sm text-[#66706b]">
+          <p className="mt-3 text-sm text-[var(--ink-3)]">
             Latest package deployed {formatDateTime(latestDeployment.deployed_at ?? latestDeployment.created_at)}.
           </p>
         ) : null}
       </div>
 
       {error ? (
-        <p className="rounded-md border border-[#efc0bd] bg-[#fff0ee] px-3 py-2 text-sm text-[#a3382f]">
+        <p className="rounded-md border border-[var(--warn-line)] bg-[var(--warn-soft)] px-3 py-2 text-sm text-[var(--warn)]">
           {error}
         </p>
       ) : null}
       <p className="sr-only" aria-live="polite">{announcement}</p>
 
-      <section className="rounded-lg border border-[#d9dfd8] bg-white p-4 shadow-sm">
+      <section className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-base font-semibold text-[#17201c]">Deploy selection</h2>
-            <p className="mt-1 text-sm text-[#66706b]">
+            <h2 className="text-base font-semibold text-[var(--ink)]">Deploy selection</h2>
+            <p className="mt-1 text-sm text-[var(--ink-3)]">
               Approved and edited creatives are eligible. Pending and rejected variants stay out of the package.
             </p>
           </div>
           <button
-            className="inline-flex items-center gap-2 rounded-md border border-[#d9dfd8] px-3 py-2 text-sm font-medium text-[#17201c]"
+            className="btn btn-ghost btn-sm"
             onClick={() => void refresh()}
             type="button"
           >
@@ -260,12 +260,12 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
             const checked = selectedIds.includes(creative.id);
             return (
               <label
-                className="flex min-h-28 items-start gap-3 rounded-md border border-[#d9dfd8] p-3"
+                className="flex min-h-28 items-start gap-3 rounded-md border border-[var(--line)] bg-[var(--bg-2)] p-3"
                 key={creative.id}
               >
                 <input
                   checked={checked}
-                  className="mt-1 h-4 w-4"
+                  className="mt-1 h-4 w-4 accent-[var(--acid)]"
                   onChange={(event) => {
                     setSelectedIds((current) =>
                       event.target.checked
@@ -276,8 +276,8 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
                   type="checkbox"
                 />
                 <span className="grid gap-1">
-                  <span className="text-sm font-semibold text-[#17201c]">{creative.title}</span>
-                  <span className="text-sm text-[#3f4944]">{creative.description}</span>
+                  <span className="text-sm font-semibold text-[var(--ink)]">{creative.title}</span>
+                  <span className="text-sm text-[var(--ink-2)]">{creative.description}</span>
                   <span className="flex flex-wrap gap-2 pt-1">
                     <StatusBadge status="available">{adGroup?.name ?? "Unknown group"}</StatusBadge>
                     <StatusBadge status="available">{creative.asset_url ? "Image ready" : "Prompt-only"}</StatusBadge>
@@ -298,13 +298,13 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
       </div>
 
       <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-lg border border-[#d9dfd8] bg-white p-4 shadow-sm">
+        <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
-            <BarChart3 aria-hidden="true" className="text-[#195b8f]" size={18} />
-            <h2 className="text-base font-semibold text-[#17201c]">CTR / CVR by creative</h2>
+            <BarChart3 aria-hidden="true" className="text-[var(--acid-2)]" size={18} />
+            <h2 className="text-base font-semibold text-[var(--ink)]">CTR / CVR by creative</h2>
           </div>
           {latestSnapshots.length === 0 ? (
-            <p className="rounded-md border border-dashed border-[#cbd5c8] px-3 py-4 text-sm text-[#66706b]">
+            <p className="rounded-md border border-dashed border-[var(--line-3)] bg-[var(--bg-2)] px-3 py-4 text-sm text-[var(--ink-3)]">
               Fake deploy to generate simulated monitoring rows.
             </p>
           ) : (
@@ -314,8 +314,8 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
                 return (
                   <div className="grid gap-2" key={snapshot.id}>
                     <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                      <span className="font-medium text-[#17201c]">{creative?.title ?? "Creative"}</span>
-                      <span className="text-[#66706b]">Q{snapshot.quality_score}</span>
+                      <span className="font-medium text-[var(--ink)]">{creative?.title ?? "Creative"}</span>
+                      <span className="text-[var(--ink-3)]">Q{snapshot.quality_score}</span>
                     </div>
                     <MetricBar label="CTR" tone="blue" value={Number(snapshot.ctr)} max={0.06} />
                     <MetricBar label="CVR" tone="green" value={Number(snapshot.cvr)} max={0.09} />
@@ -326,32 +326,32 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
           )}
         </div>
 
-        <div className="rounded-lg border border-[#d9dfd8] bg-white p-4 shadow-sm">
-          <h2 className="text-base font-semibold text-[#17201c]">{summary.headline}</h2>
+        <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4 shadow-sm">
+          <h2 className="text-base font-semibold text-[var(--ink)]">{summary.headline}</h2>
           <dl className="mt-4 grid gap-3 text-sm">
             <div>
-              <dt className="font-semibold text-[#17201c]">What worked</dt>
-              <dd className="mt-1 leading-6 text-[#3f4944]">{summary.what_worked}</dd>
+              <dt className="font-semibold text-[var(--ink)]">What worked</dt>
+              <dd className="mt-1 leading-6 text-[var(--ink-2)]">{summary.what_worked}</dd>
             </div>
             <div>
-              <dt className="font-semibold text-[#17201c]">Blocked conversion</dt>
-              <dd className="mt-1 leading-6 text-[#3f4944]">{summary.what_blocked_conversion}</dd>
+              <dt className="font-semibold text-[var(--ink)]">Blocked conversion</dt>
+              <dd className="mt-1 leading-6 text-[var(--ink-2)]">{summary.what_blocked_conversion}</dd>
             </div>
             <div>
-              <dt className="font-semibold text-[#17201c]">Pioneer signal</dt>
-              <dd className="mt-1 leading-6 text-[#3f4944]">{summary.pioneer_learning_signal}</dd>
+              <dt className="font-semibold text-[var(--ink)]">Pioneer signal</dt>
+              <dd className="mt-1 leading-6 text-[var(--ink-2)]">{summary.pioneer_learning_signal}</dd>
             </div>
           </dl>
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-lg border border-[#d9dfd8] bg-white shadow-sm">
-        <div className="border-b border-[#e7ece5] px-4 py-3">
-          <h2 className="text-base font-semibold text-[#17201c]">Simulated outcome rows</h2>
+      <section className="overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface)] shadow-sm">
+        <div className="border-b border-[var(--line)] px-4 py-3">
+          <h2 className="text-base font-semibold text-[var(--ink)]">Simulated outcome rows</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm">
-            <thead className="bg-[#f6f8f5] text-xs uppercase text-[#66706b]">
+            <thead className="bg-[var(--bg-2)] text-xs uppercase text-[var(--ink-3)]">
               <tr>
                 <th className="px-4 py-3 font-semibold">Ad group</th>
                 <th className="px-4 py-3 font-semibold">Creative</th>
@@ -362,30 +362,30 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
                 <th className="px-4 py-3 font-semibold">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e7ece5]">
+            <tbody className="divide-y divide-[var(--line)]">
               {latestSnapshots.map((snapshot) => {
                 const creative = data.creative_variants.find((row) => row.id === snapshot.creative_variant_id);
                 const adGroup = data.ad_groups.find((row) => row.id === snapshot.ad_group_id);
                 return (
                   <tr key={snapshot.id}>
-                    <td className="px-4 py-3 text-[#17201c]">{adGroup?.name ?? "-"}</td>
-                    <td className="px-4 py-3 text-[#17201c]">{creative?.title ?? "-"}</td>
+                    <td className="px-4 py-3 text-[var(--ink)]">{adGroup?.name ?? "-"}</td>
+                    <td className="px-4 py-3 text-[var(--ink)]">{creative?.title ?? "-"}</td>
                     <td className="px-4 py-3">
-                      <span className="inline-flex items-center gap-1 rounded-md bg-[#eef5f9] px-2 py-1 font-medium text-[#195b8f]">
+                      <span className="inline-flex items-center gap-1 rounded-md bg-[var(--accent-soft)] px-2 py-1 font-medium text-[var(--acid)]">
                         <Check aria-hidden="true" size={14} />
                         {snapshot.quality_score}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-[#3f4944]">{percentFormat(Number(snapshot.ctr))}</td>
-                    <td className="px-4 py-3 text-[#3f4944]">{percentFormat(Number(snapshot.cvr))}</td>
-                    <td className="min-w-72 px-4 py-3 leading-6 text-[#3f4944]">{snapshot.insight}</td>
-                    <td className="px-4 py-3 text-[#17201c]">{actionLabel(snapshot.recommended_action)}</td>
+                    <td className="px-4 py-3 text-[var(--ink-2)]">{percentFormat(Number(snapshot.ctr))}</td>
+                    <td className="px-4 py-3 text-[var(--ink-2)]">{percentFormat(Number(snapshot.cvr))}</td>
+                    <td className="min-w-72 px-4 py-3 leading-6 text-[var(--ink-2)]">{snapshot.insight}</td>
+                    <td className="px-4 py-3 text-[var(--ink)]">{actionLabel(snapshot.recommended_action)}</td>
                   </tr>
                 );
               })}
               {latestSnapshots.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-5 text-sm text-[#66706b]" colSpan={7}>
+                  <td className="px-4 py-5 text-sm text-[var(--ink-3)]" colSpan={7}>
                     No simulated KPI rows for the latest fake deploy yet.
                   </td>
                 </tr>
@@ -400,9 +400,9 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
 
 function KpiCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-[#d9dfd8] bg-white p-4 shadow-sm">
-      <p className="text-xs font-semibold uppercase text-[#66706b]">{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-[#17201c]">{value}</p>
+    <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4 shadow-sm">
+      <p className="text-xs font-semibold uppercase text-[var(--ink-3)]">{label}</p>
+      <p className="mt-2 text-2xl font-semibold text-[var(--ink)]">{value}</p>
     </div>
   );
 }
@@ -420,11 +420,11 @@ function MetricBar({
 }) {
   const width = `${Math.min(100, Math.round((value / max) * 100))}%`;
   return (
-    <div className="grid grid-cols-[3rem_1fr_4rem] items-center gap-2 text-xs text-[#66706b]">
+    <div className="grid grid-cols-[3rem_1fr_4rem] items-center gap-2 text-xs text-[var(--ink-3)]">
       <span>{label}</span>
-      <span className="h-2 overflow-hidden rounded-full bg-[#edf1ec]">
+      <span className="h-2 overflow-hidden rounded-full bg-[var(--surface-3)]">
         <span
-          className={`block h-full ${tone === "blue" ? "bg-[#195b8f]" : "bg-[#27745f]"}`}
+          className={`block h-full ${tone === "blue" ? "bg-[var(--acid-2)]" : "bg-[var(--acid)]"}`}
           style={{ width }}
         />
       </span>

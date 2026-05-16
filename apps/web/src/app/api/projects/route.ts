@@ -3,7 +3,18 @@ import { ZodError } from "zod";
 
 import { createBestEffortIntakeEventSink } from "@/lib/motive/intake-events";
 import { createProjectIntake } from "@/lib/motive/projects";
+import { createSupabaseProjectExplorerRepository } from "@/lib/motive/supabase-project-explorer";
 import { createSupabaseIntakeRepository } from "@/lib/motive/supabase-projects";
+
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const limit = Number(url.searchParams.get("limit") ?? 30);
+  const projects = await createSupabaseProjectExplorerRepository().listProjectSummaries(
+    Number.isFinite(limit) ? limit : 30
+  );
+
+  return NextResponse.json({ projects });
+}
 
 export async function POST(request: Request) {
   const payload = await request.json().catch(() => ({}));

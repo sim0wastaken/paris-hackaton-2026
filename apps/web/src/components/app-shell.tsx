@@ -14,9 +14,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </span>
             </span>
           </Link>
-          <span className="tag tag-solid">
-            OpenAI-first v1
-          </span>
+          <div className="flex items-center gap-3">
+            <Link className="tag tag-outline" href="/projects">
+              Projects
+            </Link>
+            <span className="tag tag-solid">
+              OpenAI-first v1
+            </span>
+          </div>
         </div>
       </header>
       {children}

@@ -619,6 +619,61 @@ b {
   transform: translateX(16px);
 }
 
+.explorer-panel {
+  align-self: start;
+  max-height: calc(100vh - 140px);
+  overflow: auto;
+}
+
+.project-list-item {
+  align-items: center;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  display: flex;
+  gap: var(--s-3);
+  justify-content: space-between;
+  padding: var(--s-4);
+  text-align: left;
+  transition:
+    background var(--dur-2) var(--ease),
+    border-color var(--dur-2) var(--ease),
+    transform var(--dur-1) var(--ease);
+  width: 100%;
+}
+
+.project-list-item:hover,
+.project-list-item.active {
+  background: var(--surface-2);
+  border-color: var(--line-3);
+  transform: translateY(-1px);
+}
+
+.explorer-tab {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  color: var(--ink-3);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: var(--fw-medium);
+  padding: 8px 14px;
+}
+
+.explorer-tab.active {
+  background: var(--acid);
+  border-color: var(--acid);
+  color: var(--acid-on);
+}
+
+.preview-row {
+  background: color-mix(in srgb, var(--surface) 72%, var(--bg));
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: var(--s-4);
+}
+
 .workflow-item {
   background: var(--bg-2);
   border: 1px solid var(--line);
