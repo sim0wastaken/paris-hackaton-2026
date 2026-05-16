@@ -30,6 +30,7 @@ npx pnpm@11.1.2 dev
 - Review page renders the live phase rail, source status, source recap, feature map, conversation, landing-gap, and draft ad-group panels.
 - Spec 04 demo replay verified through `POST /api/projects`: six extraction phases succeeded, 6 features / 4 conversations / 4 landing gaps / 2 draft ad groups materialized, and the project moved to `review`.
 - No-key non-demo extraction verified: `source_recap` fails with `openai_not_configured`, downstream phases are marked `skipped_dependency_failed`, and prior/domain rows are not erased.
+- Spec 05 review actions verified through `POST /api/projects/:id/reviews`: approve, edit, reject, and enrich update the target entity and insert one `human_reviews` row with persisted `before_json` and `after_json`.
 
 ## What is stubbed
 
@@ -47,11 +48,10 @@ npx pnpm@11.1.2 dev
 
 ## Next N hours priorities
 
-1. Build HITL review actions for approving/editing/rejecting extracted rows.
-2. Generate canonical ad groups from approved extraction rows.
-3. Generate and persist ad-group creatives: title, description, image/video prompt or asset.
-4. Build fake deploy and story-driven monitoring dashboard.
-5. Use the stored `human_reviews`, extraction outputs, and simulated performance rows as the later Pioneer substrate.
+1. Generate canonical ad groups from approved extraction rows.
+2. Generate and persist ad-group creatives: title, description, image/video prompt or asset.
+3. Build fake deploy and story-driven monitoring dashboard.
+4. Use the stored `human_reviews`, extraction outputs, and simulated performance rows as the later Pioneer substrate.
 
 ## Pointers (compaction-survive)
 

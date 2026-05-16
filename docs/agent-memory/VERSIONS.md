@@ -10,6 +10,8 @@ Pinned versions for every dep. Updated whenever a dep lands. Consult before runn
 | pnpm | 11.1.2 | Root `packageManager` and `npx pnpm@11.1.2` | Workspace package manager. |
 | Supabase CLI | 2.98.2 | Root `package.json` | Local DB commands. |
 | Inngest CLI | 1.19.4 | Root `package.json` | Local Inngest Dev Server. |
+| Vercel CLI | 54.1.0 | Installed globally via `npm i -g vercel@54.1.0` | Deploys + env management + Marketplace integration installs. |
+| psql | 14.22 (Homebrew) | System | Used to push remote Supabase migrations + seed (skips `supabase login` flow). |
 | React UMD | 18.3.1 | `Motive - Landing + SaaS (4)/Motive Landing.html` | Static landing prototype. |
 | Babel standalone | 7.29.0 | `Motive - Landing + SaaS (4)/Motive Landing.html` | Browser JSX transform for prototype only. |
 

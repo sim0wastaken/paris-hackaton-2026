@@ -9,7 +9,7 @@ import type {
   Spec04ExtractionPhase
 } from "./extraction";
 import type { ProjectRecord, SourceRecord } from "./projects";
-import type { AdGroup, BrandFeature, Conversation, LandingGap } from "./types";
+import type { AdGroup, BrandFeature, Conversation, HumanReview, LandingGap } from "./types";
 
 type SupabaseAny = {
   from: (table: string) => SupabaseQuery;
@@ -340,17 +340,19 @@ export async function getExtractionReviewData(
     features,
     conversations,
     gaps,
-    adGroups
+    adGroups,
+    reviews
   ] = await Promise.all([
     supabase.from("sources").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
     supabase.from("extraction_runs").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
     supabase.from("brand_features").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
     supabase.from("conversations").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
     supabase.from("landing_gaps").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
-    supabase.from("ad_groups").select("*").eq("project_id", projectId).order("created_at", { ascending: true })
+    supabase.from("ad_groups").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
+    supabase.from("human_reviews").select("*").eq("project_id", projectId).order("created_at", { ascending: false })
   ]);
 
-  for (const result of [sources, runs, features, conversations, gaps, adGroups]) {
+  for (const result of [sources, runs, features, conversations, gaps, adGroups, reviews]) {
     if (result.error) throw result.error;
   }
 
@@ -361,7 +363,8 @@ export async function getExtractionReviewData(
     brand_features: (features.data ?? []) as BrandFeature[],
     conversations: (conversations.data ?? []) as Conversation[],
     landing_gaps: (gaps.data ?? []) as LandingGap[],
-    ad_groups: (adGroups.data ?? []) as AdGroup[]
+    ad_groups: (adGroups.data ?? []) as AdGroup[],
+    human_reviews: (reviews.data ?? []) as HumanReview[]
   };
 }
 

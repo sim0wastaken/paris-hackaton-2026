@@ -39,3 +39,4 @@ secrets/
 .gitnexus/*
 !.gitnexus/meta.json
 .vercel
+.env*.local

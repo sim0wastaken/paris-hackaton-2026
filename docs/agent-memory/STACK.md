@@ -18,6 +18,8 @@ This is the answer to "what's in this repo" in 60 seconds.
 | Constraint extraction | Pioneer GLiNER2 | Later extraction of budget, timeline, integration, team-size, and compliance spans. |
 | Creative assets | fal.ai | Generates image/video assets after creative angle selection. |
 | Feedback loop | `human_reviews` + story-driven `performance_snapshots` | Captures corrections/outcomes and creates the future Pioneer training set. |
+| Hosting | Vercel (project `paris-hackaton-2026`, prod URL https://paris-hackaton-2026.vercel.app) | Serves the Next.js app + serverless route handlers; auto-detects pnpm workspace; Inngest functions served from `/api/inngest`. |
+| Production database | Supabase via Vercel Marketplace (`supabase-amber-harbor`, region `cdg1`, ref `aersalcsnejltyklimeb`) | Auto-injects 16 env vars (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `POSTGRES_URL`, `POSTGRES_URL_NON_POOLING`, etc.) across Production/Preview/Development. |
 
 ## Data flow
 

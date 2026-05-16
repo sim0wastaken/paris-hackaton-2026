@@ -117,7 +117,8 @@ function createMemoryExtractionRepository() {
     brand_features: [],
     conversations: [],
     landing_gaps: [],
-    ad_groups: []
+    ad_groups: [],
+    human_reviews: []
   };
 
   const repository: ExtractionRepository & {

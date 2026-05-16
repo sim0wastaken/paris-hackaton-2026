@@ -16,7 +16,7 @@ import {
   type PhaseOutput,
 } from "./extraction-schemas";
 import type { ProjectRecord, SourceRecord } from "./projects";
-import type { AdGroup, BrandFeature, Conversation, LandingGap } from "./types";
+import type { AdGroup, BrandFeature, Conversation, HumanReview, LandingGap } from "./types";
 
 export const SPEC_04_PHASES = [
   "source_recap",
@@ -59,6 +59,7 @@ export type ExtractionReviewData = {
   conversations: Conversation[];
   landing_gaps: LandingGap[];
   ad_groups: AdGroup[];
+  human_reviews: HumanReview[];
 };
 
 export type ExtractionRepository = {
