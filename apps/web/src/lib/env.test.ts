@@ -37,6 +37,32 @@ describe("env parsing", () => {
       expect(result.data.OPENAI_EXTRACTION_MODEL).toBeUndefined();
       expect(result.data.OPENAI_EXTRACTION_PROMPT_VERSION).toBe("2026-05-16");
       expect(result.data.MOTIVE_DEMO_MODE).toBe(true);
+      expect(result.data.DEMO_MODE).toBe("auto");
+      expect(result.data.ENABLE_DEMO_RESET).toBe(false);
+      expect(result.data.DEMO_PROJECT_ID).toBe("00000000-0000-0000-0000-000000000001");
+      expect(result.data.DEMO_SEED_VERSION).toBe("2026-05-16.worker-e.v1");
+    }
+  });
+
+  it("parses seeded demo mode and reset guard settings", () => {
+    const result = parseServerEnv({
+      NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "publishable",
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000",
+      SUPABASE_SERVICE_ROLE_KEY: "service-role",
+      DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+      DEMO_MODE: "seeded",
+      ENABLE_DEMO_RESET: "true",
+      DEMO_PROJECT_ID: "11111111-1111-4111-8111-111111111111",
+      DEMO_SEED_VERSION: "2026-05-16.worker-e.v2"
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.DEMO_MODE).toBe("seeded");
+      expect(result.data.ENABLE_DEMO_RESET).toBe(true);
+      expect(result.data.DEMO_PROJECT_ID).toBe("11111111-1111-4111-8111-111111111111");
+      expect(result.data.DEMO_SEED_VERSION).toBe("2026-05-16.worker-e.v2");
     }
   });
 

@@ -42,10 +42,10 @@ export async function POST(request: Request, context: RouteContext) {
         requestId: parsed.data.requestId ?? crypto.randomUUID(),
         adGroupIds: parsed.data.ad_group_ids,
         variantCount: parsed.data.variant_count,
-        generateAssets: parsed.data.generate_assets ?? true,
+        generateAssets: parsed.data.generate_assets ?? process.env.DEMO_MODE !== "seeded",
         regenerate: parsed.data.regenerate ?? false,
-        demoMode: parsed.data.demoMode ?? false,
-        forceFallback: parsed.data.forceFallback ?? false
+        demoMode: parsed.data.demoMode ?? shouldUseDeterministicFallback(),
+        forceFallback: parsed.data.forceFallback ?? shouldUseDeterministicFallback()
       },
       {
         repository: createSupabaseCreativeGenerationRepository(),
@@ -97,6 +97,11 @@ export async function POST(request: Request, context: RouteContext) {
       { status: error.status }
     );
   }
+}
+
+function shouldUseDeterministicFallback(): boolean {
+  return process.env.DEMO_MODE === "seeded"
+    || (process.env.DEMO_MODE === "auto" && !process.env.OPENAI_API_KEY);
 }
 
 function normalizeCreativeRouteError(caught: unknown) {

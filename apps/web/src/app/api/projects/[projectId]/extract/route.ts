@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { inngest } from "@/inngest/client";
 import { MOTIVE_EVENTS } from "@/inngest/functions";
+import { requireServerEnv } from "@/lib/env";
 import { createSupabaseExtractionRepository } from "@/lib/motive/supabase-extraction";
 
 const extractRequestSchema = z.object({
@@ -17,6 +18,7 @@ type RouteContext = {
 
 export async function POST(request: Request, context: RouteContext) {
   const { projectId } = await context.params;
+  const env = requireServerEnv();
   const payload = await request.json().catch(() => ({}));
   const parsed = extractRequestSchema.safeParse(payload);
 
@@ -53,7 +55,7 @@ export async function POST(request: Request, context: RouteContext) {
         projectId,
         requestId,
         sourceIds: usableSources.map((source) => source.id),
-        demoMode: parsed.data.demoMode ?? false
+        demoMode: parsed.data.demoMode ?? shouldUseSeededExtraction(env)
       }
     });
   } catch (error) {
@@ -72,4 +74,8 @@ export async function POST(request: Request, context: RouteContext) {
     projectId,
     requestId
   });
+}
+
+function shouldUseSeededExtraction(env: ReturnType<typeof requireServerEnv>): boolean {
+  return env.DEMO_MODE === "seeded" || (env.DEMO_MODE === "auto" && !env.OPENAI_API_KEY);
 }

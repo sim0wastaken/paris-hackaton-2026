@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Activity, BarChart3, Check, Rocket, RotateCw } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Activity, BarChart3, Check, Rocket, RotateCcw, RotateCw } from "lucide-react";
 
 import { EmptyState } from "./empty-state";
 import { StatusBadge } from "./status-badge";
@@ -25,12 +26,14 @@ type DeployResponse = {
 };
 
 export function MonitoringDashboard({ initialData }: { initialData: MonitoringData }) {
+  const router = useRouter();
   const [data, setData] = useState(initialData);
   const [selectedIds, setSelectedIds] = useState<string[]>(() =>
     initialData.creative_variants.filter(isDeployableCreative).map((creative) => creative.id)
   );
   const [connection, setConnection] = useState<"connecting" | "live" | "polling">("connecting");
   const [deploying, setDeploying] = useState(false);
+  const [resettingDemo, setResettingDemo] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const projectId = initialData.project.id;
@@ -58,6 +61,7 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
     latestDeployment,
     latestSnapshots
   ]);
+  const isSeededDemo = data.project.metadata.is_seeded_demo === true;
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
     const response = await fetch(`/api/projects/${projectId}/deploy`, {
@@ -138,6 +142,31 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
     }
   }
 
+  async function resetDemo() {
+    setResettingDemo(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/demo/reset", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          project_id: projectId,
+          replay: true,
+          requested_by: "monitoring"
+        })
+      });
+      const payload = await response.json().catch(() => ({} as DeployResponse));
+      if (!response.ok) {
+        throw new Error(typeof payload.message === "string" ? payload.message : "Demo reset failed");
+      }
+      router.push(`/projects/${projectId}/review`);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Demo reset failed");
+    } finally {
+      setResettingDemo(false);
+    }
+  }
+
   if (deployableCreatives.length === 0 && data.performance_snapshots.length === 0) {
     return (
       <EmptyState eyebrow="Monitoring" title="Approve at least one creative before deploy.">
@@ -169,15 +198,28 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
               Simulated hackathon KPIs - not connected to an ad platform.
             </p>
           </div>
-          <button
-            className="inline-flex items-center gap-2 rounded-md border border-[#17201c] bg-[#17201c] px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={deploying || selectedDeployableIds.length === 0}
-            onClick={() => void fakeDeploy()}
-            type="button"
-          >
-            <Rocket aria-hidden="true" size={16} />
-            {deploying ? "Deploying..." : "Fake deploy"}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            {isSeededDemo ? (
+              <button
+                className="inline-flex items-center gap-2 rounded-md border border-[#d9dfd8] bg-white px-3 py-2 text-sm font-medium text-[#17201c] disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={resettingDemo}
+                onClick={() => void resetDemo()}
+                type="button"
+              >
+                <RotateCcw aria-hidden="true" size={16} />
+                {resettingDemo ? "Resetting..." : "Reset demo"}
+              </button>
+            ) : null}
+            <button
+              className="inline-flex items-center gap-2 rounded-md border border-[#17201c] bg-[#17201c] px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={deploying || selectedDeployableIds.length === 0}
+              onClick={() => void fakeDeploy()}
+              type="button"
+            >
+              <Rocket aria-hidden="true" size={16} />
+              {deploying ? "Deploying..." : "Fake deploy"}
+            </button>
+          </div>
         </div>
         {latestDeployment ? (
           <p className="mt-3 text-sm text-[#66706b]">

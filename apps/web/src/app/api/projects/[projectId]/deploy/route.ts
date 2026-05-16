@@ -54,7 +54,7 @@ export async function POST(request: Request, context: RouteContext) {
         requestId: parsed.data.requestId ?? crypto.randomUUID(),
         creativeVariantIds: parsed.data.creative_variant_ids,
         generatePerformance: parsed.data.generate_performance ?? true,
-        forceFallback: parsed.data.forceFallback ?? false
+        forceFallback: parsed.data.forceFallback ?? shouldUseDeterministicFallback()
       },
       {
         repository: createSupabaseDeploymentRepository(),
@@ -109,6 +109,11 @@ export async function POST(request: Request, context: RouteContext) {
       { status: error.status }
     );
   }
+}
+
+function shouldUseDeterministicFallback(): boolean {
+  return process.env.DEMO_MODE === "seeded"
+    || (process.env.DEMO_MODE === "auto" && !process.env.OPENAI_API_KEY);
 }
 
 function normalizeDeployRouteError(caught: unknown) {
