@@ -34,6 +34,26 @@ npx pnpm@11.1.2 dev
 - Spec 06 ad-group generation verified through `POST /api/projects/:id/ad-groups/generate`: approved conversations/features/gaps become one OpenAI Ads-compatible campaign plus draft ad groups with `context_hints`, bid defaults, linked conversations, persisted `extraction_runs` input/output, and deterministic fallback when provider use is skipped. Generated ad groups remain reviewable through the existing audit-backed approve/edit/reject/enrich flow.
 - Spec 07 creative generation verified through `POST /api/projects/:id/creatives`: approved ad groups become `creative_variants` with title, description, creative angle, target URL, asset prompt, `creative_text` run audit, optional fal.ai image generation, prompt-only fallback when `FAL_KEY` is absent, and audit-backed approve/edit/reject review.
 - Spec 08 fake deploy and monitoring verified through `POST /api/projects/:id/deploy`: approved creatives become a `fake_deployed` campaign package with OpenAI Ads-shaped campaign/ad-group/ad payload, deterministic simulated KPI snapshots, quality score basis, insights, recommended actions, and dashboard summary. `GET /api/projects/:id/deploy` powers the Monitoring page polling fallback alongside Realtime subscriptions.
+- Spec 09 seeded demo safety path verified at contract level: `DEMO_MODE=seeded|auto`, `ENABLE_DEMO_RESET=true`, `POST /api/demo/reset`, `POST /api/demo/replay`, Inngest `demo/extraction.replay.requested`, and `pnpm demo:reset` reset AtlasDesk (`00000000-0000-0000-0000-000000000001`) to deterministic sources, extraction phases, review rows, ad groups, creatives, fake deployment, and story KPI rows.
+
+## Seeded demo path
+
+Local rehearsal:
+
+```sh
+DEMO_MODE=seeded ENABLE_DEMO_RESET=true npx pnpm@11.1.2 dev
+npx pnpm@11.1.2 inngest:dev
+npx pnpm@11.1.2 demo:reset
+```
+
+Then open `/`, click `Use demo project`, and watch `/projects/00000000-0000-0000-0000-000000000001/review`.
+
+Guardrails:
+
+- `POST /api/demo/reset` never accepts arbitrary project IDs; it only uses `DEMO_PROJECT_ID`.
+- Hosted/non-local reset requires `ENABLE_DEMO_RESET=true` and either demo mode or `DEMO_OPERATOR_TOKEN`.
+- `DEMO_MODE=seeded` skips OpenAI/fal provider calls for extraction, ad-group generation, creative generation, and monitoring synthesis.
+- `DEMO_MODE=auto` falls back to deterministic fixtures when OpenAI is not configured.
 
 ## What is stubbed
 
@@ -51,7 +71,7 @@ npx pnpm@11.1.2 dev
 
 ## Next N hours priorities
 
-1. Harden the seeded demo path around extraction, ad groups, creatives, and monitoring.
+1. Smoke the seeded reset/replay path against local Supabase + Inngest.
 2. Use the stored `human_reviews`, extraction outputs, ad groups, creatives, and simulated performance rows as the later Pioneer substrate.
 3. Keep production secrets rotated after the hackathon and rebuild Vercel after any env change.
 
@@ -74,6 +94,7 @@ npx pnpm@11.1.2 test
 npx pnpm@11.1.2 typecheck
 npx pnpm@11.1.2 lint
 npx pnpm@11.1.2 build
+npx pnpm@11.1.2 demo:reset
 ```
 
 The product acceptance contract is:

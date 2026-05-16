@@ -22,7 +22,7 @@ export const extractionPipeline = inngest.createFunction(
           projectId: String(event.data.projectId),
           sourceIds: Array.isArray(event.data.sourceIds) ? event.data.sourceIds.map(String) : [],
           requestId: String(event.data.requestId ?? crypto.randomUUID()),
-          demoMode: Boolean(event.data.demoMode)
+          demoMode: Boolean(event.data.demoMode) || shouldUseSeededExtraction()
         },
         {
           repository: createSupabaseExtractionRepository(),
@@ -60,3 +60,8 @@ export const extractionPipeline = inngest.createFunction(
     });
   }
 );
+
+function shouldUseSeededExtraction(): boolean {
+  return process.env.DEMO_MODE === "seeded"
+    || (process.env.DEMO_MODE === "auto" && !process.env.OPENAI_API_KEY);
+}

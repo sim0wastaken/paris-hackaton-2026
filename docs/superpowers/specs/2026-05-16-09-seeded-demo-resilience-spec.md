@@ -2,7 +2,7 @@
 
 **Owner:** Worker E  
 **Phase:** Demo safety path  
-**Status:** Draft  
+**Status:** Kicked off
 **Required for demo:** Yes, as a safety net after specs 01-08 define the core workflow
 
 ## Problem / User Value
@@ -442,9 +442,30 @@ The replay function should use deterministic event IDs or `demo_run_id` dedupe k
 10. "These KPIs are simulated for the hackathon, but they are not random. The high CTR here comes from matching a timeline constraint; the weaker conversion points to a landing-page proof gap."
 11. If needed, click "Reset demo" and show the replay can restart.
 
+## Implementation Notes
+
+- Branch: `codex/spec-9-seeded-demo-resilience`.
+- Core deterministic fixture/orchestration module: `apps/web/src/lib/motive/demo.ts`.
+- Supabase adapter: `apps/web/src/lib/motive/supabase-demo.ts`.
+- Guarded endpoints:
+  - `POST /api/demo/reset`
+  - `POST /api/demo/replay`
+- Replay job: Inngest function `seeded-demo-extraction-replay` triggered by `demo/extraction.replay.requested`.
+- Operator controls:
+  - Intake `Use demo project` calls reset + replay and routes to the seeded review page.
+  - Monitoring `Reset demo` calls reset + replay and routes back to review.
+  - `pnpm demo:reset` calls the same server reset endpoint.
+- Env:
+  - `DEMO_MODE=live|seeded|auto`
+  - `ENABLE_DEMO_RESET=true|false`
+  - `DEMO_PROJECT_ID=00000000-0000-0000-0000-000000000001`
+  - `DEMO_SEED_VERSION=2026-05-16.worker-e.v1`
+  - `DEMO_OPERATOR_TOKEN` optional hosted guard.
+- Deterministic fallback selection is wired for extraction, ad-group generation, creative generation, and deploy/monitoring synthesis. `seeded` skips providers; `auto` falls back when OpenAI is not configured.
+
 ## Open Questions / Risks
 
-- Which worker owns the concrete seed files and reset endpoint implementation? This spec assumes spec 02 exposes enough JSON metadata or deterministic IDs to identify demo rows.
+- Concrete seed fixture and reset endpoint implementation are now owned by Worker E / spec 09 in the branch above.
 - Should the hosted demo use Supabase preview branches or a long-lived hosted project with app-level reset? Recommendation: use a long-lived hosted project with scoped soft reset for judging.
 - Should the seeded visual asset be a local static image, a Supabase Storage object, or just an asset prompt? Recommendation: include prompt-only as P0 and one stored placeholder asset as P1.
 - If other workers choose different enum names, update fixture phase/status values before implementation.

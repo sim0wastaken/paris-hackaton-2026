@@ -23,12 +23,17 @@ export function createBestEffortIntakeEventSink(): IntakeEventSink {
         data: {
           projectId,
           sourceIds,
-          demoMode,
+          demoMode: demoMode || shouldUseSeededExtraction(),
           requestId: crypto.randomUUID()
         }
       });
     }
   };
+}
+
+function shouldUseSeededExtraction(): boolean {
+  return process.env.DEMO_MODE === "seeded"
+    || (process.env.DEMO_MODE === "auto" && !process.env.OPENAI_API_KEY);
 }
 
 async function sendBestEffort(event: Parameters<typeof inngest.send>[0]) {

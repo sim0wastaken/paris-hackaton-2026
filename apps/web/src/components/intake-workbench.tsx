@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Link as LinkIcon } from "lucide-react";
+import { ArrowRight, Link as LinkIcon, Sparkles } from "lucide-react";
 
 import { MAX_EXTRA_CONTEXT_CHARS, normalizeBrandUrl } from "@/lib/motive/projects";
 
@@ -14,6 +14,7 @@ export function IntakeWorkbench() {
   const [demoMode, setDemoMode] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [openingDemo, setOpeningDemo] = useState(false);
   const canSubmit = useMemo(() => {
     try {
       normalizeBrandUrl(brandUrl);
@@ -108,6 +109,40 @@ export function IntakeWorkbench() {
         />
         Seed demo source
       </label>
+
+      <div className="rounded-md border border-[#d9dfd8] bg-[#f6f8f5] p-3">
+        <button
+          className="inline-flex items-center gap-2 rounded-md border border-[#195b8f] bg-white px-3 py-2 text-sm font-medium text-[#195b8f] disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={openingDemo || submitting}
+          onClick={async () => {
+            setOpeningDemo(true);
+            setError(null);
+            try {
+              const response = await fetch("/api/demo/reset", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({
+                  replay: true,
+                  requested_by: "intake"
+                })
+              });
+              const payload = await response.json();
+              if (!response.ok) {
+                throw new Error(payload.message ?? payload.error ?? "Demo reset failed");
+              }
+              router.push(`/projects/${payload.project_id}/review`);
+            } catch (caught) {
+              setError(caught instanceof Error ? caught.message : "Demo reset failed");
+            } finally {
+              setOpeningDemo(false);
+            }
+          }}
+          type="button"
+        >
+          <Sparkles aria-hidden="true" size={16} />
+          {openingDemo ? "Opening..." : "Use demo project"}
+        </button>
+      </div>
 
       {error ? (
         <p className="rounded-md border border-[#efc0bd] bg-[#fff0ee] px-3 py-2 text-sm text-[#a3382f]">

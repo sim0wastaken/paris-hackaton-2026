@@ -35,7 +35,12 @@ const serverEnvSchema = clientEnvSchema.extend({
   INNGEST_EVENT_KEY: optionalString,
   INNGEST_SIGNING_KEY: optionalString,
   INNGEST_DEV: booleanFromEnv.default(false),
-  MOTIVE_DEMO_MODE: booleanFromEnv.default(false)
+  MOTIVE_DEMO_MODE: booleanFromEnv.default(false),
+  DEMO_MODE: z.enum(["live", "seeded", "auto"]).default("auto"),
+  ENABLE_DEMO_RESET: booleanFromEnv.default(false),
+  DEMO_PROJECT_ID: optionalString.default("00000000-0000-0000-0000-000000000001"),
+  DEMO_SEED_VERSION: optionalString.default("2026-05-16.worker-e.v1"),
+  DEMO_OPERATOR_TOKEN: optionalString
 });
 
 export type ClientEnv = z.infer<typeof clientEnvSchema>;
