@@ -7,7 +7,9 @@ This is the answer to "what's in this repo" in 60 seconds.
 
 | Responsibility | Component | Why |
 |----------------|-----------|-----|
-| Landing/demo shell | `Motive - Landing + SaaS (4)/` | Current static React prototype and product copy. |
+| Web app runtime | `apps/web/` | Next.js App Router scaffold for intake, project workspace, review shell, runtime routes, provider clients, Supabase clients, and Inngest registration. |
+| Package workspace | `package.json`, `pnpm-workspace.yaml`, `apps/web/package.json` | Root commands drive the web app, tests, build, Supabase CLI, and Inngest Dev Server. |
+| Landing/demo reference | `Motive - Landing + SaaS (4)/` | Static React prototype and product copy reference. |
 | Product brief | `docs/briefing-files/motive-openai-first-hackathon-plan.md` | Canonical scope for OpenAI-first v1 and Pioneer-after-v1 narrative. |
 | Web/source extraction | Tavily + OpenAI extraction calls | Gathers homepage/shop/social context and creates first-draft campaign intelligence. |
 | Campaign reasoning | OpenAI / GPT-5-class model | Generates source recap, feature map, conversations, landing gaps, ad groups, creative variants, and story KPIs. |
@@ -21,6 +23,9 @@ This is the answer to "what's in this repo" in 60 seconds.
 
 ```
 [URL / shop / social]
+        |
+        v
+[Next.js intake shell]
         |
         v
 [Tavily scrape + OpenAI extraction]

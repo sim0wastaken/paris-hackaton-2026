@@ -1,0 +1,8 @@
+packages:
+  - "apps/*"
+allowBuilds:
+  inngest-cli: true
+  protobufjs: true
+  sharp: true
+  supabase: true
+  unrs-resolver: true
