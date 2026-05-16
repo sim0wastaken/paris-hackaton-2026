@@ -25,7 +25,7 @@ This is the answer to "what's in this repo" in 60 seconds.
 [URL / shop / social]
         |
         v
-[Next.js intake shell]
+[Next.js persisted intake + source status]
         |
         v
 [Tavily scrape + OpenAI extraction]
