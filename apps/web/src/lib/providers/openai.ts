@@ -171,6 +171,21 @@ function extractResponseText(raw: unknown): string {
   if (!raw || typeof raw !== "object") return "";
   const maybeOutputText = (raw as { output_text?: unknown }).output_text;
   if (typeof maybeOutputText === "string") return maybeOutputText;
+  const output = (raw as { output?: unknown }).output;
+  if (Array.isArray(output)) {
+    const textParts = output.flatMap((item) => {
+      if (!item || typeof item !== "object") return [];
+      const content = (item as { content?: unknown }).content;
+      if (!Array.isArray(content)) return [];
+      return content.flatMap((part) => {
+        if (!part || typeof part !== "object") return [];
+        const type = (part as { type?: unknown }).type;
+        const text = (part as { text?: unknown }).text;
+        return type === "output_text" && typeof text === "string" ? [text] : [];
+      });
+    });
+    if (textParts.length > 0) return textParts.join("");
+  }
   return JSON.stringify(raw);
 }
 

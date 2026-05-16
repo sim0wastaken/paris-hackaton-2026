@@ -90,6 +90,55 @@ describe("provider client boundaries", () => {
     });
   });
 
+  it("parses structured output text from the Responses REST output array", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: "resp_rest_001",
+          output: [
+            {
+              type: "message",
+              role: "assistant",
+              content: [
+                {
+                  type: "output_text",
+                  text: "{\"brand_name\":\"Tradingshenzhen\",\"confidence\":\"high\"}"
+                }
+              ]
+            }
+          ],
+          usage: { input_tokens: 12, output_tokens: 9 }
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" }
+        }
+      )
+    );
+
+    const result = await generateOpenAIStructuredObject(
+      {
+        requestId: "req_structured_rest",
+        schemaName: "source_recap",
+        schema: z.object({
+          brand_name: z.string(),
+          confidence: z.enum(["low", "medium", "high"])
+        }),
+        system: "Extract campaign intelligence.",
+        prompt: JSON.stringify({ source: "Tradingshenzhen sells imported electronics." })
+      },
+      { apiKey: "sk_test", model: "gpt-5.5", fetcher }
+    );
+
+    expect(result.status).toBe("ready");
+    if (result.status === "ready") {
+      expect(result.data.object).toEqual({
+        brand_name: "Tradingshenzhen",
+        confidence: "high"
+      });
+    }
+  });
+
   it("calls Tavily Extract through the provider wrapper", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(JSON.stringify({ results: [{ raw_content: "Homepage copy" }] }), {
