@@ -28,12 +28,12 @@ export default async function ReviewPage({
           eyebrow="Extraction pending"
           title="Phase panels are ready for progressive rows."
         >
-          <p className="max-w-2xl text-sm leading-6 text-[#66706b]">
+          <p className="max-w-2xl text-sm leading-6 text-[var(--ink-3)]">
             Source recap, features, conversations, landing gaps, and ad group
             drafts will appear here as background jobs complete.
           </p>
           <button
-            className="mt-4 inline-flex items-center gap-2 rounded-md border border-[#d9dfd8] px-3 py-2 text-sm font-medium text-[#17201c]"
+            className="btn btn-ghost mt-4"
             type="button"
           >
             <Play aria-hidden="true" size={16} />

@@ -7,27 +7,23 @@ export function SiteFooter() {
         <BrandMark />
         <div className="foot-cols">
           <div>
-            <div className="fc-k">Product</div>
-            <a href="#product">Modules</a>
-            <a href="#workflow">Workflow</a>
+            <div className="fc-k">Read</div>
+            <a href="#demo">The shift</a>
+            <a href="#filter">Is this you</a>
           </div>
           <div>
-            <div className="fc-k">Get started</div>
+            <div className="fc-k">Start</div>
             <a href="#offer">Readiness sprint</a>
-            <a href="#sample">Sample output</a>
-            <a href="#offer">Agency program</a>
+            <a href="#">Agency program</a>
           </div>
           <div>
             <div className="fc-k">Company</div>
             <a href="#founder">Founder</a>
-            <a href="#problem">Manifesto</a>
-            <a href="mailto:hello@motive.app">Contact</a>
+            <a href="#">Manifesto</a>
+            <a href="#">Contact</a>
           </div>
         </div>
-        <div className="foot-meta mono">
-          © 2026 Motive · intent infrastructure for AI-native acquisition · made in Italy, for
-          the U.S. surface
-        </div>
+        <div className="foot-meta">© 2026 Motive — get found on ChatGPT — made in Italy</div>
       </div>
     </footer>
   );

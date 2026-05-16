@@ -25,7 +25,7 @@ export function IntakeWorkbench() {
 
   return (
     <form
-      className="grid gap-4"
+      className="grid gap-5"
       onSubmit={async (event) => {
         event.preventDefault();
         if (!canSubmit || submitting) return;
@@ -57,16 +57,16 @@ export function IntakeWorkbench() {
         }
       }}
     >
-      <label className="grid gap-2">
-        <span className="text-sm font-medium text-[#17201c]">Brand URL</span>
-        <span className="relative">
+      <label className="field">
+        <span className="field-label">Brand URL</span>
+        <span className="field-control">
           <LinkIcon
             aria-hidden="true"
-            className="absolute left-3 top-3 text-[#66706b]"
+            className="field-icon"
             size={17}
           />
           <input
-            className="h-11 w-full rounded-md border border-[#cfd7cf] bg-[#fbfcf8] pl-10 pr-3 text-sm outline-none focus:border-[#195b8f] focus:ring-2 focus:ring-[#195b8f]/15"
+            className="input has-icon"
             onChange={(event) => setBrandUrl(event.target.value)}
             placeholder="example.com"
             type="text"
@@ -75,52 +75,54 @@ export function IntakeWorkbench() {
         </span>
       </label>
 
-      <label className="grid gap-2">
-        <span className="text-sm font-medium text-[#17201c]">
+      <label className="field">
+        <span className="field-label">
           Optional context
         </span>
         <textarea
-          className="min-h-36 resize-y rounded-md border border-[#cfd7cf] bg-[#fbfcf8] p-3 text-sm leading-6 outline-none focus:border-[#195b8f] focus:ring-2 focus:ring-[#195b8f]/15"
+          className="textarea min-h-36"
           onChange={(event) => setContext(event.target.value)}
           placeholder="Paste product notes, positioning, markdown, or audience constraints."
           value={context}
         />
       </label>
 
-      <label className="grid gap-2">
-        <span className="text-sm font-medium text-[#17201c]">
+      <label className="field">
+        <span className="field-label">
           Product feed sample
         </span>
         <textarea
-          className="min-h-24 resize-y rounded-md border border-[#cfd7cf] bg-[#fbfcf8] p-3 font-mono text-xs leading-5 outline-none focus:border-[#195b8f] focus:ring-2 focus:ring-[#195b8f]/15"
+          className="textarea min-h-24 font-mono text-xs leading-5"
           onChange={(event) => setProductFeed(event.target.value)}
           placeholder="id,title,price"
           value={productFeed}
         />
       </label>
 
-      <label className="flex items-center gap-2 text-sm text-[#17201c]">
-        <input
-          checked={demoMode}
-          className="h-4 w-4 rounded border-[#cfd7cf]"
-          onChange={(event) => setDemoMode(event.target.checked)}
-          type="checkbox"
-        />
-        Seed demo source
+      <label className="flex items-center gap-3 text-sm text-[var(--ink-2)]">
+        <span className="switch">
+          <input
+            checked={demoMode}
+            onChange={(event) => setDemoMode(event.target.checked)}
+            type="checkbox"
+          />
+          <span className="switch-slider" />
+        </span>
+        <span>Seed demo source</span>
       </label>
 
       {error ? (
-        <p className="rounded-md border border-[#efc0bd] bg-[#fff0ee] px-3 py-2 text-sm text-[#a3382f]">
+        <p className="error-callout">
           {error}
         </p>
       ) : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-[#66706b]">
+        <p className="t-caption">
           {context.length > 0 ? `${context.length} context characters` : "No context added"}
         </p>
         <button
-          className="inline-flex items-center gap-2 rounded-md border border-[#17201c] bg-[#17201c] px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:border-[#cfd7cf] disabled:bg-[#e5e9e2] disabled:text-[#66706b]"
+          className="btn btn-primary"
           disabled={!canSubmit || submitting}
           type="submit"
         >

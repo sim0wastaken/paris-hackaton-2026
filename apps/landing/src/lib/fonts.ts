@@ -1,23 +1,15 @@
-import { Instrument_Sans, Instrument_Serif, JetBrains_Mono } from "next/font/google";
+import { Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
 
-export const instrumentSans = Instrument_Sans({
+export const bricolageGrotesque = Bricolage_Grotesque({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-instrument-sans",
-  weight: ["400", "500", "600"],
-});
-
-export const instrumentSerif = Instrument_Serif({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-instrument-serif",
-  weight: "400",
-  style: ["italic", "normal"],
+  variable: "--font-bricolage",
+  axes: ["opsz", "wdth"],
 });
 
 export const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-jetbrains-mono",
-  weight: ["400", "500"],
+  weight: ["400", "500", "600"],
 });

@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import { instrumentSans, instrumentSerif, jetbrainsMono } from "@/lib/fonts";
+import { bricolageGrotesque, jetbrainsMono } from "@/lib/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Motive — Intent infrastructure for AI-native acquisition",
+  title: "Motive — show up where AI gets asked",
   description:
-    "Motive maps the AI-mediated buying conversations your product belongs in — then turns them into context hints, ad groups, creative angles, and the landing-page fixes you need before the channel gets crowded.",
+    "Motive finds the buying conversations where your product belongs — then ships the campaigns, copy, and page fixes you need to win them. Before the channel fills up.",
   metadataBase: new URL("https://motive.app"),
   openGraph: {
-    title: "Motive — Intent infrastructure for AI-native acquisition",
+    title: "Motive — get found on ChatGPT",
     description:
-      "The layer before the ad spend. Map AI buying conversations, ship launch-ready ChatGPT Ads assets.",
+      "Map the prompts where your product belongs. Ship the campaigns, copy, and page fixes that earn the recommendation.",
     type: "website",
   },
 };
@@ -23,7 +23,8 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${instrumentSans.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}
+      data-grain="on"
+      className={`${bricolageGrotesque.variable} ${jetbrainsMono.variable}`}
     >
       <body>{children}</body>
     </html>
