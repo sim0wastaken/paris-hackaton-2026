@@ -18,6 +18,7 @@ type ReviewTable =
   | "brand_features"
   | "conversations"
   | "landing_gaps"
+  | "campaigns"
   | "ad_groups"
   | "human_reviews";
 
@@ -44,6 +45,7 @@ export function LiveReviewWorkspace({
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const [retrying, setRetrying] = useState(false);
+  const [generatingAdGroups, setGeneratingAdGroups] = useState(false);
   const projectId = initialData.project.id;
   const sourceRecap = data.extraction_runs.find((run) => run.phase === "source_recap");
   const failedRun = data.extraction_runs.find((run) => run.status === "failed");
@@ -110,6 +112,7 @@ export function LiveReviewWorkspace({
       .on("postgres_changes", { event: "*", schema: "public", table: "brand_features", filter: `project_id=eq.${projectId}` }, (payload) => merge("brand_features", payload.new))
       .on("postgres_changes", { event: "*", schema: "public", table: "conversations", filter: `project_id=eq.${projectId}` }, (payload) => merge("conversations", payload.new))
       .on("postgres_changes", { event: "*", schema: "public", table: "landing_gaps", filter: `project_id=eq.${projectId}` }, (payload) => merge("landing_gaps", payload.new))
+      .on("postgres_changes", { event: "*", schema: "public", table: "campaigns", filter: `project_id=eq.${projectId}` }, (payload) => merge("campaigns", payload.new))
       .on("postgres_changes", { event: "*", schema: "public", table: "ad_groups", filter: `project_id=eq.${projectId}` }, (payload) => merge("ad_groups", payload.new))
       .on("postgres_changes", { event: "*", schema: "public", table: "human_reviews", filter: `project_id=eq.${projectId}` }, (payload) => merge("human_reviews", payload.new))
       .subscribe((status) => {
@@ -174,6 +177,31 @@ export function LiveReviewWorkspace({
     }
   }
 
+  async function generateAdGroups() {
+    setGeneratingAdGroups(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/projects/${projectId}/ad-groups/generate`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          requestId: crypto.randomUUID(),
+          demoMode
+        })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(typeof payload.message === "string" ? payload.message : "Ad-group generation failed");
+      }
+      await refresh();
+      setAnnouncement("Ad groups generated.");
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Ad-group generation failed");
+    } finally {
+      setGeneratingAdGroups(false);
+    }
+  }
+
   return (
     <section className="grid gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
       <ExtractionPhaseRail counts={phaseCounts} runs={data.extraction_runs} />
@@ -222,7 +250,13 @@ export function LiveReviewWorkspace({
         <FeaturePanel data={data} onReview={submitReview} pendingAction={pendingAction} />
         <ConversationPanel data={data} onReview={submitReview} pendingAction={pendingAction} />
         <LandingGapPanel data={data} onReview={submitReview} pendingAction={pendingAction} />
-        <AdGroupPanel data={data} onReview={submitReview} pendingAction={pendingAction} />
+        <AdGroupPanel
+          data={data}
+          generating={generatingAdGroups}
+          onGenerate={generateAdGroups}
+          onReview={submitReview}
+          pendingAction={pendingAction}
+        />
       </div>
     </section>
   );
@@ -498,21 +532,66 @@ function LandingGapPanel({
 
 function AdGroupPanel({
   data,
+  generating,
+  onGenerate,
   onReview,
   pendingAction
 }: {
   data: ExtractionReviewData;
+  generating: boolean;
+  onGenerate: () => Promise<void>;
   onReview: (input: ReviewSubmitInput) => Promise<void>;
   pendingAction: string | null;
 }) {
+  const approvedConversations = data.conversations.filter((row) => row.review_status === "approved");
+  const approvedFeatures = data.brand_features.filter((row) => row.review_status === "approved");
+  const approvedGaps = data.landing_gaps.filter((row) => row.review_status === "approved");
+  const latestCampaign = data.campaigns[data.campaigns.length - 1];
+  const canGenerate = approvedConversations.length >= 2 && !generating;
+
   return (
     <Panel
       count={data.ad_groups.length}
-      eyebrow="Draft ad groups"
+      eyebrow="Ad groups"
       icon={<Sparkles aria-hidden="true" size={16} />}
       status={phaseStatus(data, "ad_groups")}
-      title="Draft campaign angles"
+      title="Campaign structure"
     >
+      <div className="mb-4 grid gap-3 rounded-md border border-[#d9dfd8] bg-[#fbfcf8] p-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-2">
+            <StatusBadge status={approvedConversations.length >= 2 ? "available" : "current"}>
+              {approvedConversations.length} approved conversations
+            </StatusBadge>
+            <StatusBadge status="available">{approvedFeatures.length} approved facts</StatusBadge>
+            <StatusBadge status="available">{approvedGaps.length} approved gaps</StatusBadge>
+          </div>
+          <button
+            className="inline-flex items-center gap-2 rounded-md border border-[#17201c] bg-[#17201c] px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={!canGenerate}
+            onClick={() => void onGenerate()}
+            type="button"
+          >
+            <WandSparkles aria-hidden="true" size={16} />
+            {generating ? "Generating..." : "Generate ad groups"}
+          </button>
+        </div>
+        {approvedConversations.length < 2 ? (
+          <p className="text-sm text-[#66706b]">
+            Approve at least two conversation rows to generate canonical OpenAI Ads ad groups.
+          </p>
+        ) : null}
+        {latestCampaign ? (
+          <div className="grid gap-1 border-t border-[#e8ece4] pt-3 text-sm text-[#3f4944]">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-semibold text-[#17201c]">{latestCampaign.name}</span>
+              <StatusBadge status="available">{latestCampaign.objective}</StatusBadge>
+              <StatusBadge status={reviewBadgeStatus(latestCampaign.review_status)}>{latestCampaign.review_status}</StatusBadge>
+            </div>
+            <p>{latestCampaign.custom_instruction ?? "Campaign instructions will appear after generation."}</p>
+          </div>
+        ) : null}
+      </div>
       <div className="grid gap-3 md:grid-cols-2">
         {data.ad_groups.map((group) => (
           <article className={rowCardClass(group.review_status)} key={group.id}>
@@ -531,6 +610,18 @@ function AdGroupPanel({
                 </span>
               ))}
             </div>
+            {group.conversation_ids.length > 0 ? (
+              <div className="mt-3 grid gap-2 text-xs text-[#66706b]">
+                {group.conversation_ids.slice(0, 3).map((conversationId) => {
+                  const conversation = data.conversations.find((row) => row.id === conversationId);
+                  return conversation ? (
+                    <p className="rounded-md border border-[#edf0e8] bg-white px-2 py-1" key={conversationId}>
+                      {conversation.text}
+                    </p>
+                  ) : null;
+                })}
+              </div>
+            ) : null}
             <ReviewActionControls
               buildPatch={(draft) => ({
                 name: draft.name,

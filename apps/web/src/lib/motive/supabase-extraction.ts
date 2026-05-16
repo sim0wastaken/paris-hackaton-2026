@@ -9,7 +9,7 @@ import type {
   Spec04ExtractionPhase
 } from "./extraction";
 import type { ProjectRecord, SourceRecord } from "./projects";
-import type { AdGroup, BrandFeature, Conversation, HumanReview, LandingGap } from "./types";
+import type { AdGroup, BrandFeature, Campaign, Conversation, HumanReview, LandingGap, ProductFeedItem } from "./types";
 
 type SupabaseAny = {
   from: (table: string) => SupabaseQuery;
@@ -340,7 +340,9 @@ export async function getExtractionReviewData(
     features,
     conversations,
     gaps,
+    campaigns,
     adGroups,
+    productFeedItems,
     reviews
   ] = await Promise.all([
     supabase.from("sources").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
@@ -348,11 +350,13 @@ export async function getExtractionReviewData(
     supabase.from("brand_features").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
     supabase.from("conversations").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
     supabase.from("landing_gaps").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
+    supabase.from("campaigns").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
     supabase.from("ad_groups").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
+    supabase.from("product_feed_items").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
     supabase.from("human_reviews").select("*").eq("project_id", projectId).order("created_at", { ascending: false })
   ]);
 
-  for (const result of [sources, runs, features, conversations, gaps, adGroups, reviews]) {
+  for (const result of [sources, runs, features, conversations, gaps, campaigns, adGroups, productFeedItems, reviews]) {
     if (result.error) throw result.error;
   }
 
@@ -363,7 +367,9 @@ export async function getExtractionReviewData(
     brand_features: (features.data ?? []) as BrandFeature[],
     conversations: (conversations.data ?? []) as Conversation[],
     landing_gaps: (gaps.data ?? []) as LandingGap[],
+    campaigns: (campaigns.data ?? []) as Campaign[],
     ad_groups: (adGroups.data ?? []) as AdGroup[],
+    product_feed_items: (productFeedItems.data ?? []) as ProductFeedItem[],
     human_reviews: (reviews.data ?? []) as HumanReview[]
   };
 }

@@ -22,8 +22,8 @@ Shared contract: `SHARED_CONTRACT.md` is required reading before every spec and 
 | 02 | `2026-05-16-02-database-schema-spec.md` | Worker A | Database schema and persistence contract | Spec 01 | 1 - foundation | Demo required, drafted |
 | 03 | `2026-05-16-03-intake-source-ingestion-spec.md` | Worker B | Intake and source ingestion | Specs 01-02 | 1 - foundation | Demo required, drafted |
 | 04 | `2026-05-16-04-streaming-openai-extraction-spec.md` | Worker B | Streaming OpenAI extraction pipeline through draft ad groups | Specs 01-03 | 2 - extraction/HITL demo | Demo required, drafted |
-| 05 | `2026-05-16-05-live-hitl-review-spec.md` | Worker C | Live HITL review workspace | Specs 02-04 | 2 - extraction/HITL demo | Demo required, drafted |
-| 06 | `2026-05-16-06-ad-group-generation-spec.md` | Worker C | Ad group generation | Specs 02, 04-05 | 3 - campaign output and monitoring | Demo required, drafted |
+| 05 | `2026-05-16-05-live-hitl-review-spec.md` | Worker C | Live HITL review workspace | Specs 02-04 | 2 - extraction/HITL demo | Demo required, implemented |
+| 06 | `2026-05-16-06-ad-group-generation-spec.md` | Worker C | Ad group generation | Specs 02, 04-05 | 3 - campaign output and monitoring | Demo required, implemented |
 | 07 | `2026-05-16-07-creative-generation-spec.md` | Worker D | Creative generation | Specs 02, 05-06 | 3 - campaign output and monitoring | Demo required, drafted |
 | 08 | `2026-05-16-08-fake-deploy-story-monitoring-spec.md` | Worker D | Fake deploy and story-driven monitoring | Specs 02, 06-07 | 3 - campaign output and monitoring | Demo required, drafted |
 | 09 | `2026-05-16-09-seeded-demo-resilience-spec.md` | Worker E | Seeded demo path and resilience | Specs 01-08 | 4 - safety path | Demo safety path, drafted |
