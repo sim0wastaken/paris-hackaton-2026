@@ -36,9 +36,9 @@ export function ExtractionPhaseRail({
   const failed = phases.find((phase) => runByPhase.get(phase.id)?.status === "failed");
 
   return (
-    <aside className="rounded-lg border border-[#d9dfd8] bg-white p-4 shadow-sm">
+    <aside className="card">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold">Extraction phases</h2>
+        <h2 className="text-sm font-semibold text-[var(--ink)]">Extraction phases</h2>
         <StatusBadge status={failed ? "failed" : current ? "current" : "available"}>
           {failed ? "Needs retry" : current ? current.label : "Idle"}
         </StatusBadge>
@@ -66,22 +66,22 @@ function PhaseItem({
   const status = disabled ? "next" : run?.status ?? "queued";
 
   return (
-    <li className="flex min-h-12 items-center justify-between gap-3 rounded-md border border-[#d9dfd8] bg-[#fbfcf8] px-3 py-2">
+    <li className="phase-row flex min-h-12 items-center justify-between gap-3 px-3 py-2">
       <div className="min-w-0">
-        <span className="block text-sm text-[#17201c]">{label}</span>
-        <span className="mt-1 block text-xs text-[#66706b]">{count > 0 ? `${count} rows` : status}</span>
+        <span className="block text-sm text-[var(--ink-2)]">{label}</span>
+        <span className="mt-1 block text-xs text-[var(--ink-3)]">{count > 0 ? `${count} rows` : status}</span>
         {run?.error ? (
-          <span className="mt-1 block truncate text-xs text-[#a3382f]">{formatError(run.error)}</span>
+          <span className="mt-1 block truncate text-xs text-[var(--warn)]">{formatError(run.error)}</span>
         ) : null}
       </div>
       {status === "succeeded" ? (
-        <CheckCircle2 aria-hidden="true" className="text-[#2c7a4b]" size={16} />
+        <CheckCircle2 aria-hidden="true" className="text-[var(--acid)]" size={16} />
       ) : status === "running" ? (
-        <Loader2 aria-hidden="true" className="animate-spin text-[#195b8f]" size={16} />
+        <Loader2 aria-hidden="true" className="animate-spin text-[var(--acid-2)]" size={16} />
       ) : status === "failed" ? (
-        <XCircle aria-hidden="true" className="text-[#a3382f]" size={16} />
+        <XCircle aria-hidden="true" className="text-[var(--warn)]" size={16} />
       ) : (
-        <CircleDashed aria-hidden="true" className="text-[#66706b]" size={16} />
+        <CircleDashed aria-hidden="true" className="text-[var(--ink-4)]" size={16} />
       )}
     </li>
   );
