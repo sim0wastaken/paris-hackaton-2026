@@ -90,6 +90,49 @@ describe("provider client boundaries", () => {
     });
   });
 
+  it("strips unsupported strict JSON schema keywords before requesting structured output", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: "resp_sanitized_schema",
+          output_text: "{\"items\":[{\"id\":\"123e4567-e89b-12d3-a456-426614174000\",\"url\":\"https://atlasdesk.example\",\"label\":\"Valid\"}]}"
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" }
+        }
+      )
+    );
+
+    const result = await generateOpenAIStructuredObject(
+      {
+        requestId: "req_sanitized_schema",
+        schemaName: "sanitized_schema",
+        schema: z.object({
+          items: z.array(
+            z.object({
+              id: z.string().uuid(),
+              url: z.url(),
+              label: z.string().min(3).max(20)
+            }).strict()
+          ).min(1)
+        }).strict(),
+        prompt: "Return valid items."
+      },
+      { apiKey: "sk_test", model: "gpt-5-mini", fetcher }
+    );
+
+    expect(result.status).toBe("ready");
+    const body = JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body));
+    const schema = body.text.format.schema;
+    const serializedSchema = JSON.stringify(schema);
+    expect(serializedSchema).not.toContain("minLength");
+    expect(serializedSchema).not.toContain("maxLength");
+    expect(serializedSchema).not.toContain("pattern");
+    expect(serializedSchema).not.toContain("format");
+    expect(serializedSchema).not.toContain("minItems");
+  });
+
   it("parses structured output text from the Responses REST output array", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(

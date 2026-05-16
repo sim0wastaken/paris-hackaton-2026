@@ -2,6 +2,18 @@ import type { ProviderOptions, ProviderResult } from "./types";
 import { z, type ZodType } from "zod";
 
 const reasoningEffortSchema = z.enum(["none", "low", "medium", "high", "xhigh"]);
+const unsupportedStrictSchemaKeywords = new Set([
+  "minLength",
+  "maxLength",
+  "pattern",
+  "format",
+  "minimum",
+  "maximum",
+  "multipleOf",
+  "patternProperties",
+  "minItems",
+  "maxItems"
+]);
 
 export async function generateOpenAIText(
   input: {
@@ -95,8 +107,7 @@ export async function generateOpenAIStructuredObject<T>(
     };
   }
 
-  const schema = z.toJSONSchema(input.schema) as Record<string, unknown>;
-  delete schema.$schema;
+  const schema = toOpenAIStructuredOutputSchema(input.schema);
 
   const response = await fetcher("https://api.openai.com/v1/responses", {
     method: "POST",
@@ -165,6 +176,28 @@ export async function generateOpenAIStructuredObject<T>(
 function parseReasoningEffort(value: unknown): z.infer<typeof reasoningEffortSchema> | undefined {
   const result = reasoningEffortSchema.safeParse(value);
   return result.success ? result.data : undefined;
+}
+
+function toOpenAIStructuredOutputSchema<T>(schema: ZodType<T>): Record<string, unknown> {
+  const jsonSchema = z.toJSONSchema(schema) as Record<string, unknown>;
+  delete jsonSchema.$schema;
+  return stripUnsupportedStrictSchemaKeywords(jsonSchema) as Record<string, unknown>;
+}
+
+function stripUnsupportedStrictSchemaKeywords(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(stripUnsupportedStrictSchemaKeywords);
+  }
+
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key]) => !unsupportedStrictSchemaKeywords.has(key))
+      .map(([key, nested]) => [key, stripUnsupportedStrictSchemaKeywords(nested)])
+  );
 }
 
 function extractResponseText(raw: unknown): string {
