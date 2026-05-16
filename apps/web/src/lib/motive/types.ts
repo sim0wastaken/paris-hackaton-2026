@@ -411,3 +411,41 @@ export type PerformanceSnapshot = z.infer<typeof performanceSnapshotSchema>;
 export type ProductFeed = z.infer<typeof productFeedSchema>;
 export type ProductFeedItem = z.infer<typeof productFeedItemSchema>;
 export type OpenAiAdsExport = z.infer<typeof openAiAdsExportSchema>;
+
+type SupabaseTable<Row> = {
+  Row: Row;
+  Insert: Partial<Row>;
+  Update: Partial<Row>;
+  Relationships: [];
+};
+
+export type Database = {
+  public: {
+    Tables: {
+      projects: SupabaseTable<Project>;
+      sources: SupabaseTable<Source>;
+      extraction_runs: SupabaseTable<ExtractionRun>;
+      brand_features: SupabaseTable<BrandFeature>;
+      conversations: SupabaseTable<Conversation>;
+      landing_gaps: SupabaseTable<LandingGap>;
+      campaigns: SupabaseTable<Campaign>;
+      ad_groups: SupabaseTable<AdGroup>;
+      creative_variants: SupabaseTable<CreativeVariant>;
+      human_reviews: SupabaseTable<HumanReview>;
+      deployments: SupabaseTable<Deployment>;
+      performance_snapshots: SupabaseTable<PerformanceSnapshot>;
+      product_feeds: SupabaseTable<ProductFeed>;
+      product_feed_items: SupabaseTable<ProductFeedItem>;
+    };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: {
+      project_status: ProjectStatus;
+      source_type: SourceType;
+      extraction_phase: ExtractionPhase;
+      review_status: ReviewStatus;
+      review_action: ReviewAction;
+    };
+    CompositeTypes: Record<string, never>;
+  };
+};
