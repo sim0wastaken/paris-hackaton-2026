@@ -1,5 +1,7 @@
 # Knowledge-Management Setup Spec — for Long-Running Agentic Work
 
+> **Project-specific pointer.** For this repo's current product direction, read `docs/briefing-files/motive-openai-first-hackathon-plan.md` before implementation work. It defines Motive's OpenAI-first workflow, persistence model, user flow, and Pioneer-after-v1 narrative.
+
 > **Purpose.** This spec defines the knowledge-management system that a long-running coding agent needs in order to do useful work in a repository over hours, days, or sprints without losing progress, context, or discipline. It names every file, directory, hook, MCP, skill, and procedure required, plus the operating rules that make the system survive multi-hour autonomous runs and context compaction.
 >
 > **Scope.** This spec is **repository-agnostic and stack-agnostic**. It does not assume Python vs TypeScript vs Go, does not assume Postgres vs Neo4j vs SQLite, does not assume any particular LLM provider, ontology, framework, or cloud. Concrete patterns name 2-3 alternatives per slot so the setup-agent picks the one that fits the target repo.

@@ -1,0 +1,33 @@
+# === Language build / cache (uncomment as the stack lands) ===
+# Python:        __pycache__/ .venv/ .pytest_cache/ .mypy_cache/ .ruff_cache/ .uv/ *.egg-info/ dist/ build/
+# Node / TS:     node_modules/ .next/ .turbo/ *.tsbuildinfo .parcel-cache/
+# Go:            bin/ vendor/ *.test
+# Rust:          target/
+# Java / Kotlin: build/ .gradle/ out/
+
+# === Env (NEVER commit real envs) ===
+.env
+.env.local
+.env.*.local
+
+# === OS / IDE ===
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# === Local Docker volumes / data ===
+data/
+volumes/
+
+# === Secrets safety net (hooks + scanners are primary) ===
+*.pem
+*.key
+secrets/
+
+# === Claude per-machine settings ===
+.claude/settings.local.json
+
+# === GitNexus index (regenerable; commit only meta.json) ===
+.gitnexus/*
+!.gitnexus/meta.json
