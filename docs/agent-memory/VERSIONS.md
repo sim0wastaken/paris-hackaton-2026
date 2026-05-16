@@ -26,6 +26,7 @@ Pinned versions for every dep. Updated whenever a dep lands. Consult before runn
 | @supabase/supabase-js | 2.105.4 | `apps/web/package.json` | Supabase service-role client. |
 | @supabase/ssr | 0.10.3 | `apps/web/package.json` | Browser/server SSR clients. |
 | inngest | 4.4.0 | `apps/web/package.json` | Event client and function registry. |
+| @fal-ai/client | 1.10.1 | `apps/web/package.json` | Server-side fal.ai queue-backed image generation for Spec 07 creatives. |
 | lucide-react | 1.16.0 | `apps/web/package.json` | UI icons. |
 | server-only | 0.0.1 | `apps/web/package.json` | Server-only import guard for service-role client. |
 | tailwindcss | 4.3.0 | `apps/web/package.json` | Styling. |

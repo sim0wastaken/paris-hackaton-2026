@@ -1,3 +1,5 @@
+import { createFalClient } from "@fal-ai/client";
+
 import type { ProviderOptions, ProviderResult } from "./types";
 
 export async function generateFalImage(
@@ -6,9 +8,13 @@ export async function generateFalImage(
     requestId: string;
   },
   options: ProviderOptions = {}
-): Promise<ProviderResult<{ imageUrl?: string }>> {
+): Promise<ProviderResult<{
+  imageUrl?: string;
+  width?: number;
+  height?: number;
+  mimeType?: string;
+}>> {
   const apiKey = options.apiKey ?? process.env.FAL_KEY;
-  const fetcher = options.fetcher ?? fetch;
 
   if (!apiKey) {
     return {
@@ -19,42 +25,78 @@ export async function generateFalImage(
     };
   }
 
-  const response = await fetcher("https://fal.run/fal-ai/flux/schnell", {
-    method: "POST",
-    headers: {
-      "authorization": `Key ${apiKey}`,
-      "content-type": "application/json"
-    },
-    body: JSON.stringify({
-      prompt: input.prompt,
-      image_size: "square"
-    })
-  });
-  const raw = await response.json().catch(() => undefined);
+  try {
+    const client = createFalClient({
+      credentials: apiKey,
+      suppressLocalCredentialsWarning: true
+    });
+    const raw = await client.subscribe("fal-ai/flux/schnell", {
+      input: {
+        prompt: input.prompt,
+        image_size: "square_hd",
+        num_images: 1,
+        num_inference_steps: 4,
+        enable_safety_checker: true,
+        output_format: "jpeg"
+      },
+      logs: true
+    });
+    const image = extractImage(raw);
 
-  if (!response.ok) {
+    if (!image.url) {
+      return {
+        provider: "fal",
+        status: "failed",
+        reason: "fal.ai returned no image URL",
+        raw,
+        requestId: input.requestId
+      };
+    }
+
     return {
       provider: "fal",
-      status: "failed",
-      reason: `fal.ai request failed with ${response.status}`,
+      status: "ready",
+      data: {
+        imageUrl: image.url,
+        width: image.width,
+        height: image.height,
+        mimeType: image.mimeType
+      },
       raw,
       requestId: input.requestId
     };
+  } catch (caught) {
+    return {
+      provider: "fal",
+      status: "failed",
+      reason: caught instanceof Error ? caught.message : "fal.ai request failed",
+      requestId: input.requestId
+    };
   }
-
-  return {
-    provider: "fal",
-    status: "ready",
-    data: {
-      imageUrl: extractImageUrl(raw)
-    },
-    raw,
-    requestId: input.requestId
-  };
 }
 
-function extractImageUrl(raw: unknown): string | undefined {
-  if (!raw || typeof raw !== "object") return undefined;
-  const images = (raw as { images?: Array<{ url?: string }> }).images;
-  return images?.[0]?.url;
+function extractImage(raw: unknown): {
+  url?: string;
+  width?: number;
+  height?: number;
+  mimeType?: string;
+} {
+  if (!raw || typeof raw !== "object") return {};
+  const data = "data" in raw ? (raw as { data?: unknown }).data : raw;
+  if (!data || typeof data !== "object") return {};
+  const images = (data as {
+    images?: Array<{
+      url?: string;
+      width?: number;
+      height?: number;
+      content_type?: string;
+    }>;
+  }).images;
+  const first = images?.[0];
+  return {
+    url: first?.url,
+    width: typeof first?.width === "number" ? first.width : undefined,
+    height: typeof first?.height === "number" ? first.height : undefined,
+    mimeType: first?.content_type
+  };
 }

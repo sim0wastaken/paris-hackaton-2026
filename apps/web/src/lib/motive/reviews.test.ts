@@ -82,4 +82,37 @@ describe("Spec 05 review actions", () => {
     });
     expect(args.p_action).toBe("enrich");
   });
+
+  it("allows bounded creative variant edits", () => {
+    const input = parseReviewActionInput(projectId, {
+      entityType: "creative_variant",
+      entityId,
+      action: "edit",
+      patch: {
+        title: "Live by Friday",
+        description: "Launch Gmail follow-up before urgent buyer threads go cold.",
+        creative_angle: "Timeline proof",
+        asset_prompt: "Square ad image of a Gmail inbox becoming follow-up tasks.",
+        target_url: "https://atlasdesk.example/gmail-setup"
+      },
+      comment: "Tightened for OpenAI Ads limits."
+    });
+
+    expect(input.patch).toMatchObject({
+      title: "Live by Friday",
+      target_url: "https://atlasdesk.example/gmail-setup"
+    });
+  });
+
+  it("rejects creative copy that exceeds OpenAI Ads limits", () => {
+    const patch = validateReviewPatch("creative_variant", "edit", {
+      title: "x".repeat(51),
+      description: "Valid body",
+      creative_angle: "Too long"
+    });
+
+    expect(patch.success).toBe(false);
+    if (patch.success) throw new Error("Expected creative patch validation to fail");
+    expect(patch.error?.issues[0]?.message).toContain("title");
+  });
 });

@@ -20,7 +20,7 @@ const phases: Array<{ id: PhaseRailId; label: string; disabled?: boolean }> = [
   { id: "intent_classification", label: "Intent classification" },
   { id: "landing_gaps", label: "Landing gaps" },
   { id: "ad_groups", label: "Ad groups" },
-  { id: "creative_text", label: "Creative text", disabled: true },
+  { id: "creative_text", label: "Creative text" },
   { id: "monitoring_synthesis", label: "Monitoring", disabled: true }
 ];
 

@@ -119,6 +119,7 @@ function createMemoryExtractionRepository() {
     landing_gaps: [],
     campaigns: [],
     ad_groups: [],
+    creative_variants: [],
     product_feed_items: [],
     human_reviews: []
   };

@@ -9,7 +9,16 @@ import type {
   Spec04ExtractionPhase
 } from "./extraction";
 import type { ProjectRecord, SourceRecord } from "./projects";
-import type { AdGroup, BrandFeature, Campaign, Conversation, HumanReview, LandingGap, ProductFeedItem } from "./types";
+import type {
+  AdGroup,
+  BrandFeature,
+  Campaign,
+  Conversation,
+  CreativeVariant,
+  HumanReview,
+  LandingGap,
+  ProductFeedItem
+} from "./types";
 
 type SupabaseAny = {
   from: (table: string) => SupabaseQuery;
@@ -342,6 +351,7 @@ export async function getExtractionReviewData(
     gaps,
     campaigns,
     adGroups,
+    creativeVariants,
     productFeedItems,
     reviews
   ] = await Promise.all([
@@ -352,11 +362,23 @@ export async function getExtractionReviewData(
     supabase.from("landing_gaps").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
     supabase.from("campaigns").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
     supabase.from("ad_groups").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
+    supabase.from("creative_variants").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
     supabase.from("product_feed_items").select("*").eq("project_id", projectId).order("created_at", { ascending: true }),
     supabase.from("human_reviews").select("*").eq("project_id", projectId).order("created_at", { ascending: false })
   ]);
 
-  for (const result of [sources, runs, features, conversations, gaps, campaigns, adGroups, productFeedItems, reviews]) {
+  for (const result of [
+    sources,
+    runs,
+    features,
+    conversations,
+    gaps,
+    campaigns,
+    adGroups,
+    creativeVariants,
+    productFeedItems,
+    reviews
+  ]) {
     if (result.error) throw result.error;
   }
 
@@ -369,6 +391,7 @@ export async function getExtractionReviewData(
     landing_gaps: (gaps.data ?? []) as LandingGap[],
     campaigns: (campaigns.data ?? []) as Campaign[],
     ad_groups: (adGroups.data ?? []) as AdGroup[],
+    creative_variants: (creativeVariants.data ?? []) as CreativeVariant[],
     product_feed_items: (productFeedItems.data ?? []) as ProductFeedItem[],
     human_reviews: (reviews.data ?? []) as HumanReview[]
   };

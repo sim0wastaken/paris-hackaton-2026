@@ -20,6 +20,7 @@ type ReviewTable =
   | "landing_gaps"
   | "campaigns"
   | "ad_groups"
+  | "creative_variants"
   | "human_reviews";
 
 type ReviewSubmitInput = {
@@ -66,9 +67,16 @@ export function LiveReviewWorkspace({
     intent_classification: data.conversations.filter((row) => row.stage && row.intent_type).length,
     landing_gaps: data.landing_gaps.length,
     ad_groups: data.ad_groups.length,
-    creative_text: 0,
+    creative_text: data.creative_variants.length,
     monitoring_synthesis: 0
-  }), [data.ad_groups.length, data.brand_features.length, data.conversations, data.landing_gaps.length, sourceRecap?.status]);
+  }), [
+    data.ad_groups.length,
+    data.brand_features.length,
+    data.conversations,
+    data.creative_variants.length,
+    data.landing_gaps.length,
+    sourceRecap?.status
+  ]);
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
     const response = await fetch(`/api/projects/${projectId}/review-data`, {
@@ -114,6 +122,7 @@ export function LiveReviewWorkspace({
       .on("postgres_changes", { event: "*", schema: "public", table: "landing_gaps", filter: `project_id=eq.${projectId}` }, (payload) => merge("landing_gaps", payload.new))
       .on("postgres_changes", { event: "*", schema: "public", table: "campaigns", filter: `project_id=eq.${projectId}` }, (payload) => merge("campaigns", payload.new))
       .on("postgres_changes", { event: "*", schema: "public", table: "ad_groups", filter: `project_id=eq.${projectId}` }, (payload) => merge("ad_groups", payload.new))
+      .on("postgres_changes", { event: "*", schema: "public", table: "creative_variants", filter: `project_id=eq.${projectId}` }, (payload) => merge("creative_variants", payload.new))
       .on("postgres_changes", { event: "*", schema: "public", table: "human_reviews", filter: `project_id=eq.${projectId}` }, (payload) => merge("human_reviews", payload.new))
       .subscribe((status) => {
         setConnection(status === "SUBSCRIBED" ? "live" : "polling");
@@ -907,6 +916,7 @@ function reviewTableForEntity(entityType: ReviewableEntityType): Exclude<ReviewT
   if (entityType === "brand_feature") return "brand_features";
   if (entityType === "conversation") return "conversations";
   if (entityType === "landing_gap") return "landing_gaps";
+  if (entityType === "creative_variant") return "creative_variants";
   return "ad_groups";
 }
 

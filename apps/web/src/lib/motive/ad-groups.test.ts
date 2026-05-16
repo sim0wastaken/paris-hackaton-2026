@@ -262,6 +262,7 @@ function reviewDataFixture(): ExtractionReviewData {
     ],
     campaigns: [],
     ad_groups: [],
+    creative_variants: [],
     product_feed_items: [],
     human_reviews: []
   };
