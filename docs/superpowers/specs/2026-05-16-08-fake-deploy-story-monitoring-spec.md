@@ -2,7 +2,7 @@
 
 Date: 2026-05-16
 Owner: Worker D
-Status: Draft
+Status: Implemented
 Phase: Approved creatives -> fake deployment -> coherent simulated performance
 Depends on: Spec 02 database contract, Spec 07 creative generation, Spec 06 ad groups
 
@@ -416,6 +416,16 @@ Realtime events:
 - The dashboard exposes at least one coherent insight connecting creative quality, landing gaps, and metric behavior.
 - If OpenAI synthesis fails, deterministic fallback still writes non-empty insights and recommendations.
 - The user can point to the dashboard and explain how future Pioneer would learn from stored labels, reviews, and KPI rows.
+
+## Implementation Notes
+
+- Domain contract and fake deploy orchestration live in `apps/web/src/lib/motive/deployments.ts`.
+- Deterministic story KPI scoring and optional OpenAI synthesis live in `apps/web/src/lib/motive/performance.ts`.
+- Supabase persistence for `deployments` and `performance_snapshots` lives in `apps/web/src/lib/motive/supabase-deployments.ts`.
+- `POST /api/projects/:id/deploy` creates a fake deployment, validates the OpenAI Ads-shaped payload, generates simulated snapshots, and returns the deployment plus snapshot IDs.
+- `GET /api/projects/:id/deploy` returns monitoring workspace data for realtime/polling refresh.
+- `apps/web/src/components/monitoring-dashboard.tsx` renders approved creative selection, fake deploy controls, KPI cards, a compact CTR/CVR comparison, dashboard summary, and outcome table.
+- Recharts was not installed, so v1 uses a table-first dashboard with CSS metric bars.
 
 ## Minimal Demo Script
 

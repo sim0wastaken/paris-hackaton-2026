@@ -33,6 +33,7 @@ npx pnpm@11.1.2 dev
 - Spec 05 review actions verified through `POST /api/projects/:id/reviews`: approve, edit, reject, and enrich update the target entity and insert one `human_reviews` row with persisted `before_json` and `after_json`.
 - Spec 06 ad-group generation verified through `POST /api/projects/:id/ad-groups/generate`: approved conversations/features/gaps become one OpenAI Ads-compatible campaign plus draft ad groups with `context_hints`, bid defaults, linked conversations, persisted `extraction_runs` input/output, and deterministic fallback when provider use is skipped. Generated ad groups remain reviewable through the existing audit-backed approve/edit/reject/enrich flow.
 - Spec 07 creative generation verified through `POST /api/projects/:id/creatives`: approved ad groups become `creative_variants` with title, description, creative angle, target URL, asset prompt, `creative_text` run audit, optional fal.ai image generation, prompt-only fallback when `FAL_KEY` is absent, and audit-backed approve/edit/reject review.
+- Spec 08 fake deploy and monitoring verified through `POST /api/projects/:id/deploy`: approved creatives become a `fake_deployed` campaign package with OpenAI Ads-shaped campaign/ad-group/ad payload, deterministic simulated KPI snapshots, quality score basis, insights, recommended actions, and dashboard summary. `GET /api/projects/:id/deploy` powers the Monitoring page polling fallback alongside Realtime subscriptions.
 
 ## What is stubbed
 
@@ -50,9 +51,9 @@ npx pnpm@11.1.2 dev
 
 ## Next N hours priorities
 
-1. Build fake deploy and story-driven monitoring dashboard.
-2. Harden the seeded demo path around extraction, ad groups, creatives, and monitoring.
-3. Use the stored `human_reviews`, extraction outputs, ad groups, creatives, and simulated performance rows as the later Pioneer substrate.
+1. Harden the seeded demo path around extraction, ad groups, creatives, and monitoring.
+2. Use the stored `human_reviews`, extraction outputs, ad groups, creatives, and simulated performance rows as the later Pioneer substrate.
+3. Keep production secrets rotated after the hackathon and rebuild Vercel after any env change.
 
 ## Pointers (compaction-survive)
 
