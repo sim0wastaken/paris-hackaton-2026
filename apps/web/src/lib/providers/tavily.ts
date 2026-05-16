@@ -27,7 +27,11 @@ export async function extractUrlWithTavily(
     },
     body: JSON.stringify({
       urls: [input.url],
-      extract_depth: "basic"
+      extract_depth: "basic",
+      format: "markdown",
+      include_images: false,
+      include_favicon: true,
+      include_usage: true
     })
   });
   const raw = await response.json().catch(() => undefined);
@@ -56,6 +60,8 @@ export async function extractUrlWithTavily(
 
 function extractContent(raw: unknown): string {
   if (!raw || typeof raw !== "object") return "";
-  const results = (raw as { results?: Array<{ raw_content?: string; content?: string }> }).results;
-  return results?.map((result) => result.raw_content ?? result.content ?? "").join("\n\n") ?? "";
+  const results = (raw as { results?: Array<{ raw_content?: string; rawContent?: string; content?: string }> }).results;
+  return results
+    ?.map((result) => result.raw_content ?? result.rawContent ?? result.content ?? "")
+    .join("\n\n") ?? "";
 }
