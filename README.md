@@ -16,12 +16,22 @@ Read [`docs/briefing-files/motive-openai-first-hackathon-plan.md`](docs/briefing
 
 ## Current Artifact
 
+- Runnable app scaffold: `apps/web`
 - Landing prototype: `Motive - Landing + SaaS (4)/Motive Landing.html`
 - Architecture sketch: `parishack.excalidraw`
 - Hackathon strategy: `docs/Hackathon-Briefs/PROJECT_STRATEGY.md`
 - Implementation plan: `docs/superpowers/plans/2026-05-16-openai-first-demo-plan.md`
 - Source hackathon docs: `docs/Hackathon-Briefs/`
 - Operational notes: `RUNBOOK.md`, `CLAUDE.md`, `docs/agent-memory/`
+
+## Local App
+
+```sh
+npx pnpm@11.1.2 install
+npx pnpm@11.1.2 dev
+```
+
+Open `http://localhost:3000`. The scaffold currently provides the intake shell, demo project workspace, review phase rail, provider/env boundaries, Supabase client boundaries, and Inngest route/job registration.
 
 ## Demo Acceptance
 

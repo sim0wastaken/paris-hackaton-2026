@@ -1,33 +1,31 @@
-import "server-only";
-import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { getServerEnv } from "@/lib/env";
+import { createServerClient } from "@supabase/ssr";
+
+import type { Database } from "@/lib/motive/types";
+import { requireClientEnv } from "@/lib/env";
 
 export async function createSupabaseServerClient() {
+  const env = requireClientEnv();
   const cookieStore = await cookies();
-  const env = getServerEnv();
-  return createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll();
-      },
-      setAll(items) {
-        try {
-          for (const { name, value, options } of items) {
-            cookieStore.set(name, value, options);
-          }
-        } catch {
-          // Called from a Server Component — middleware refreshes the session.
-        }
-      },
-    },
-  });
-}
 
-export function createSupabaseServiceRoleClient() {
-  const env = getServerEnv();
-  return createSupabaseClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  return createServerClient<Database>(
+    env.NEXT_PUBLIC_SUPABASE_URL,
+    env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
+          } catch {
+            // Server Components cannot set cookies. Route Handlers can.
+          }
+        }
+      }
+    }
+  );
 }

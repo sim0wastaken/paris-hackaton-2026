@@ -6,43 +6,50 @@ Pinned versions for every dep. Updated whenever a dep lands. Consult before runn
 
 | Tool | Version | Pinned via | Notes |
 |------|---------|------------|-------|
-| Node.js | 25.9.0 | `/opt/homebrew/Cellar/node/25.9.0_2/bin/node` | Local dev runtime. |
-| pnpm | 11.1.2 | `package.json` `packageManager` field | Workspace package manager. |
+| Node.js | 25.9.0 | Local runtime | Used for this scaffold verification. Choose deployment LTS before production packaging. |
+| pnpm | 11.1.2 | Root `packageManager` and `npx pnpm@11.1.2` | Workspace package manager. |
+| Supabase CLI | 2.98.2 | Root `package.json` | Local DB commands. |
+| Inngest CLI | 1.19.4 | Root `package.json` | Local Inngest Dev Server. |
 | React UMD | 18.3.1 | `Motive - Landing + SaaS (4)/Motive Landing.html` | Static landing prototype. |
 | Babel standalone | 7.29.0 | `Motive - Landing + SaaS (4)/Motive Landing.html` | Browser JSX transform for prototype only. |
 
-## App packages (`apps/web/package.json`)
+## Language packages
 
-| Package | Version | Notes |
-|---------|---------|-------|
-| next | 15.5.18 | App Router + Turbopack dev/build. |
-| react | 19.1.0 | Server Components. |
-| react-dom | 19.1.0 | — |
-| typescript | ^5 | Strict mode (Next.js default). |
-| tailwindcss | ^4 | Tailwind v4 with `@tailwindcss/postcss`. |
-| @tailwindcss/postcss | ^4 | PostCSS adapter for Tailwind 4. |
-| zod | ^4.4.3 | Env validation + structured-output schemas. |
-| openai | ^6.38.0 | OpenAI SDK. Uses `gpt-5-mini` by default; see `OPENAI_MODEL`. |
-| @supabase/supabase-js | ^2.105.4 | Browser + service-role clients. |
-| @supabase/ssr | ^0.10.3 | Cookie-aware Next.js SSR clients. |
-| inngest | ^4.4.0 | Background jobs + Realtime-adjacent orchestration. |
-| @tavily/core | ^0.7.3 | Source ingestion (optional; intake degrades gracefully if absent). |
-| @fal-ai/client | ^1.10.1 | Creative asset generation (optional; asset gen is skipped if absent). |
-| server-only | ^0.0.1 | Marker to keep server modules out of client bundles. |
+| Package | Version | Manifest | Notes |
+|---------|---------|----------|-------|
+| next | 16.2.6 | `apps/web/package.json` | App Router runtime. |
+| react | 19.2.6 | `apps/web/package.json` | UI runtime. |
+| react-dom | 19.2.6 | `apps/web/package.json` | UI rendering. |
+| zod | 4.4.3 | `apps/web/package.json` | Runtime validation. |
+| @supabase/supabase-js | 2.105.4 | `apps/web/package.json` | Supabase service-role client. |
+| @supabase/ssr | 0.10.3 | `apps/web/package.json` | Browser/server SSR clients. |
+| inngest | 4.4.0 | `apps/web/package.json` | Event client and function registry. |
+| lucide-react | 1.16.0 | `apps/web/package.json` | UI icons. |
+| server-only | 0.0.1 | `apps/web/package.json` | Server-only import guard for service-role client. |
+| tailwindcss | 4.3.0 | `apps/web/package.json` | Styling. |
+| @tailwindcss/postcss | 4.3.0 | `apps/web/package.json` | Tailwind PostCSS plugin. |
+| postcss | 8.5.14 | `apps/web/package.json` | CSS processing. |
+| typescript | 6.0.3 | `apps/web/package.json` | Strict typechecking. |
+| eslint | 9.39.4 | `apps/web/package.json` | Linting; pinned to ESLint 9 because React plugin in `eslint-config-next` is not ESLint 10-safe. |
+| eslint-config-next | 16.2.6 | `apps/web/package.json` | Next.js lint config. |
+| vitest | 4.1.6 | `apps/web/package.json` | Unit tests. |
+| @types/node | 25.8.0 | `apps/web/package.json` | Node types. |
+| @types/react | 19.2.14 | `apps/web/package.json` | React types. |
+| @types/react-dom | 19.2.3 | `apps/web/package.json` | React DOM types. |
 
 ## Provider APIs
 
 | Provider | API / model surface | Where used | Notes |
 |----------|---------------------|------------|-------|
-| OpenAI | GPT-5-class extraction / generation; Ads API at `api.ads.openai.com/v1` | Source recap, feature map, conversations, intents, landing gaps, ad groups, creative text, monitoring synthesis; campaign export shape | Critical path for v1. Persist every input/output. |
-| Pioneer | Fine-tuning, inference, GLiNER2, Adaptive Inference | After-v1 classifier and future feedback loop | Not critical path for v1 demo. |
-| Tavily | Search / extract / crawl | Source context from URL, shop, social profiles | Intake falls back to manual text if absent. |
-| fal.ai | Generative media (`fal-ai/flux/schnell` for hackathon images) | Creative image assets, square ≤1200×1200 per OpenAI Ads `chat_card` | Asset gen is skipped if `FAL_KEY` is absent. |
+| OpenAI | GPT-5-class extraction / generation | Source recap, feature map, conversations, landing gaps, ad groups, creative text | Critical path for v1. Persist every input/output. |
+| Pioneer | Fine-tuning, inference, GLiNER2, Adaptive Inference | After-v1 classifier and future feedback loop | Not critical path for first product iteration. |
+| Tavily | Search / extract / crawl | Source context from URL, shop, social profiles | Hackathon docs include Tavily guide. |
+| fal.ai | Generative media | Creative image/video assets | Downstream from creative angle selection. |
 
 ## Infrastructure images
 
 | Image | Tag | Where pinned | Rationale |
 |-------|-----|--------------|-----------|
-| _TBD — Supabase local stack uses `supabase start` (Docker images managed by Supabase CLI)._ |  |  |  |
+| _TBD_ |  |  |  |
 
 > Never use `latest`. Prefer LTS / stable. Be suspicious of `-alpine` variants for data stores (§11.1).

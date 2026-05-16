@@ -1,55 +1,106 @@
-import "server-only";
 import { z } from "zod";
 
-const serverEnvSchema = z.object({
-  OPENAI_API_KEY: z.string().min(1, "OPENAI_API_KEY is required"),
-  OPENAI_MODEL: z.string().default("gpt-5-mini"),
-  OPENAI_EXTRACTION_PROMPT_VERSION: z.string().default("2026-05-16"),
+const requiredString = z.preprocess(
+  (value) => (value === "" ? undefined : value),
+  z.string().min(1)
+);
 
-  TAVILY_API_KEY: z.string().optional(),
-  FAL_KEY: z.string().optional(),
+const optionalString = z.preprocess(
+  (value) => (value === "" ? undefined : value),
+  z.string().min(1).optional()
+);
 
-  NEXT_PUBLIC_SUPABASE_URL: z.string().url("NEXT_PUBLIC_SUPABASE_URL must be a valid URL"),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, "NEXT_PUBLIC_SUPABASE_ANON_KEY is required"),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, "SUPABASE_SERVICE_ROLE_KEY is required"),
-  DATABASE_URL: z.string().min(1).optional(),
+const booleanFromEnv = z.preprocess((value) => {
+  if (typeof value !== "string") return value;
+  if (["1", "true", "yes", "on"].includes(value.toLowerCase())) return true;
+  if (["0", "false", "no", "off"].includes(value.toLowerCase())) return false;
+  return value;
+}, z.boolean());
 
-  INNGEST_EVENT_KEY: z.string().optional(),
-  INNGEST_SIGNING_KEY: z.string().optional(),
-
-  DEMO_MODE: z.enum(["live", "seeded", "auto"]).default("auto"),
-  ENABLE_DEMO_RESET: z
-    .union([z.boolean(), z.enum(["true", "false", "1", "0"])])
-    .transform((v) => v === true || v === "true" || v === "1")
-    .default(false),
+const clientEnvSchema = z.object({
+  NEXT_PUBLIC_SUPABASE_URL: requiredString,
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: requiredString,
+  NEXT_PUBLIC_APP_URL: requiredString
 });
 
+const serverEnvSchema = clientEnvSchema.extend({
+  SUPABASE_SERVICE_ROLE_KEY: requiredString,
+  DATABASE_URL: requiredString,
+  OPENAI_API_KEY: optionalString,
+  OPENAI_MODEL: optionalString.default("gpt-5-mini"),
+  OPENAI_EXTRACTION_PROMPT_VERSION: optionalString.default("2026-05-16"),
+  TAVILY_API_KEY: optionalString,
+  FAL_KEY: optionalString,
+  INNGEST_EVENT_KEY: optionalString,
+  INNGEST_SIGNING_KEY: optionalString,
+  INNGEST_DEV: booleanFromEnv.default(false),
+  MOTIVE_DEMO_MODE: booleanFromEnv.default(false)
+});
+
+export type ClientEnv = z.infer<typeof clientEnvSchema>;
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
-let cached: ServerEnv | null = null;
+export type EnvParseResult<T> =
+  | { success: true; data: T }
+  | {
+      success: false;
+      missingKeys: string[];
+      formattedError: string;
+    };
 
-export function getServerEnv(): ServerEnv {
-  if (cached) return cached;
-  const result = serverEnvSchema.safeParse(process.env);
-  if (!result.success) {
-    const issues = result.error.issues
-      .map((i) => `  - ${i.path.join(".") || "(root)"}: ${i.message}`)
-      .join("\n");
-    throw new Error(
-      `[motive] Invalid server environment variables:\n${issues}\n\nSee .env.example for the full contract.`,
-    );
+export class EnvValidationError extends Error {
+  readonly missingKeys: string[];
+
+  constructor(missingKeys: string[], formattedError: string) {
+    super(`Missing required env: ${missingKeys.join(", ")}`);
+    this.name = "EnvValidationError";
+    this.missingKeys = missingKeys;
+    this.cause = formattedError;
   }
-  cached = result.data;
-  return cached;
 }
 
-export function getProviderAvailability() {
-  const env = getServerEnv();
+export function parseClientEnv(source: NodeJS.ProcessEnv | Record<string, unknown>): EnvParseResult<ClientEnv> {
+  return parseEnv(clientEnvSchema, source);
+}
+
+export function parseServerEnv(source: NodeJS.ProcessEnv | Record<string, unknown>): EnvParseResult<ServerEnv> {
+  return parseEnv(serverEnvSchema, source);
+}
+
+export function requireServerEnv(source: NodeJS.ProcessEnv | Record<string, unknown> = process.env): ServerEnv {
+  const result = parseServerEnv(source);
+  if (!result.success) {
+    throw new EnvValidationError(result.missingKeys, result.formattedError);
+  }
+  return result.data;
+}
+
+export function requireClientEnv(source: NodeJS.ProcessEnv | Record<string, unknown> = process.env): ClientEnv {
+  const result = parseClientEnv(source);
+  if (!result.success) {
+    throw new EnvValidationError(result.missingKeys, result.formattedError);
+  }
+  return result.data;
+}
+
+export const clientEnv = parseClientEnv(process.env);
+export const serverEnv = parseServerEnv(process.env);
+
+function parseEnv<T extends z.ZodType>(schema: T, source: NodeJS.ProcessEnv | Record<string, unknown>): EnvParseResult<z.infer<T>> {
+  const result = schema.safeParse(source);
+  if (result.success) {
+    return { success: true, data: result.data };
+  }
+
+  const missingKeys = Array.from(
+    new Set(result.error.issues.map((issue) => String(issue.path[0])))
+  ).filter((key) => key !== "undefined");
+
   return {
-    openai: Boolean(env.OPENAI_API_KEY),
-    tavily: Boolean(env.TAVILY_API_KEY),
-    fal: Boolean(env.FAL_KEY),
-    inngest_serving: Boolean(env.INNGEST_SIGNING_KEY),
-    inngest_sending: Boolean(env.INNGEST_EVENT_KEY),
+    success: false,
+    missingKeys,
+    formattedError: result.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ")
   };
 }

@@ -1,22 +1,60 @@
-import "server-only";
-import { fal } from "@fal-ai/client";
-import { getServerEnv } from "@/lib/env";
+import type { ProviderOptions, ProviderResult } from "./types";
 
-let configured = false;
+export async function generateFalImage(
+  input: {
+    prompt: string;
+    requestId: string;
+  },
+  options: ProviderOptions = {}
+): Promise<ProviderResult<{ imageUrl?: string }>> {
+  const apiKey = options.apiKey ?? process.env.FAL_KEY;
+  const fetcher = options.fetcher ?? fetch;
 
-export function isFalConfigured(): boolean {
-  return Boolean(getServerEnv().FAL_KEY);
+  if (!apiKey) {
+    return {
+      provider: "fal",
+      status: "skipped",
+      reason: "FAL_KEY is not configured",
+      requestId: input.requestId
+    };
+  }
+
+  const response = await fetcher("https://fal.run/fal-ai/flux/schnell", {
+    method: "POST",
+    headers: {
+      "authorization": `Key ${apiKey}`,
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      prompt: input.prompt,
+      image_size: "square"
+    })
+  });
+  const raw = await response.json().catch(() => undefined);
+
+  if (!response.ok) {
+    return {
+      provider: "fal",
+      status: "failed",
+      reason: `fal.ai request failed with ${response.status}`,
+      raw,
+      requestId: input.requestId
+    };
+  }
+
+  return {
+    provider: "fal",
+    status: "ready",
+    data: {
+      imageUrl: extractImageUrl(raw)
+    },
+    raw,
+    requestId: input.requestId
+  };
 }
 
-export function getFal(): typeof fal {
-  if (configured) return fal;
-  const env = getServerEnv();
-  if (!env.FAL_KEY) {
-    throw new Error(
-      "[motive] FAL_KEY is not set. Asset generation will be skipped; the creative prompt will still be persisted.",
-    );
-  }
-  fal.config({ credentials: env.FAL_KEY });
-  configured = true;
-  return fal;
+function extractImageUrl(raw: unknown): string | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const images = (raw as { images?: Array<{ url?: string }> }).images;
+  return images?.[0]?.url;
 }

@@ -1,13 +1,28 @@
 {
-  "name": "motive-monorepo",
+  "name": "paris-hackaton-2026",
   "private": true,
-  "version": "0.0.0",
+  "packageManager": "pnpm@11.1.2",
   "scripts": {
-    "dev": "pnpm --filter @motive/web dev",
-    "build": "pnpm --filter @motive/web build",
-    "start": "pnpm --filter @motive/web start",
-    "lint": "pnpm --filter @motive/web lint",
-    "typecheck": "pnpm --filter @motive/web typecheck"
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "lint": "pnpm --filter web lint",
+    "typecheck": "pnpm --filter web typecheck",
+    "test": "pnpm --filter web test",
+    "db:start": "supabase start",
+    "db:reset": "supabase db reset",
+    "inngest:dev": "inngest-cli dev -u http://localhost:3000/api/inngest"
   },
-  "packageManager": "pnpm@11.1.2"
+  "devDependencies": {
+    "inngest-cli": "1.19.4",
+    "supabase": "2.98.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "inngest-cli",
+      "protobufjs",
+      "sharp",
+      "supabase",
+      "unrs-resolver"
+    ]
+  }
 }

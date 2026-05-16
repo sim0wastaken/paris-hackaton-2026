@@ -1,64 +1,110 @@
 import Link from "next/link";
+import { Check, CircleDashed, Lock, Radio } from "lucide-react";
 
-export type WorkflowStepKey = "intake" | "review" | "creatives" | "monitoring";
-export type WorkflowStepState = "available" | "current" | "blocked" | "complete" | "failed";
+import { StatusBadge } from "./status-badge";
 
-export type WorkflowStep = {
-  key: WorkflowStepKey;
-  label: string;
+export type WorkflowStepId = "intake" | "review" | "creatives" | "monitoring";
+export type WorkflowStepState = "available" | "blocked" | "complete" | "current" | "failed";
+
+export type WorkflowItem = {
+  id: WorkflowStepId;
   href: string;
+  label: string;
   state: WorkflowStepState;
 };
 
-export const DEFAULT_STEPS: WorkflowStep[] = [
-  { key: "intake", label: "Intake", href: "/", state: "current" },
-  { key: "review", label: "Extraction / Review", href: "/review", state: "blocked" },
-  { key: "creatives", label: "Creatives", href: "/creatives", state: "blocked" },
-  { key: "monitoring", label: "Monitoring", href: "/monitoring", state: "blocked" },
+const workflowDefinition: Array<Omit<WorkflowItem, "href" | "state">> = [
+  { id: "intake", label: "Intake" },
+  { id: "review", label: "Extraction / Review" },
+  { id: "creatives", label: "Creatives" },
+  { id: "monitoring", label: "Monitoring" }
 ];
 
-const STATE_STYLES: Record<WorkflowStepState, string> = {
-  available: "text-zinc-300 hover:text-white",
-  current: "text-white font-medium underline underline-offset-4 decoration-2 decoration-white",
-  blocked: "text-zinc-600 cursor-not-allowed",
-  complete: "text-emerald-400 hover:text-emerald-300",
-  failed: "text-red-400 hover:text-red-300",
-};
+export function createWorkflowItems({
+  completedSteps = [],
+  current,
+  failedSteps = [],
+  projectId
+}: {
+  completedSteps?: WorkflowStepId[];
+  current: WorkflowStepId;
+  failedSteps?: WorkflowStepId[];
+  projectId?: string;
+}): WorkflowItem[] {
+  return workflowDefinition.map((item) => {
+    const href = item.id === "intake"
+      ? "/"
+      : `/projects/${projectId ?? "demo-project"}/${item.id === "review" ? "review" : item.id}`;
 
-export function WorkflowNav({ steps = DEFAULT_STEPS }: { steps?: WorkflowStep[] }) {
+    let state: WorkflowStepState = "blocked";
+    if (item.id === current) state = "current";
+    else if (failedSteps.includes(item.id)) state = "failed";
+    else if (completedSteps.includes(item.id)) state = "complete";
+    else if (item.id === "intake" || item.id === "review") state = "available";
+
+    return {
+      ...item,
+      href,
+      state
+    };
+  });
+}
+
+export function WorkflowNav({
+  completedSteps = [],
+  current,
+  failedSteps = [],
+  projectId
+}: {
+  completedSteps?: WorkflowStepId[];
+  current: WorkflowStepId;
+  failedSteps?: WorkflowStepId[];
+  projectId?: string;
+}) {
+  const items = createWorkflowItems({
+    completedSteps,
+    current,
+    failedSteps,
+    projectId
+  });
+
   return (
-    <nav className="border-b border-zinc-800 bg-black/40 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center gap-6 px-6 py-3 text-sm">
-        <Link href="/" className="font-mono text-base text-white">
-          Motive
+    <nav aria-label="Workflow" className="grid gap-2 md:grid-cols-4">
+      {items.map((item) => (
+        <Link
+          aria-current={item.state === "current" ? "page" : undefined}
+          className="flex min-h-20 items-start justify-between gap-3 rounded-md border border-[#d9dfd8] bg-white p-3 shadow-sm"
+          href={item.href}
+          key={item.id}
+        >
+          <span>
+            <span className="block text-sm font-semibold text-[#17201c]">
+              {item.label}
+            </span>
+            <span className="mt-2 block">
+              <StatusBadge status={item.state}>
+                {item.state === "blocked"
+                  ? "Blocked"
+                  : item.state === "current"
+                    ? "Current"
+                    : item.state === "complete"
+                      ? "Complete"
+                      : item.state === "failed"
+                        ? "Failed"
+                        : "Available"}
+              </StatusBadge>
+            </span>
+          </span>
+          <WorkflowIcon state={item.state} />
         </Link>
-        <ol className="flex flex-1 items-center gap-1">
-          {steps.map((s, idx) => {
-            const isBlocked = s.state === "blocked";
-            const content = (
-              <span className={`px-3 py-1 ${STATE_STYLES[s.state]}`}>
-                <span className="mr-2 font-mono text-xs text-zinc-500">
-                  {String(idx + 1).padStart(2, "0")}
-                </span>
-                {s.label}
-              </span>
-            );
-            return (
-              <li key={s.key} className="flex items-center">
-                {isBlocked ? (
-                  <span aria-disabled className={STATE_STYLES[s.state]}>
-                    {content}
-                  </span>
-                ) : (
-                  <Link href={s.href}>{content}</Link>
-                )}
-                {idx < steps.length - 1 && <span className="text-zinc-700">/</span>}
-              </li>
-            );
-          })}
-        </ol>
-        <span className="font-mono text-xs text-zinc-500">v0.0.1 · hackathon demo</span>
-      </div>
+      ))}
     </nav>
   );
+}
+
+function WorkflowIcon({ state }: { state: WorkflowStepState }) {
+  if (state === "complete") return <Check aria-hidden="true" size={18} />;
+  if (state === "blocked") return <Lock aria-hidden="true" size={18} />;
+  if (state === "current") return <Radio aria-hidden="true" size={18} />;
+  return <CircleDashed aria-hidden="true" size={18} />;
 }

@@ -1,21 +1,61 @@
-import "server-only";
-import { tavily, type TavilyClient } from "@tavily/core";
-import { getServerEnv } from "@/lib/env";
+import type { ProviderOptions, ProviderResult } from "./types";
 
-let cached: TavilyClient | null = null;
+export async function extractUrlWithTavily(
+  input: {
+    url: string;
+    requestId: string;
+  },
+  options: ProviderOptions = {}
+): Promise<ProviderResult<{ content: string; url: string }>> {
+  const apiKey = options.apiKey ?? process.env.TAVILY_API_KEY;
+  const fetcher = options.fetcher ?? fetch;
 
-export function isTavilyConfigured(): boolean {
-  return Boolean(getServerEnv().TAVILY_API_KEY);
+  if (!apiKey) {
+    return {
+      provider: "tavily",
+      status: "skipped",
+      reason: "TAVILY_API_KEY is not configured",
+      requestId: input.requestId
+    };
+  }
+
+  const response = await fetcher("https://api.tavily.com/extract", {
+    method: "POST",
+    headers: {
+      "authorization": `Bearer ${apiKey}`,
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      urls: [input.url],
+      extract_depth: "basic"
+    })
+  });
+  const raw = await response.json().catch(() => undefined);
+
+  if (!response.ok) {
+    return {
+      provider: "tavily",
+      status: "failed",
+      reason: `Tavily request failed with ${response.status}`,
+      raw,
+      requestId: input.requestId
+    };
+  }
+
+  return {
+    provider: "tavily",
+    status: "ready",
+    data: {
+      content: extractContent(raw),
+      url: input.url
+    },
+    raw,
+    requestId: input.requestId
+  };
 }
 
-export function getTavily(): TavilyClient {
-  if (cached) return cached;
-  const env = getServerEnv();
-  if (!env.TAVILY_API_KEY) {
-    throw new Error(
-      "[motive] TAVILY_API_KEY is not set. Add it to .env.local or fall back to manual text intake.",
-    );
-  }
-  cached = tavily({ apiKey: env.TAVILY_API_KEY });
-  return cached;
+function extractContent(raw: unknown): string {
+  if (!raw || typeof raw !== "object") return "";
+  const results = (raw as { results?: Array<{ raw_content?: string; content?: string }> }).results;
+  return results?.map((result) => result.raw_content ?? result.content ?? "").join("\n\n") ?? "";
 }

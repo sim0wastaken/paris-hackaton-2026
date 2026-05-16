@@ -1,26 +1,51 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --motive-ink: #17201c;
+  --motive-muted: #66706b;
+  --motive-border: #d9dfd8;
+  --motive-surface: #f7f8f4;
+  --motive-panel: #ffffff;
+  --motive-green: #0f7a52;
+  --motive-blue: #195b8f;
+  --motive-amber: #9b6419;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  min-height: 100%;
+  background: var(--motive-surface);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100%;
+  margin: 0;
+  background:
+    linear-gradient(90deg, rgba(23, 32, 28, 0.035) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(23, 32, 28, 0.035) 1px, transparent 1px),
+    var(--motive-surface);
+  background-size: 32px 32px;
+  color: var(--motive-ink);
+  font-family: Aptos, "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 15px;
+  letter-spacing: 0;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: rgba(15, 122, 82, 0.18);
 }
