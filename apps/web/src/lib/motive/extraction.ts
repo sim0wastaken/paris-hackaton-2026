@@ -151,12 +151,20 @@ export type ExtractionErrorPayload = {
   retry_after_seconds?: number;
 };
 
+// Extraction system prompt — evidence-grounding rules apply to every phase.
+// Drawn from B2B-marketing failure modes (logos, certifications, metrics are the legally-loaded inventions)
+// and the "quote first, then act" pattern from Anthropic/OpenAI prompt-engineering guides.
 const SYSTEM_PROMPT = [
   "You are Motive's campaign intelligence extractor for an OpenAI-first hackathon demo.",
   "Use only the provided source bundle and previous persisted phase outputs.",
-  "When evidence is weak, mark low confidence and explain the missing source.",
-  "Include source_refs for concrete claims.",
-  "Do not invent customer names, integrations, prices, compliance claims, or metrics unless the phase explicitly asks for simulated monitoring.",
+  "",
+  "EVIDENCE RULES (apply to every phase):",
+  "1. For every claim, every constraint, every quoted voice, populate source_refs with the source.id of at least one source containing the supporting span. If no span exists, do NOT emit the claim — add it to assumptions[] or the phase's missing_*_context list with note \"no evidence in <source.id>\".",
+  "2. Prefer paraphrase. If you quote verbatim, keep it under 15 words and store the quote in evidence (not in titles or descriptions).",
+  "3. Never invent: customer names, integration names, prices, percentages, certifications (SOC2/ISO/GDPR/HIPAA), case-study metrics, dates, or guarantee language. If the source uses such words you may reuse them; otherwise leave the field empty and add to missing_context.",
+  "4. confidence=high requires a verbatim or near-verbatim span. confidence=medium requires an explicit paraphrase. confidence=low is inferred and the evidence field MUST start with \"Inferred:\".",
+  "5. If competing sources disagree, pick the most authoritative (homepage > docs > blog > forum) and note the conflict in assumptions.",
+  "",
   "Return only data that conforms to the provided schema."
 ].join(" ");
 
@@ -170,7 +178,7 @@ export async function runExtractionPipeline(
   }
 ): Promise<ExtractionPipelineResult> {
   const model = deps.model ?? process.env.OPENAI_EXTRACTION_MODEL ?? process.env.OPENAI_MODEL ?? "gpt-5-mini";
-  const promptVersion = deps.promptVersion ?? process.env.OPENAI_EXTRACTION_PROMPT_VERSION ?? "2026-05-16";
+  const promptVersion = deps.promptVersion ?? process.env.OPENAI_EXTRACTION_PROMPT_VERSION ?? "2026-05-16-v2";
   const promptVersionByPhase = Object.fromEntries(
     SPEC_04_PHASES.map((phase) => [phase, `${phase}.${promptVersion}`])
   ) as Record<Spec04ExtractionPhase, string>;
@@ -385,17 +393,108 @@ function schemaForPhase(phase: Spec04ExtractionPhase): ZodType<PhaseOutput> {
 function promptForPhase(phase: Spec04ExtractionPhase): string {
   switch (phase) {
     case "source_recap":
-      return "Summarize brand, offer, ICP, proof, constraints, assumptions, and source quality.";
+      // Dunford positioning + Revella 5 Rings ICP structure.
+      // Schema doesn't yet have the new fields, so we instruct the model to write them
+      // into source_quality.missing_context as scaffolding for future schema extension.
+      return [
+        "Summarize the source bundle into a positioning + ICP recap using two frameworks:",
+        "",
+        "POSITIONING (April Dunford):",
+        "- competitors[]: include at least one non-software alternative (status quo, spreadsheet, manual work) if any source hints at it.",
+        "- proof_points[]: facts only the source can prove — features, integrations, workflow specifics.",
+        "- positioning_summary: state the buyer language, not feature language.",
+        "",
+        "ICP (Adele Revella 5 Rings) — for each icp_segments[] entry, the pain + desired_outcome fields must encode (where the source supports it):",
+        "- the priority initiative / trigger that pushed the buyer off the status quo",
+        "- the success factors they expect",
+        "- the perceived barriers to switching",
+        "- the decision criteria that decide the call",
+        "If a ring lacks source evidence, leave it out and add a source_quality.missing_context entry. Do NOT fill rings from training-data plausibility."
+      ].join("\n");
     case "feature_map":
-      return "Extract campaign-relevant product facts, value props, use cases, proof points, USPs, and objections.";
+      // Ulwick desired-outcome statement + Moesta Forces of Progress.
+      return [
+        "Extract campaign-relevant features, value props, USPs, use cases, proof points, and objections.",
+        "",
+        "Per-type rules:",
+        "- type=feature: title = concrete capability noun phrase. buyer_relevance MUST cite one positioning theme from source_recap.positioning_summary.",
+        "- type=value_prop or use_case: title shape = \"{minimize|increase|reduce} {metric|time|effort} {object} {context}\" (Ulwick Outcome-Driven Innovation). No vague \"boosts productivity\".",
+        "- type=usp: must be defensible vs the competitors[] list in source_recap. If you cannot name what makes it unique vs that alternative, demote to type=feature.",
+        "- type=proof_point: evidence MUST include a verifiable artifact (customer name + outcome, metric + source page, certification + issuer). If absent, do NOT emit — add to missing_feature_context.",
+        "- type=objection: in evidence, prefix with one Force-of-Progress tag from {anxiety_of_new, habit_of_old, missing_push, weak_pull} (Bob Moesta). Cite the source span (review quote, FAQ, sales objection)."
+      ].join("\n");
     case "conversation_map":
-      return "Generate grounded buying conversations from the recap and features without assigning final intent labels.";
+      // Joanna Wiebe voice-of-customer + Moesta switch interview + Gartner buying jobs.
+      return [
+        "Generate 4-8 grounded buying conversations. conversation_text reads as a buyer talking — first person, colloquial, using source-bundle language. Do NOT use brand marketing copy. Do NOT assign stage or intent_type here (phase 4 does that).",
+        "",
+        "Each conversation:",
+        "- conversation_text: 1-2 buyer sentences paraphrased from source spans (FAQs, reviews, sales objection lists, founder anecdotes). Cite source_refs.",
+        "- pain: the push — what's broken in the buyer's current world. Lift phrasing from the source when possible.",
+        "- desired_outcome: the pull — a concrete outcome the buyer wants.",
+        "- trigger: the switching moment if the source surfaces one; otherwise leave empty.",
+        "- related_feature_temp_ids: link features that resolve the pain or address the anxiety.",
+        "",
+        "BUYER-VOICE BAN LIST. If conversation_text uses any of these marketing words, REWRITE in buyer voice or drop the conversation: leverage, streamline, empower, unlock, seamless, supercharge, revolutionary, game-changing, 10x.",
+        "",
+        "Diversity rule: across the conversation set, cover at least 3 distinct buyer_roles. If the source only supports one role, say so in missing_feature_context (upstream phase) — do not fabricate roles."
+      ].join("\n");
     case "intent_classification":
-      return "Classify existing conversations with canonical stage, intent, buyer role, constraints, rationale, and confidence.";
+      // Schwartz 5 awareness levels (B2B-ified) + MEDDPICC + runner-up reasoning.
+      return [
+        "Classify each conversation into stage + intent_type + buyer_role + constraints.",
+        "",
+        "Stage definitions (B2B Schwartz):",
+        "- problem_aware: buyer feels pain, doesn't know solution categories yet",
+        "- solution_compare: comparing solution APPROACHES (not vendors)",
+        "- vendor_evaluation: comparing named vendors / specific products",
+        "- pricing_check: budget / contract validation",
+        "- security_review: compliance / permissions / data-handling gatekeeping",
+        "- ready_to_buy: final commitment cues (\"when can we start\", \"send the contract\")",
+        "- post_purchase: onboarding / expansion / churn risk",
+        "",
+        "For each classification, rationale MUST:",
+        "1. Quote (≤15 words) the conversation span that drove the stage call.",
+        "2. Name the runner-up stage you considered and one sentence why you rejected it.",
+        "",
+        "For each constraints[] entry, the evidence field MUST start with a MEDDPICC dimension prefix: \"MEDDPICC: {Metrics | Economic Buyer | Decision Criteria | Decision Process | Paper Process | Identified Pain | Champion | Competition} — …\". Mapping: budget → Metrics + Economic Buyer; timeline → Decision Process; integration/technical → Decision Criteria; compliance → Decision Criteria; approval_process → Paper Process; existing_tool → Competition.",
+        "",
+        "confidence:",
+        "- high: explicit verbatim signal for both stage and intent_type",
+        "- medium: clear inference from one signal",
+        "- low: ambiguous between two stages — name both in rationale"
+      ].join("\n");
     case "landing_gaps":
-      return "Identify conversion gaps between buyer conversations and what the source material proves.";
+      // CXL ResearchXL heuristic axes + Cialdini 6 principles + fix_artifact_status anti-hallucination guard.
+      return [
+        "For each gap, link to a specific conversation_temp_id (trace to a real buyer concern, not generic CRO advice).",
+        "",
+        "Required structure:",
+        "- description: name the gap from the buyer's POV plus one of the CXL ResearchXL heuristic axes in square brackets at the end: [clarity | relevance | value | friction | distraction | anxiety].",
+        "- suggested_fix shape: \"{Cialdini principle}: {concrete artifact} in {page_area}\" using one of {social_proof, authority, reciprocity, scarcity, commitment, liking}. Examples: \"Social proof: add 3 logos of <ICP segment> customers above the fold.\" \"Authority: add SOC2 badge + auditor name in the trust strip.\"",
+        "- ANTI-HALLUCINATION GUARD: only propose suggested_fix artifacts present in the source bundle (a real customer name, a real certification, a real integration). If the artifact is absent, suggested_fix MUST be prefixed with \"request from brand:\" — do not fabricate logos, badges, certifications, or metrics. Add the request to rationale as well.",
+        "- rationale: must end with one of \"artifact_present_in_source\" or \"artifact_request_from_brand\" so downstream code can route accordingly.",
+        "",
+        "Severity calibration:",
+        "- high = blocks a high-confidence conversation classified ready_to_buy / pricing_check / security_review",
+        "- medium = blocks vendor_evaluation / solution_compare",
+        "- low = problem_aware nice-to-have"
+      ].join("\n");
     case "ad_groups":
-      return "Propose draft ad-group ideas only, grounded in reviewed extraction material and linked conversations.";
+      // Pain × Persona × Awareness matrix (Motion creative-strategy) + Wiebe message mining.
+      return [
+        "Propose 2-5 draft ad-group ideas. Each ad group = one cell in the matrix (intent_type × buyer_role × stage). Do NOT merge cells with different awareness stages even if intent_type matches.",
+        "",
+        "For each ad_group:",
+        "- name: pattern is \"{buyer language for the pain} — {buyer_role} {stage}\". Example: \"Spreadsheet handoff is killing us — Revenue lead, Vendor evaluation\".",
+        "- primary_intent: the intent_type of the linked conversation(s).",
+        "- context_hints[]: at least one verbatim phrase (in quotes) lifted from an approved conversation.",
+        "- must_include_claims[]: claim categories the creative MUST anchor on (proof_point name, integration, metric — only if present in approved features).",
+        "- avoid_claims[]: claim categories the creative MUST NOT make (e.g., pricing claims when a pricing_clarity landing_gap is linked).",
+        "- priority: high if the linked conversation is high-confidence and stage ∈ {pricing_check, ready_to_buy, security_review}, medium for vendor_evaluation/solution_compare, low for problem_aware.",
+        "",
+        "Reject your own draft if two ad groups share the same (primary_intent, buyer_role of linked conversation, stage of linked conversation) tuple. Re-split or merge until each tuple is unique."
+      ].join("\n");
   }
 }
 
@@ -675,6 +774,9 @@ function seededFeature(
   sourceRef: string,
   confidence: FeatureMapOutput["features"][number]["confidence"]
 ) {
+  // Vertical-expert default: only objections get a force_tag in the seeded demo.
+  // The model will populate this richly when running for real; the seed just shows the field exists.
+  const force_tag = type === "objection" ? "anxiety_of_new" as const : null;
   return {
     temp_id,
     type,
@@ -683,7 +785,8 @@ function seededFeature(
     buyer_relevance,
     evidence,
     source_refs: [sourceRef],
-    confidence
+    confidence,
+    force_tag
   };
 }
 
@@ -707,7 +810,9 @@ function seededConversation(
     desired_outcome,
     related_feature_temp_ids,
     source_refs: [sourceRef],
-    confidence
+    confidence,
+    anxiety: null,
+    buying_job: null
   };
 }
 
@@ -731,13 +836,16 @@ function seededClassification(
       {
         type: constraintType,
         value: constraintValue,
-        evidence: rationale,
+        // Seeded demo shows the MEDDPICC prefix pattern so downstream UI can render it.
+        evidence: `MEDDPICC: Decision Process — ${rationale}`,
         source_refs: [sourceRef],
         confidence
       }
     ],
     rationale,
-    confidence
+    confidence,
+    runner_up_stage: null,
+    runner_up_reason: null
   };
 }
 
@@ -760,6 +868,9 @@ function seededGap(
     suggested_fix,
     page_area,
     source_refs: [sourceRef],
-    rationale: `${description} ${suggested_fix}`
+    rationale: `${description} ${suggested_fix}`,
+    heuristic_axis: null,
+    cialdini_principle: null,
+    fix_artifact_status: null
   };
 }

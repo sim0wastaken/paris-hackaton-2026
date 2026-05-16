@@ -87,7 +87,12 @@ describe("Spec 06 ad-group generation", () => {
               linked_landing_gap_ids: [],
               linked_product_feed_item_ids: [],
               status: "draft",
-              confidence: 0.4
+              confidence: 0.4,
+              funnel_stage: null,
+              awareness_stage: null,
+              primary_pain_or_desire: null,
+              verbatim_buyer_phrase: null,
+              self_check: null
             }
           ],
           rejected_conversation_ids: []

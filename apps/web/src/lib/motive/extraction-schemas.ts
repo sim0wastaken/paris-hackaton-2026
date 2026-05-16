@@ -2,8 +2,12 @@ import { z } from "zod";
 
 import {
   buyerRoleValues,
+  buyingJobValues,
+  cialdiniPrincipleValues,
   constraintTypeValues,
   featureTypeValues,
+  forceTagValues,
+  heuristicAxisValues,
   intentTypeValues,
   landingGapTypeValues,
   stageValues
@@ -68,7 +72,10 @@ export const featureMapOutputSchema = z.object({
       buyer_relevance: z.string(),
       evidence: z.string(),
       source_refs: z.array(z.string()),
-      confidence: confidenceLabelSchema
+      confidence: confidenceLabelSchema,
+      // Moesta Forces of Progress — populated only for type=objection (null otherwise).
+      // Already constrained by the prompt to prefix evidence with the tag too, this is the structured copy.
+      force_tag: z.enum(forceTagValues).nullable()
     })
   ),
   missing_feature_context: z.array(z.string())
@@ -85,7 +92,11 @@ export const conversationMapOutputSchema = z.object({
       desired_outcome: z.string(),
       related_feature_temp_ids: z.array(z.string()),
       source_refs: z.array(z.string()),
-      confidence: confidenceLabelSchema
+      confidence: confidenceLabelSchema,
+      // Vertical-expert additions (Moesta switch interview + Gartner buying jobs).
+      // Nullable so older outputs still parse and so the model can abstain when source is thin.
+      anxiety: z.string().nullable(),
+      buying_job: z.enum(buyingJobValues).nullable()
     })
   )
 });
@@ -99,7 +110,11 @@ export const intentClassificationOutputSchema = z.object({
       buyer_role: z.enum(buyerRoleValues),
       constraints: z.array(extractionConstraintSchema.required({ confidence: true })),
       rationale: z.string(),
-      confidence: confidenceLabelSchema
+      confidence: confidenceLabelSchema,
+      // Chain-of-verification: the runner-up stage the model considered and why it rejected it.
+      // Nullable so old fixtures still parse.
+      runner_up_stage: z.enum(stageValues).nullable(),
+      runner_up_reason: z.string().nullable()
     })
   )
 });
@@ -115,7 +130,14 @@ export const landingGapsOutputSchema = z.object({
       suggested_fix: z.string(),
       page_area: z.string(),
       source_refs: z.array(z.string()),
-      rationale: z.string()
+      rationale: z.string(),
+      // CXL ResearchXL heuristic axis (complements gap_type — same gap can sit on multiple axes; pick the dominant).
+      heuristic_axis: z.enum(heuristicAxisValues).nullable(),
+      // Cialdini principle for the suggested fix (when the fix is grounded).
+      cialdini_principle: z.enum(cialdiniPrincipleValues).nullable(),
+      // CRITICAL anti-hallucination guard: did the model find the proposed artifact in the sources,
+      // or is it requesting the brand provide a new artifact? Defaults to null for old outputs.
+      fix_artifact_status: z.enum(["present_in_source", "request_from_brand"]).nullable()
     })
   )
 });

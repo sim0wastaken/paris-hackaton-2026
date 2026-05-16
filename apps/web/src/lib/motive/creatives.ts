@@ -2,11 +2,39 @@ import { z, type ZodType } from "zod";
 
 import type { ExtractionReviewData, ExtractionRunRecord } from "./extraction";
 import { isAcceptedReviewStatus } from "./review-status";
-import type { AdGroup, BrandFeature, Conversation, CreativeVariant, LandingGap, ProductFeedItem } from "./types";
+import {
+  awarenessLevelValues,
+  copyFormulaValues,
+  hookArchetypeValues,
+  imageCompositionArchetypeValues,
+  type AdGroup,
+  type BrandFeature,
+  type Conversation,
+  type CreativeVariant,
+  type LandingGap,
+  type ProductFeedItem,
+} from "./types";
+import { intentCopyStrategyMap, resolveCopyStrategy } from "./copy-map";
 import type { ProviderResult } from "@/lib/providers/types";
 
-export const CREATIVE_PROMPT_VERSION = "creative_text_v1";
+export const CREATIVE_PROMPT_VERSION = "creative_text_v2_2026-05-16";
 export const DEFAULT_CREATIVE_VARIANT_COUNT = 1;
+
+// HARD-BANNED words that signal corporate puff and AI-generated copy.
+// Source: Harry Dry visualizable/falsifiable/different rule + practitioner consensus.
+const BANNED_COPY_TERMS = [
+  "revolutionary",
+  "supercharge",
+  "leverage",
+  "unlock",
+  "seamless",
+  "seamlessly",
+  "game-changing",
+  "game changer",
+  "10x",
+  "empower",
+  "streamline",
+];
 
 const looseUuidSchema = z.string().regex(
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
@@ -21,6 +49,23 @@ const qualitySignalValues = [
   "pricing_unclear",
   "migration_setup_aligned"
 ] as const;
+
+// Self-check sub-schema for copy quality (Harry Dry's 3 rules + banned-phrase guard).
+const copySelfCheckSchema = z.object({
+  visualizable: z.boolean(),
+  falsifiable: z.boolean(),
+  different: z.boolean(),
+  banned_phrase_used: z.boolean()
+}).strict();
+
+// Self-check sub-schema for image prompt quality.
+const imageSelfCheckSchema = z.object({
+  subject_first: z.boolean(),
+  no_banned_elements: z.boolean(),
+  lighting_named: z.boolean(),
+  composition_named: z.boolean(),
+  archetype_matches_intent: z.boolean()
+}).strict();
 
 const creativeGenerationVariantSchema = z.object({
   ad_group_id: looseUuidSchema,
@@ -37,7 +82,20 @@ const creativeGenerationVariantSchema = z.object({
     product_feed_item_ids: z.array(looseUuidSchema),
     quality_signals: z.array(z.enum(qualitySignalValues)).min(1)
   }).strict(),
-  risks: z.array(z.string().trim().min(1))
+  risks: z.array(z.string().trim().min(1)),
+  // Vertical-expert strategic choices (nullable for backward compat with deterministic fallback).
+  awareness_level: z.enum(awarenessLevelValues).nullable(),
+  copy_formula: z.enum(copyFormulaValues).nullable(),
+  hook_archetype: z.enum(hookArchetypeValues).nullable(),
+  verbatim_phrase: z.string().trim().min(1).nullable(),
+  copy_self_check: copySelfCheckSchema.nullable(),
+  // Structured image-prompt explainability (the composed_prompt is `asset_prompt` above).
+  image_composition_archetype: z.enum(imageCompositionArchetypeValues).nullable(),
+  image_subject: z.string().trim().min(1).nullable(),
+  image_lighting: z.string().trim().min(1).nullable(),
+  image_lens: z.string().trim().min(1).nullable(),
+  image_mood_keywords: z.array(z.string().trim().min(1)).nullable(),
+  image_self_check: imageSelfCheckSchema.nullable()
 }).strict();
 
 export const creativeGenerationOutputSchema = z.object({
@@ -182,11 +240,17 @@ export type RunCreativeGenerationResult = {
   };
 };
 
+// System prompt — voiced as senior B2B SaaS performance marketer + copywriter + art director.
+// Embeds: Harry Dry rules, Schwartz awareness, copy-formula picker, hook archetypes,
+// FLUX image composition, FTC claim safety, banned-puff list.
 const SYSTEM_PROMPT = [
-  "You are Motive's creative strategist for an OpenAI Ads-compatible campaign package.",
+  "You are Motive's creative strategist: a senior B2B SaaS performance marketer collaborating with a senior copywriter and an art director.",
   "Generate grounded ad copy and visual prompts from approved ad groups and approved evidence only.",
-  "Tie each title and description to a buyer conversation constraint plus a brand feature, landing gap, or linked product.",
-  "Keep claims conservative when proof is missing.",
+  "Voice discipline: sentence-case headlines, no exclamation points, no emojis. Never use these words:",
+  BANNED_COPY_TERMS.join(", ") + ".",
+  "Claim safety (FTC Endorsement Guides): no metric that is not in approved brand_features; no #1/best/fastest without a cited proof_point; no fabricated testimonials or quoted reviews; refuse any claim that would require FTC substantiation and add a `risks` entry instead.",
+  "Channel fit: paid social newsfeed (Meta/LinkedIn), not Google Search. First 24 characters of the title carry the hook.",
+  "Grounding contract: every variant must trace to (1) exactly one approved conversation, (2) at least one proof anchor (brand feature or product feed item), (3) at most one landing gap acknowledged as a `risks` entry — never as a benefit claim.",
   "Return only the requested schema."
 ].join(" ");
 
@@ -529,23 +593,22 @@ function buildFallbackVariant(
   const description = clipToLimit(buildFallbackDescription(context, conversation, feature, gap, product), 100);
   const qualitySignals = fallbackQualitySignals(conversation, feature, gap);
 
+  // Resolve vertical-expert strategic choices from the conditional copy map.
+  const intentKey = conversation.intent_type as string;
+  const strategy = intentCopyStrategyMap[intentKey] ?? null;
+  const archetype = strategy?.image_composition_archetype ?? null;
+  const composedAssetPrompt = clipToLimit(
+    buildFallbackAssetPrompt(context, conversation, feature, gap, archetype),
+    700
+  );
+
   return {
     ad_group_id: context.ad_group.id,
     title,
     description,
     creative_angle: fallbackCreativeAngle(conversation, gap),
     asset_type: "image",
-    asset_prompt: clipToLimit(
-      [
-        "Square paid-social ad image for a B2B SaaS campaign.",
-        `Scene should communicate: ${context.ad_group.name}.`,
-        conversation ? `Buyer constraint: ${conversation.text}` : "",
-        feature ? `Proof point: ${feature.title}.` : "",
-        gap ? `Landing-page gap to visualize carefully: ${gap.gap_type}.` : "",
-        "Use clean product-marketing composition, no logos, no unsupported metric claims."
-      ].filter(Boolean).join(" "),
-      700
-    ),
+    asset_prompt: composedAssetPrompt,
     target_url: product?.link ?? input.project.brand_url,
     grounding: {
       conversation_ids: [conversation.id],
@@ -556,8 +619,72 @@ function buildFallbackVariant(
     },
     risks: gap?.gap_type === "pricing_clarity"
       ? ["Pricing claim depends on landing-page clarity."]
-      : []
+      : [],
+    // Strategic explainability fields: deterministic fallback emits the framework picks
+    // when an intent strategy is available; otherwise null (model will fill in real runs).
+    awareness_level: strategy?.awareness_default ?? null,
+    copy_formula: strategy?.copy_formula ?? null,
+    hook_archetype: strategy?.hook_archetypes?.[0] ?? null,
+    verbatim_phrase: null,
+    copy_self_check: null,
+    image_composition_archetype: archetype,
+    image_subject: null,
+    image_lighting: null,
+    image_lens: null,
+    image_mood_keywords: null,
+    image_self_check: null
   };
+}
+
+// Builds a FLUX-correct natural-language asset prompt for the deterministic fallback.
+// Subject-first, then environment, lighting, lens, mood, palette, negative constraints.
+function buildFallbackAssetPrompt(
+  context: CreativeAdGroupContext,
+  conversation: CreativeAdGroupContext["conversations"][number],
+  feature: CreativeAdGroupContext["brand_features"][number] | undefined,
+  gap: CreativeAdGroupContext["landing_gaps"][number] | undefined,
+  archetype: string | null
+): string {
+  const subjectByArchetype: Record<string, string> = {
+    single_protagonist_at_workspace:
+      "A focused B2B operator at a wooden desk reviewing notes on a laptop screen, slightly furrowed brow",
+    object_macro_with_context:
+      "Macro shot of a single handwritten Post-it note on a coffee-stained desk, next to a closed laptop",
+    before_after_diptych:
+      "A split-frame image: left side a cluttered tab-stack of spreadsheet rows, right side a clean single dashboard view",
+    paper_artifact_on_desk:
+      "Top-down view of a napkin with handwritten pricing math next to a half-drunk espresso cup",
+    dim_room_late_night:
+      "A single founder lit by laptop glow at a kitchen table at 11pm, calm not panicked, decisive",
+    meeting_aftermath:
+      "A meeting room after everyone has left: post-it notes on a glass wall, empty paper cups, marker on the table"
+  };
+  const subject = archetype && subjectByArchetype[archetype]
+    ? subjectByArchetype[archetype]
+    : `A B2B operator working on the ${context.ad_group.name.toLowerCase()} workflow`;
+  const lighting = archetype === "dim_room_late_night"
+    ? "single warm desk lamp and laptop screen, 11pm key lighting"
+    : "soft overcast morning window light";
+  const lens = archetype === "object_macro_with_context"
+    ? "100mm macro lens, shallow depth of field"
+    : "35mm prime lens, shallow depth of field, eye-level";
+  const moodCue = gap?.gap_type === "pricing_clarity"
+    ? "Mood: candid, deliberate, slightly skeptical"
+    : "Mood: candid, focused, professional";
+  const groundingLine = [
+    conversation ? `Reflects buyer concern: "${conversation.text.slice(0, 90)}"` : "",
+    feature ? `Visually nods to proof point: ${feature.title}.` : ""
+  ].filter(Boolean).join(" ");
+
+  return [
+    `${subject}.`,
+    `Lit by ${lighting}.`,
+    `Shot on ${lens}.`,
+    `${moodCue}. Colour palette: muted earth tones with a single editorial accent.`,
+    groundingLine,
+    "Editorial product-marketing photography, not stock.",
+    "No on-image text, no logos, no UI mockups, no fake metrics, no group of perfectly-smiling people, no glossy or waxy skin, no impossible shadows."
+  ].filter(Boolean).join(" ");
 }
 
 function buildFallbackTitle(
@@ -632,15 +759,82 @@ async function callCreativeProvider(
     model: string;
   }
 ) {
+  // Build per-ad-group strategy hints from the conditional copy map so the model
+  // makes formula/hook/archetype picks consistent with vertical-expert frameworks.
+  const strategyHints = input.ad_group_contexts.map((context) => {
+    const intent = context.ad_group.target_intent ?? context.conversations[0]?.intent_type ?? null;
+    const gapTypes = context.landing_gaps.map((gap) => gap.gap_type as string);
+    return {
+      ad_group_id: context.ad_group.id,
+      target_intent: intent,
+      gap_types: gapTypes,
+      strategy: resolveCopyStrategy(intent, gapTypes)
+    };
+  });
+
   const prompt = [
-    "Generate one primary creative variant per target ad group unless variant_count is greater than 1.",
-    "OpenAI Ads limits: title hard max 50 characters, description/body hard max 100 characters.",
-    "Target 16-24 title characters and 32-48 description characters when possible.",
-    "Use target_url from the project brand URL or linked product URL.",
-    "Use asset_type image by default. asset_prompt must be a visual prompt, not UI instructions.",
-    "Approved campaign context:",
+    "## STRATEGIC CHOICES (decide BEFORE writing copy, per variant)",
+    "",
+    "1. awareness_level — Schwartz 5 levels {unaware, problem_aware, solution_aware, product_aware, most_aware}. Pick by ad_group's buyer stage:",
+    "   • unaware → reveal the hidden cost they don't yet name",
+    "   • problem_aware → name the pain in their words",
+    "   • solution_aware → category differentiation vs. alternatives",
+    "   • product_aware → resolve specific objections",
+    "   • most_aware → offer/CTA",
+    "",
+    "2. copy_formula ∈ {PAS, BAB, FAB, 4Us, PASTOR} — pick by approved conversation's intent_type using this table:",
+    "   • workflow_pain → PAS (Problem-Agitate-Solve)",
+    "   • urgency_timeline → BAB (Before-After-Bridge)",
+    "   • budget_validation → 4Us (Useful/Urgent/Unique/Ultra-specific)",
+    "   • proof_request | trust_check → FAB (Feature-Advantage-Benefit) tied to a named proof anchor",
+    "   • migration_risk → BAB where the bridge IS the migration mechanic",
+    "   • competitive_switch → PAS where the agitator IS the incumbent",
+    "   • integration_check → FAB tied to a named integration in approved features",
+    "",
+    "3. hook_archetype ∈ {contrarian, demographic_callout, confession, curiosity, directive, bold_claim, statistic, how_to, myth_busting, if_then}.",
+    "   Compatibility: early-stage (unaware/problem_aware) prefers curiosity/contrarian/confession; late-stage (product_aware/most_aware) prefers directive/if_then/statistic/bold_claim.",
+    "",
+    "4. verbatim_phrase: lift 3–7 words from one approved conversation. This phrase MUST appear in title OR description.",
+    "",
+    "## WRITE COPY",
+    "- title: ≤50 chars, target 16–24. First 24 chars carry the hook.",
+    "- description: ≤100 chars, target 32–48. Deliver the proof anchor and a soft CTA.",
+    "- creative_angle: one short plain-English sentence naming the angle.",
+    "",
+    "## IMAGE PROMPT (FLUX-correct token order)",
+    "asset_prompt must be a natural-language image description in this order: {subject} doing {action_or_pose}, in {environment}. Lit by {lighting}. Shot on {lens}, {composition}. Mood: {mood_keywords}. Colour palette: {palette}. No on-image text, no logos, no UI mockups, no fake metrics, no group of perfectly-smiling people, no glossy/waxy skin, no impossible shadows. Editorial product-marketing photography, not stock.",
+    "",
+    "Pick image_composition_archetype from {single_protagonist_at_workspace, object_macro_with_context, before_after_diptych, paper_artifact_on_desk, dim_room_late_night, meeting_aftermath} — see strategy table below for default per intent_type.",
+    "Also populate the structured siblings: image_subject (first 12 words of asset_prompt should match), image_lighting (named condition like 'soft morning window'), image_lens ('35mm, shallow depth'), image_mood_keywords (≤4 keywords).",
+    "",
+    "## SELF-GRADE BEFORE RETURNING",
+    "copy_self_check booleans (Harry Dry's 3 rules + banned-phrase guard):",
+    "  - visualizable: a reader can mentally picture what you described",
+    "  - falsifiable: the claim could be proved or disproved (no vague puff)",
+    "  - different: a competitor in this category could not say the exact same line",
+    "  - banned_phrase_used: TRUE if you used any of " + BANNED_COPY_TERMS.join("/") + " — if true, rewrite once before returning.",
+    "",
+    "image_self_check booleans:",
+    "  - subject_first: the asset_prompt's first 12 words name the subject (not 'Square paid-social ad image')",
+    "  - no_banned_elements: no on-image text/logos/fake screens/perfectly-smiling group/glossy skin",
+    "  - lighting_named: a specific lighting condition (not 'natural light')",
+    "  - composition_named: a lens or framing word",
+    "  - archetype_matches_intent: picked archetype is plausible for the ad_group's intent_type",
+    "",
+    "## OPENAI ADS HARD LIMITS",
+    "- title hard max 50 chars; description hard max 100 chars.",
+    "- Use target_url from the project brand URL or linked product URL.",
+    "- asset_type image by default. asset_prompt is a visual description, not UI instructions.",
+    "",
+    "## STRATEGY TABLE (defaults — override only if approved conversation contradicts)",
+    JSON.stringify(strategyHints, null, 2),
+    "",
+    "## VARIANT BUDGET",
+    `Generate one primary variant per target ad group unless variant_count > 1 (current: ${input.variant_count}).`,
+    "",
+    "## APPROVED CAMPAIGN CONTEXT",
     JSON.stringify(input, null, 2)
-  ].join("\n\n");
+  ].join("\n");
 
   return options.provider.generate({
     requestId: options.requestId,

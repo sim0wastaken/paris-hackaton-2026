@@ -3,13 +3,17 @@ import { z, type ZodType } from "zod";
 import type { ExtractionReviewData, ExtractionRunRecord } from "./extraction";
 import { isAcceptedReviewStatus } from "./review-status";
 import {
+  awarenessLevelValues,
   campaignObjectiveValues,
+  funnelStageValues,
   type AdGroup,
+  type AwarenessLevel,
   type Campaign,
+  type FunnelStage,
   type ProductFeedItem
 } from "./types";
 
-export const AD_GROUP_PROMPT_VERSION = "ad_groups_v1";
+export const AD_GROUP_PROMPT_VERSION = "ad_groups_v2_2026-05-16";
 export const DEFAULT_CAMPAIGN_BUDGET_MICROS = 5_000_000;
 export const DEFAULT_AD_GROUP_BID_MICROS = 3_000_000;
 export const DEFAULT_COUNTRIES = ["US"] as const;
@@ -28,6 +32,12 @@ const looseUuidSchema = z.string().regex(
   "Invalid UUID"
 );
 
+const adGroupSelfCheckSchema = z.object({
+  tuple_unique: z.boolean(),
+  name_is_buyer_voice: z.boolean(),
+  funnel_stages_balanced: z.boolean()
+});
+
 const adGroupGenerationGroupSchema = z.object({
   name: z.string().trim().min(3),
   rationale: z.string().trim().min(1),
@@ -39,7 +49,14 @@ const adGroupGenerationGroupSchema = z.object({
   linked_landing_gap_ids: z.array(looseUuidSchema),
   linked_product_feed_item_ids: z.array(looseUuidSchema),
   status: z.literal("draft"),
-  confidence: z.number().min(0).max(1)
+  confidence: z.number().min(0).max(1),
+  // Vertical-expert strategic shape — pain × persona × awareness matrix cell.
+  // Nullable for back-compat with deterministic fallback.
+  funnel_stage: z.enum(funnelStageValues).nullable(),
+  awareness_stage: z.enum(awarenessLevelValues).nullable(),
+  primary_pain_or_desire: z.string().trim().min(1).nullable(),
+  verbatim_buyer_phrase: z.string().trim().min(1).nullable(),
+  self_check: adGroupSelfCheckSchema.nullable()
 });
 
 export const adGroupGenerationOutputSchema = z.object({
@@ -188,10 +205,14 @@ export type RunAdGroupGenerationResult = {
   source: "openai" | "deterministic_fallback";
 };
 
+// System prompt — voiced as a senior B2B SaaS performance marketer.
+// Embeds: pain × persona × awareness matrix (Motion), TOFU/MOFU/BOFU funnel, Wiebe message-mining for naming.
 const SYSTEM_PROMPT = [
-  "You are Motive's campaign structure planner.",
+  "You are Motive's campaign structure planner — a senior B2B SaaS performance marketer.",
   "Create concise OpenAI Ads-compatible ad groups from approved, human-reviewed campaign intelligence only.",
-  "Group conversations by shared buying context, intent, constraint, or landing-page need.",
+  "Treat each ad group as one cell in the matrix (intent_type × buyer_role × stage). Do NOT merge cells with different awareness stages even if intent_type matches.",
+  "Group names should sound like a phrase a real buyer in that segment would utter — not a marketing taxonomy label (Joanna Wiebe message-mining discipline).",
+  "Banned puff: revolutionary, supercharge, leverage, unlock, seamless, game-changing, 10x, empower, streamline.",
   "Do not invent unprovided product claims.",
   "Do not use pending or rejected evidence.",
   "Return only the requested schema."
@@ -543,12 +564,16 @@ async function callAdGroupProvider(
     system: SYSTEM_PROMPT,
     prompt: JSON.stringify({
       instructions: [
-        "Produce 2-5 ad groups unless approved evidence supports fewer.",
-        "Each ad group must target one clear conversation theme.",
-        "Include only approved conversation ids.",
-        "Generate context_hints as JSON-array-ready strings.",
-        "Avoid duplicates and near-duplicates.",
-        "Use names that can become creative briefs."
+        "Produce 2-5 ad groups. Each ad group = one cell in (intent_type × buyer_role × stage). Do not merge cells with different awareness stages even if intent_type matches.",
+        "For each ad group declare: funnel_stage ∈ {tofu, mofu, bofu}, awareness_stage ∈ {unaware, problem_aware, solution_aware, product_aware, most_aware}, primary_pain_or_desire (in buyer's words lifted from approved_conversations), verbatim_buyer_phrase (3-7 word slice from one approved conversation).",
+        "Name pattern: \"{buyer language for the pain} — {buyer_role}, {stage}\". Example: \"Spreadsheet handoff is killing us — Revenue lead, Vendor evaluation\". Stage maps: problem_aware→problem_aware, solution_compare→solution_aware, vendor_evaluation/pricing_check/security_review→product_aware, ready_to_buy→most_aware.",
+        "Awareness-stage mapping (Schwartz B2B): use the linked conversation's classified stage to derive awareness_stage with the same map above.",
+        "Reject your own draft if two ad groups share the same (intent_type, buyer_role, stage) tuple. Re-split or merge.",
+        "When ≥3 ad groups exist, the set should span at least 2 of {tofu, mofu, bofu} (TOFU/MOFU/BOFU budget tilt).",
+        "context_hints must include at least one verbatim phrase from an approved conversation, in quotes.",
+        "Populate self_check booleans honestly: tuple_unique, name_is_buyer_voice, funnel_stages_balanced. The calling code logs them; do not lie.",
+        "Include only approved conversation ids. Avoid duplicates and near-duplicates.",
+        "Use names that can become creative briefs (concrete, buyer-language)."
       ],
       input
     })
@@ -573,7 +598,7 @@ function buildFallbackGroup(
     name: titleCaseWords(titleSeed).slice(0, 72),
     rationale: `Targets approved ${intentLabel(conversation.intent_type)} demand from ${buyerLabel(conversation.buyer_role)} buyers using the reviewed conversation: "${truncate(conversation.text, 96)}"`,
     context_hints: distinctStrings([
-      truncate(conversation.text, 80),
+      `"${truncate(conversation.text, 80)}"`,
       stringValue(primaryConstraint?.value),
       conversation.stage.replaceAll("_", " "),
       conversation.intent_type.replaceAll("_", " "),
@@ -586,8 +611,47 @@ function buildFallbackGroup(
     linked_landing_gap_ids: relatedGaps.map((gap) => gap.id),
     linked_product_feed_item_ids: [],
     status: "draft",
-    confidence: relatedGaps.length > 0 || constraints.length > 0 ? 0.78 : 0.65
+    confidence: relatedGaps.length > 0 || constraints.length > 0 ? 0.78 : 0.65,
+    // Vertical-expert nullable fields — fallback derives sensible defaults from stage.
+    funnel_stage: funnelStageForStage(conversation.stage),
+    awareness_stage: awarenessForStage(conversation.stage),
+    primary_pain_or_desire: truncate(conversation.text, 120),
+    verbatim_buyer_phrase: extractVerbatimPhrase(conversation.text),
+    self_check: null
   };
+}
+
+// Maps the Motive `stage` enum to the broader funnel taxonomy used by paid-social planners.
+function funnelStageForStage(stage: string): FunnelStage {
+  if (["problem_aware"].includes(stage)) return "tofu";
+  if (["solution_compare", "vendor_evaluation"].includes(stage)) return "mofu";
+  return "bofu";
+}
+
+// Maps the Motive `stage` enum to Schwartz awareness levels.
+function awarenessForStage(stage: string): AwarenessLevel {
+  switch (stage) {
+    case "problem_aware":
+      return "problem_aware";
+    case "solution_compare":
+      return "solution_aware";
+    case "vendor_evaluation":
+    case "pricing_check":
+    case "security_review":
+      return "product_aware";
+    case "ready_to_buy":
+    case "post_purchase":
+      return "most_aware";
+    default:
+      return "problem_aware";
+  }
+}
+
+// Lift a 3-7 word slice from buyer text — first noun phrase or just the opening fragment.
+function extractVerbatimPhrase(text: string): string {
+  const normalized = text.trim().replace(/\s+/g, " ");
+  const words = normalized.split(" ").slice(0, 7).join(" ");
+  return words.replace(/[.,!?;:]+$/, "");
 }
 
 function selectRelevantFeatures(

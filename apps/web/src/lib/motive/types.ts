@@ -91,6 +91,92 @@ export const constraintTypeValues = [
   "other",
 ] as const;
 
+// Domain-expert framework enums (see docs/superpowers/plans/2026-05-16-vertical-prompt-upgrade-plan.md).
+// Schwartz 5 awareness levels (Breakthrough Advertising 1966) — copy register selector.
+export const awarenessLevelValues = [
+  "unaware",
+  "problem_aware",
+  "solution_aware",
+  "product_aware",
+  "most_aware",
+] as const;
+
+// Direct-response copy formulas. PAS / BAB / FAB / 4Us / PASTOR.
+export const copyFormulaValues = ["PAS", "BAB", "FAB", "4Us", "PASTOR"] as const;
+
+// Hook archetype taxonomy (Motion creative-strategy hook-tactics).
+export const hookArchetypeValues = [
+  "contrarian",
+  "demographic_callout",
+  "confession",
+  "curiosity",
+  "directive",
+  "bold_claim",
+  "statistic",
+  "how_to",
+  "myth_busting",
+  "if_then",
+] as const;
+
+// Image composition archetypes for FLUX paid-social ad imagery.
+export const imageCompositionArchetypeValues = [
+  "single_protagonist_at_workspace",
+  "object_macro_with_context",
+  "before_after_diptych",
+  "paper_artifact_on_desk",
+  "dim_room_late_night",
+  "meeting_aftermath",
+] as const;
+
+// Paid-social funnel stage (TOFU / MOFU / BOFU).
+export const funnelStageValues = ["tofu", "mofu", "bofu"] as const;
+
+// Gartner B2B buying jobs (six jobs of the buying journey).
+export const buyingJobValues = [
+  "problem_identification",
+  "solution_exploration",
+  "requirements_building",
+  "supplier_selection",
+  "validation",
+  "consensus_creation",
+] as const;
+
+// Bob Moesta Forces of Progress — for objection tagging.
+export const forceTagValues = [
+  "anxiety_of_new",
+  "habit_of_old",
+  "missing_push",
+  "weak_pull",
+] as const;
+
+// CXL ResearchXL heuristic axes — for landing_gap classification.
+export const heuristicAxisValues = [
+  "clarity",
+  "relevance",
+  "value",
+  "friction",
+  "distraction",
+  "anxiety",
+] as const;
+
+// Cialdini's six principles — for landing_gap remediation.
+export const cialdiniPrincipleValues = [
+  "reciprocity",
+  "commitment",
+  "social_proof",
+  "authority",
+  "liking",
+  "scarcity",
+] as const;
+
+// Notional owner roles for monitoring synthesis Insight→Action→Owner pattern.
+export const recommendedOwnerRoleValues = [
+  "growth_pm",
+  "creative_lead",
+  "landing_page_owner",
+  "lifecycle_owner",
+] as const;
+
 export const uuidSchema = z.uuid();
 export const nullableUuidSchema = uuidSchema.nullable();
 export const timestampSchema = z.string().min(1);
@@ -412,6 +498,18 @@ export type PerformanceSnapshot = z.infer<typeof performanceSnapshotSchema>;
 export type ProductFeed = z.infer<typeof productFeedSchema>;
 export type ProductFeedItem = z.infer<typeof productFeedItemSchema>;
 export type OpenAiAdsExport = z.infer<typeof openAiAdsExportSchema>;
+
+// Domain-expert framework type aliases.
+export type AwarenessLevel = (typeof awarenessLevelValues)[number];
+export type CopyFormula = (typeof copyFormulaValues)[number];
+export type HookArchetype = (typeof hookArchetypeValues)[number];
+export type ImageCompositionArchetype = (typeof imageCompositionArchetypeValues)[number];
+export type FunnelStage = (typeof funnelStageValues)[number];
+export type BuyingJob = (typeof buyingJobValues)[number];
+export type ForceTag = (typeof forceTagValues)[number];
+export type HeuristicAxis = (typeof heuristicAxisValues)[number];
+export type CialdiniPrinciple = (typeof cialdiniPrincipleValues)[number];
+export type RecommendedOwnerRole = (typeof recommendedOwnerRoleValues)[number];
 
 type SupabaseTable<Row> = {
   Row: Row;

@@ -158,7 +158,23 @@ export function createSupabaseCreativeGenerationRepository(): CreativeGeneration
         metadata: {
           grounding: variant.grounding,
           risks: variant.risks,
-          prompt_version: CREATIVE_PROMPT_VERSION
+          prompt_version: CREATIVE_PROMPT_VERSION,
+          // Vertical-expert strategic choices (Schwartz/PAS-BAB-FAB/Motion/Harry Dry).
+          strategy: {
+            awareness_level: variant.awareness_level,
+            copy_formula: variant.copy_formula,
+            hook_archetype: variant.hook_archetype,
+            verbatim_phrase: variant.verbatim_phrase,
+            copy_self_check: variant.copy_self_check
+          },
+          image_strategy: {
+            composition_archetype: variant.image_composition_archetype,
+            subject: variant.image_subject,
+            lighting: variant.image_lighting,
+            lens: variant.image_lens,
+            mood_keywords: variant.image_mood_keywords,
+            self_check: variant.image_self_check
+          }
         }
       }));
       if (rows.length === 0) return [];
