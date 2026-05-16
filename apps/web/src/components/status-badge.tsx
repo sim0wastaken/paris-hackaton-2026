@@ -1,11 +1,11 @@
 type BadgeStatus = "available" | "blocked" | "complete" | "current" | "failed";
 
 const statusClasses: Record<BadgeStatus, string> = {
-  available: "border-[#b9d8c8] bg-[#eef8f1] text-[#0f7a52]",
-  blocked: "border-[#e3d1af] bg-[#fff7e8] text-[#9b6419]",
-  complete: "border-[#b9d8c8] bg-[#eef8f1] text-[#0f7a52]",
-  current: "border-[#aac9df] bg-[#eef6fb] text-[#195b8f]",
-  failed: "border-[#efc0bd] bg-[#fff0ee] text-[#a3382f]"
+  available: "tag tag-outline",
+  blocked: "tag tag-warn",
+  complete: "tag tag-acid",
+  current: "tag tag-cyan",
+  failed: "tag tag-warn"
 };
 
 export function StatusBadge({
@@ -16,9 +16,8 @@ export function StatusBadge({
   status: BadgeStatus;
 }) {
   return (
-    <span
-      className={`inline-flex items-center rounded-md border px-2 py-1 text-xs font-medium ${statusClasses[status]}`}
-    >
+    <span className={statusClasses[status]}>
+      {status === "current" ? <span className="dot pulse" /> : null}
       {children}
     </span>
   );

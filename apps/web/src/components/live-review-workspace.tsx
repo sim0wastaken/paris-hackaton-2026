@@ -285,17 +285,17 @@ export function LiveReviewWorkspace({
     <section className="grid gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
       <ExtractionPhaseRail counts={phaseCounts} runs={data.extraction_runs} />
       <div className="grid gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#d9dfd8] bg-white px-4 py-3 shadow-sm">
+        <div className="card flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             {connection === "live" ? (
-              <CheckCircle2 aria-hidden="true" className="text-[#2c7a4b]" size={16} />
+              <CheckCircle2 aria-hidden="true" className="text-[var(--acid)]" size={16} />
             ) : (
-              <RefreshCw aria-hidden="true" className="text-[#195b8f]" size={16} />
+              <RefreshCw aria-hidden="true" className="text-[var(--acid-2)]" size={16} />
             )}
-            <span className="text-sm font-medium text-[#17201c]">
+            <span className="text-sm font-medium text-[var(--ink)]">
               {connection === "live" ? "Realtime live" : "Polling updates"}
             </span>
-            <span className="rounded-md border border-[#d9dfd8] px-2 py-1 text-xs text-[#66706b]">
+            <span className="rounded-md border border-[var(--line)] px-2 py-1 text-xs text-[var(--ink-3)]">
               {data.human_reviews.length} review events
             </span>
           </div>
@@ -311,7 +311,7 @@ export function LiveReviewWorkspace({
             </button>
             {failedRun ? (
             <button
-              className="inline-flex items-center gap-2 rounded-md border border-[#17201c] bg-[#17201c] px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn btn-primary btn-sm"
               disabled={retrying || usableSourceIds.length === 0}
               onClick={retryExtraction}
               type="button"
@@ -324,12 +324,12 @@ export function LiveReviewWorkspace({
         </div>
 
         {error ? (
-          <p className="rounded-md border border-[#efc0bd] bg-[#fff0ee] px-3 py-2 text-sm text-[#a3382f]">
+          <p className="error-callout">
             {error}
           </p>
         ) : null}
         {reviewError ? (
-          <p className="rounded-md border border-[#efc0bd] bg-[#fff0ee] px-3 py-2 text-sm text-[#a3382f]">
+          <p className="error-callout">
             {reviewError}
           </p>
         ) : null}
@@ -372,18 +372,18 @@ function SourceRecapPanel({
       status={run?.status ?? "queued"}
       title={String(output.brand_name ?? "Waiting for source recap")}
     >
-      <p className="text-sm leading-6 text-[#3f4944]">
+      <p className="text-sm leading-6 text-[var(--ink-2)]">
         {String(output.one_sentence_offer ?? "The recap will summarize offer, ICP, proof, constraints, and source quality.")}
       </p>
       {output.positioning_summary ? (
-        <p className="mt-3 text-sm leading-6 text-[#66706b]">{String(output.positioning_summary)}</p>
+        <p className="mt-3 text-sm leading-6 text-[var(--ink-3)]">{String(output.positioning_summary)}</p>
       ) : null}
       {quality.coverage ? (
         <div className="mt-4 flex flex-wrap gap-2">
           <StatusBadge status="available">Coverage: {String(quality.coverage)}</StatusBadge>
           {Array.isArray(quality.missing_context)
             ? quality.missing_context.slice(0, 3).map((item) => (
-                <span className="rounded-md border border-[#d9dfd8] px-2 py-1 text-xs text-[#66706b]" key={String(item)}>
+                <span className="rounded-md border border-[var(--line)] px-2 py-1 text-xs text-[var(--ink-3)]" key={String(item)}>
                   Missing: {String(item)}
                 </span>
               ))
@@ -443,15 +443,15 @@ function FeaturePanel({
         {data.brand_features.map((feature) => (
           <article className={rowCardClass(feature.review_status)} key={feature.id}>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-sm font-semibold text-[#17201c]">{feature.title}</h3>
+              <h3 className="text-sm font-semibold text-[var(--ink)]">{feature.title}</h3>
               <div className="flex items-center gap-2">
                 <StatusBadge status="available">{feature.type}</StatusBadge>
                 <StatusBadge status={reviewBadgeStatus(feature.review_status)}>{feature.review_status}</StatusBadge>
               </div>
             </div>
-            <p className="mt-2 text-sm leading-6 text-[#3f4944]">{feature.description}</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--ink-2)]">{feature.description}</p>
             {feature.evidence ? (
-              <p className="mt-2 text-xs text-[#66706b]">{feature.evidence}</p>
+              <p className="mt-2 text-xs text-[var(--ink-3)]">{feature.evidence}</p>
             ) : null}
             <ReviewActionControls
               buildPatch={(draft) => ({
@@ -505,23 +505,23 @@ function ConversationPanel({
     >
       <div className="overflow-x-auto">
         <table className="min-w-full border-separate border-spacing-0 text-left text-sm">
-          <thead className="text-xs uppercase text-[#66706b]">
+          <thead className="text-xs uppercase text-[var(--ink-3)]">
             <tr>
-              <th className="border-b border-[#d9dfd8] py-2 pr-3 font-semibold">Conversation</th>
-              <th className="border-b border-[#d9dfd8] px-3 py-2 font-semibold">Stage</th>
-              <th className="border-b border-[#d9dfd8] px-3 py-2 font-semibold">Intent</th>
-              <th className="border-b border-[#d9dfd8] px-3 py-2 font-semibold">Buyer</th>
-              <th className="border-b border-[#d9dfd8] pl-3 py-2 font-semibold">Review</th>
+              <th className="border-b border-[var(--line)] py-2 pr-3 font-semibold">Conversation</th>
+              <th className="border-b border-[var(--line)] px-3 py-2 font-semibold">Stage</th>
+              <th className="border-b border-[var(--line)] px-3 py-2 font-semibold">Intent</th>
+              <th className="border-b border-[var(--line)] px-3 py-2 font-semibold">Buyer</th>
+              <th className="border-b border-[var(--line)] pl-3 py-2 font-semibold">Review</th>
             </tr>
           </thead>
           <tbody>
             {data.conversations.map((conversation) => (
               <tr className={conversation.review_status === "rejected" ? "opacity-60" : ""} key={conversation.id}>
-                <td className="max-w-xl border-b border-[#edf0e8] py-3 pr-3 text-[#17201c]">{conversation.text}</td>
-                <td className="border-b border-[#edf0e8] px-3 py-3 text-[#3f4944]">{conversation.stage || "intent pending"}</td>
-                <td className="border-b border-[#edf0e8] px-3 py-3 text-[#3f4944]">{conversation.intent_type || "intent pending"}</td>
-                <td className="border-b border-[#edf0e8] px-3 py-3 text-[#3f4944]">{conversation.buyer_role ?? "unknown"}</td>
-                <td className="min-w-[260px] border-b border-[#edf0e8] pl-3 py-3">
+                <td className="max-w-xl border-b border-[var(--line)] py-3 pr-3 text-[var(--ink)]">{conversation.text}</td>
+                <td className="border-b border-[var(--line)] px-3 py-3 text-[var(--ink-2)]">{conversation.stage || "intent pending"}</td>
+                <td className="border-b border-[var(--line)] px-3 py-3 text-[var(--ink-2)]">{conversation.intent_type || "intent pending"}</td>
+                <td className="border-b border-[var(--line)] px-3 py-3 text-[var(--ink-2)]">{conversation.buyer_role ?? "unknown"}</td>
+                <td className="min-w-[260px] border-b border-[var(--line)] pl-3 py-3">
                   <ReviewActionControls
                     buildPatch={(draft) => ({
                       text: draft.text,
@@ -579,14 +579,14 @@ function LandingGapPanel({
         {data.landing_gaps.map((gap) => (
           <article className={rowCardClass(gap.review_status)} key={gap.id}>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-sm font-semibold text-[#17201c]">{gap.gap_type}</h3>
+              <h3 className="text-sm font-semibold text-[var(--ink)]">{gap.gap_type}</h3>
               <div className="flex items-center gap-2">
                 <StatusBadge status={gap.severity >= 5 ? "failed" : "current"}>Severity {gap.severity}</StatusBadge>
                 <StatusBadge status={reviewBadgeStatus(gap.review_status)}>{gap.review_status}</StatusBadge>
               </div>
             </div>
-            <p className="mt-2 text-sm leading-6 text-[#3f4944]">{gap.description}</p>
-            <p className="mt-2 text-xs text-[#66706b]">{gap.suggested_fix}</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--ink-2)]">{gap.description}</p>
+            <p className="mt-2 text-xs text-[var(--ink-3)]">{gap.suggested_fix}</p>
             <ReviewActionControls
               buildPatch={(draft) => ({
                 gap_type: draft.gap_type,
@@ -647,7 +647,7 @@ function AdGroupPanel({
       status={phaseStatus(data, "ad_groups")}
       title="Campaign structure"
     >
-      <div className="mb-4 grid gap-3 rounded-md border border-[#d9dfd8] bg-[#fbfcf8] p-3">
+      <div className="mb-4 grid gap-3 rounded-md border border-[var(--line)] bg-[var(--bg-2)] p-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-2">
             <StatusBadge status={approvedConversations.length >= 2 ? "available" : "current"}>
@@ -657,7 +657,7 @@ function AdGroupPanel({
             <StatusBadge status="available">{approvedGaps.length} approved gaps</StatusBadge>
           </div>
           <button
-            className="inline-flex items-center gap-2 rounded-md border border-[#17201c] bg-[#17201c] px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn btn-primary btn-sm"
             disabled={!canGenerate}
             onClick={() => void onGenerate()}
             type="button"
@@ -667,14 +667,14 @@ function AdGroupPanel({
           </button>
         </div>
         {approvedConversations.length < 2 ? (
-          <p className="text-sm text-[#66706b]">
+          <p className="text-sm text-[var(--ink-3)]">
             Approve at least two conversation rows to generate canonical OpenAI Ads ad groups.
           </p>
         ) : null}
         {latestCampaign ? (
-          <div className="grid gap-1 border-t border-[#e8ece4] pt-3 text-sm text-[#3f4944]">
+          <div className="grid gap-1 border-t border-[var(--line)] pt-3 text-sm text-[var(--ink-2)]">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold text-[#17201c]">{latestCampaign.name}</span>
+              <span className="font-semibold text-[var(--ink)]">{latestCampaign.name}</span>
               <StatusBadge status="available">{latestCampaign.objective}</StatusBadge>
               <StatusBadge status={reviewBadgeStatus(latestCampaign.review_status)}>{latestCampaign.review_status}</StatusBadge>
             </div>
@@ -686,26 +686,26 @@ function AdGroupPanel({
         {data.ad_groups.map((group) => (
           <article className={rowCardClass(group.review_status)} key={group.id}>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-sm font-semibold text-[#17201c]">{group.name}</h3>
+              <h3 className="text-sm font-semibold text-[var(--ink)]">{group.name}</h3>
               <div className="flex items-center gap-2">
                 <StatusBadge status="available">{group.status}</StatusBadge>
                 <StatusBadge status={reviewBadgeStatus(group.review_status)}>{group.review_status}</StatusBadge>
               </div>
             </div>
-            <p className="mt-2 text-sm leading-6 text-[#3f4944]">{group.rationale}</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--ink-2)]">{group.rationale}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {group.context_hints.slice(0, 4).map((hint) => (
-                <span className="rounded-md border border-[#d9dfd8] px-2 py-1 text-xs text-[#66706b]" key={hint}>
+                <span className="rounded-md border border-[var(--line)] px-2 py-1 text-xs text-[var(--ink-3)]" key={hint}>
                   {hint}
                 </span>
               ))}
             </div>
             {group.conversation_ids.length > 0 ? (
-              <div className="mt-3 grid gap-2 text-xs text-[#66706b]">
+              <div className="mt-3 grid gap-2 text-xs text-[var(--ink-3)]">
                 {group.conversation_ids.slice(0, 3).map((conversationId) => {
                   const conversation = data.conversations.find((row) => row.id === conversationId);
                   return conversation ? (
-                    <p className="rounded-md border border-[#edf0e8] bg-white px-2 py-1" key={conversationId}>
+                    <p className="rounded-md border border-[var(--line)] bg-[var(--surface)] px-2 py-1" key={conversationId}>
                       {conversation.text}
                     </p>
                   ) : null;
@@ -815,7 +815,7 @@ function ReviewActionControls({
   }
 
   return (
-    <div className="mt-4 border-t border-[#e8ece4] pt-3">
+    <div className="mt-4 border-t border-[var(--line)] pt-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <StatusBadge status={reviewBadgeStatus(statusLabel)}>{statusLabel}</StatusBadge>
         <div className="flex flex-wrap gap-2">
@@ -826,12 +826,12 @@ function ReviewActionControls({
         </div>
       </div>
       {localError ? (
-        <p className="mt-2 text-xs text-[#a3382f]">{localError}</p>
+        <p className="mt-2 text-xs text-[var(--warn)]">{localError}</p>
       ) : null}
       {mode ? (
-        <div className="mt-3 grid gap-3 rounded-md border border-[#d9dfd8] bg-white p-3">
+        <div className="mt-3 card-inset grid gap-3">
           {fields.map((field) => (
-            <label className="grid gap-1 text-xs font-semibold uppercase text-[#66706b]" key={field.name}>
+            <label className="field-label grid gap-1" key={field.name}>
               {field.label}
               <ReviewInput
                 field={field}
@@ -840,10 +840,10 @@ function ReviewActionControls({
               />
             </label>
           ))}
-          <label className="grid gap-1 text-xs font-semibold uppercase text-[#66706b]">
+          <label className="field-label grid gap-1">
             Review note
             <textarea
-              className="min-h-16 rounded-md border border-[#d9dfd8] px-3 py-2 text-sm normal-case text-[#17201c] outline-none focus:border-[#195b8f]"
+              className="textarea min-h-16 normal-case"
               onChange={(event) => setComment(event.target.value)}
               placeholder={mode === "enrich" ? "What should be made sharper?" : "Optional audit note"}
               value={comment}
@@ -851,14 +851,14 @@ function ReviewActionControls({
           </label>
           <div className="flex justify-end gap-2">
             <button
-              className="rounded-md border border-[#d9dfd8] px-3 py-2 text-sm font-medium text-[#3f4944]"
+              className="btn btn-ghost btn-sm"
               onClick={() => setMode(null)}
               type="button"
             >
               Cancel
             </button>
             <button
-              className="rounded-md bg-[#17201c] px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn btn-primary btn-sm"
               disabled={busy}
               onClick={() => void submitDraft()}
               type="button"
@@ -881,7 +881,7 @@ function ReviewInput({
   onChange: (value: string) => void;
   value: string;
 }) {
-  const inputClass = "rounded-md border border-[#d9dfd8] px-3 py-2 text-sm normal-case text-[#17201c] outline-none focus:border-[#195b8f]";
+  const inputClass = "input normal-case";
 
   if (field.type === "textarea") {
     return (
@@ -928,7 +928,7 @@ function ActionButton({
 }) {
   return (
     <button
-      className="inline-flex min-h-8 items-center gap-1 rounded-md border border-[#d9dfd8] bg-[#fbfcf8] px-2 py-1 text-xs font-medium text-[#17201c] disabled:cursor-not-allowed disabled:opacity-60"
+      className="btn btn-ghost btn-sm"
       disabled={disabled}
       onClick={onClick}
       type="button"
@@ -955,14 +955,14 @@ function Panel({
   title: string;
 }) {
   return (
-    <section className="rounded-lg border border-[#d9dfd8] bg-white p-5 shadow-sm">
+    <section className="card">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase text-[#195b8f]">
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase text-[var(--acid)]">
             {icon}
             {eyebrow}
           </p>
-          <h2 className="mt-2 text-xl font-semibold text-[#17201c]">{title}</h2>
+          <h2 className="mt-2 text-xl font-semibold text-[var(--ink)]">{title}</h2>
         </div>
         <StatusBadge status={badgeStatus(status)}>
           {count > 0 ? `${count} rows` : status.replaceAll("_", " ")}
@@ -971,7 +971,7 @@ function Panel({
       {count > 0 || status === "succeeded" ? (
         children
       ) : (
-        <p className="text-sm text-[#66706b]">Waiting for this phase.</p>
+        <p className="text-sm text-[var(--ink-3)]">Waiting for this phase.</p>
       )}
     </section>
   );
@@ -1020,7 +1020,7 @@ function isBulkApprovable(status: string) {
 }
 
 function rowCardClass(status: string) {
-  const base = "rounded-md border border-[#d9dfd8] bg-[#fbfcf8] p-3";
+  const base = "rounded-md border border-[var(--line)] bg-[var(--bg-2)] p-3";
   return status === "rejected" ? `${base} opacity-60` : base;
 }
 
