@@ -27,16 +27,16 @@ npx pnpm@11.1.2 dev
 - 2026-05-16: `npx pnpm@11.1.2 dev` served `http://localhost:3000`.
 - Intake accepted `https://example.com` plus optional context and routed to `/projects/demo-project`.
 - Project shell rendered workflow nav: Intake, Extraction / Review, Creatives, Monitoring.
-- Review page rendered the extraction phase rail and progressive-output placeholder panels.
-- `POST /api/projects/demo-project/extract` returned `{"status":"queued", ...}` with HTTP 200.
+- Review page renders the live phase rail, source status, source recap, feature map, conversation, landing-gap, and draft ad-group panels.
+- Spec 04 demo replay verified through `POST /api/projects`: six extraction phases succeeded, 6 features / 4 conversations / 4 landing gaps / 2 draft ad groups materialized, and the project moved to `review`.
+- No-key non-demo extraction verified: `source_recap` fails with `openai_not_configured`, downstream phases are marked `skipped_dependency_failed`, and prior/domain rows are not erased.
 
 ## What is stubbed
 
 | Stub | Where | Cross-ref | Lift when |
 |------|-------|-----------|-----------|
 | MCP servers | Configured at harness, not in-repo | Spec §7.1 | Provision gitnexus, context7, github, chrome-devtools, playwright, sourcegraph |
-| Persistence schema | `supabase/migrations/` | Spec 02 | Create core migration and seed data |
-| OpenAI extraction materialization | `apps/web/src/inngest/extraction.ts` placeholder | Spec 04 | Replace placeholder ack with phase-by-phase persisted extraction |
+| Live OpenAI provider calls | `apps/web/src/lib/providers/openai.ts` | Spec 04 | Add `OPENAI_API_KEY` and optional `OPENAI_EXTRACTION_MODEL`; demo replay works without keys |
 | Real ad-platform deployment | Fake deploy only | OpenAI-first hackathon plan | After demo workflow works |
 | Pioneer classifier / retraining | Deferred out of critical path | OpenAI-first hackathon plan | After stored extraction + HITL data exists |
 
@@ -47,11 +47,11 @@ npx pnpm@11.1.2 dev
 
 ## Next N hours priorities
 
-1. Build OpenAI extraction phases and persist every input/output.
-2. Build HITL review pages for validating extracted ideas and proposed ad groups.
+1. Build HITL review actions for approving/editing/rejecting extracted rows.
+2. Generate canonical ad groups from approved extraction rows.
 3. Generate and persist ad-group creatives: title, description, image/video prompt or asset.
 4. Build fake deploy and story-driven monitoring dashboard.
-5. Use Supabase Realtime + Inngest/background jobs so extraction phases appear progressively in HITL instead of behind a spinner.
+5. Use the stored `human_reviews`, extraction outputs, and simulated performance rows as the later Pioneer substrate.
 
 ## Pointers (compaction-survive)
 

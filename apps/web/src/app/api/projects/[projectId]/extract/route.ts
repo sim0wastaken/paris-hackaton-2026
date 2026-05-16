@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { inngest } from "@/inngest/client";
 import { MOTIVE_EVENTS } from "@/inngest/functions";
+import { createSupabaseExtractionRepository } from "@/lib/motive/supabase-extraction";
 
 const extractRequestSchema = z.object({
   requestId: z.string().min(1).optional(),
@@ -30,6 +31,20 @@ export async function POST(request: Request, context: RouteContext) {
   }
 
   const requestId = parsed.data.requestId ?? crypto.randomUUID();
+  const sourceIds = parsed.data.sourceIds ?? [];
+  const repository = createSupabaseExtractionRepository();
+  const usableSources = await repository.getProcessedSources(projectId, sourceIds);
+
+  if (usableSources.length === 0) {
+    return NextResponse.json(
+      {
+        error: "no_processed_sources",
+        message: "Extraction requires at least one processed source.",
+        requestId
+      },
+      { status: 409 }
+    );
+  }
 
   try {
     await inngest.send({
@@ -37,7 +52,7 @@ export async function POST(request: Request, context: RouteContext) {
       data: {
         projectId,
         requestId,
-        sourceIds: parsed.data.sourceIds ?? [],
+        sourceIds: usableSources.map((source) => source.id),
         demoMode: parsed.data.demoMode ?? false
       }
     });

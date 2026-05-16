@@ -1,13 +1,13 @@
 {
   "repoPath": "/Users/coriandolo/Documents/GitHub/paris-hackaton-2026",
-  "lastCommit": "6f0dbba9dd050affb34a3cd532c86f90c4b8b51d",
-  "indexedAt": "2026-05-16T13:36:36.390Z",
+  "lastCommit": "a7cdc69235053b1cc04e1ebec0f8537cd62210a9",
+  "indexedAt": "2026-05-16T14:12:12.357Z",
   "stats": {
-    "files": 89,
-    "nodes": 992,
-    "edges": 1064,
-    "communities": 12,
-    "processes": 0,
+    "files": 100,
+    "nodes": 1250,
+    "edges": 1607,
+    "communities": 31,
+    "processes": 26,
     "embeddings": 0
   }
 }

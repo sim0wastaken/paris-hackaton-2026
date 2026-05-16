@@ -24,6 +24,8 @@ node_modules/
 # === Local Docker volumes / data ===
 data/
 volumes/
+supabase/.branches/
+supabase/.temp/
 
 # === Secrets safety net (hooks + scanners are primary) ===
 *.pem
@@ -36,3 +38,4 @@ secrets/
 # === GitNexus index (regenerable; commit only meta.json) ===
 .gitnexus/*
 !.gitnexus/meta.json
+.vercel
