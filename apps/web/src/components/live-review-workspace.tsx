@@ -301,8 +301,8 @@ export function LiveReviewWorkspace({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
-              className="inline-flex items-center gap-2 rounded-md border border-[#2c7a4b] bg-[#2c7a4b] px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={approvingAll || bulkApprovalTargets.length === 0}
+              className="btn btn-primary btn-sm"
+              disabled={approvingAll || pendingAction !== null || bulkApprovalTargets.length === 0}
               onClick={() => void approveAll()}
               type="button"
             >
@@ -310,15 +310,15 @@ export function LiveReviewWorkspace({
               {approvingAll ? "Approving..." : `Approve all${bulkApprovalTargets.length > 0 ? ` (${bulkApprovalTargets.length})` : ""}`}
             </button>
             {failedRun ? (
-            <button
-              className="btn btn-primary btn-sm"
-              disabled={retrying || usableSourceIds.length === 0}
-              onClick={retryExtraction}
-              type="button"
-            >
-              <RefreshCw aria-hidden="true" size={16} />
-              {retrying ? "Queueing..." : "Retry extraction"}
-            </button>
+              <button
+                className="btn btn-primary btn-sm"
+                disabled={retrying || usableSourceIds.length === 0}
+                onClick={retryExtraction}
+                type="button"
+              >
+                <RefreshCw aria-hidden="true" size={16} />
+                {retrying ? "Queueing..." : "Retry extraction"}
+              </button>
             ) : null}
           </div>
         </div>
