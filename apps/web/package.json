@@ -12,16 +12,24 @@
   },
   "dependencies": {
     "@fal-ai/client": "1.10.1",
+    "@formkit/auto-animate": "^0.9.0",
+    "@hookform/resolvers": "^5.2.2",
     "@motive/ds": "workspace:*",
     "@supabase/ssr": "0.10.3",
     "@supabase/supabase-js": "2.105.4",
+    "@tanstack/react-query": "^5.100.10",
+    "@tanstack/react-query-devtools": "^5.100.10",
     "inngest": "4.4.0",
     "lucide-react": "1.16.0",
+    "motion": "^12.38.0",
     "next": "16.2.6",
     "react": "19.2.6",
     "react-dom": "19.2.6",
+    "react-hook-form": "^7.76.0",
     "server-only": "0.0.1",
-    "zod": "4.4.3"
+    "sonner": "^2.0.7",
+    "zod": "4.4.3",
+    "zustand": "^5.0.13"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.3.0",

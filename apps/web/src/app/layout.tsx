@@ -4,6 +4,7 @@ import { bricolageGrotesque, jetbrainsMono } from "@motive/ds/fonts";
 import { cn } from "@motive/ds";
 
 import { AppShell } from "@/components/app-shell";
+import { MotiveProviders } from "@/components/motive-providers";
 
 import "./globals.css";
 
@@ -20,7 +21,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn(bricolageGrotesque.variable, jetbrainsMono.variable)}>
       <body>
-        <AppShell>{children}</AppShell>
+        <MotiveProviders>
+          <AppShell>{children}</AppShell>
+        </MotiveProviders>
       </body>
     </html>
   );

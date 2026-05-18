@@ -8,6 +8,7 @@
 @import "./theme.css";
 @import "./base.css";
 @import "./utilities.css";
+@import "./motion.css";
 
 /* Tailwind v4: explicit source globs are required for files outside each app's
    auto-scan root (the design system package + both consuming apps). */
