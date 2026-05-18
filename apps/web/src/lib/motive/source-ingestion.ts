@@ -10,6 +10,7 @@ export type UrlExtractor = {
   extractUrl(url: string): Promise<{
     content: string;
     providerResponse: Record<string, unknown>;
+    failureReason?: string;
   }>;
 };
 
@@ -55,9 +56,12 @@ export async function processSourceIngestion(
     const extracted = await deps.extractor.extractUrl(source.uri);
     const content = extracted.content.trim();
     if (!content) {
+      const reason = extracted.failureReason
+        ? `tavily_empty_content: ${extracted.failureReason}`
+        : "tavily_empty_content";
       return deps.repository.updateSource(source.id, {
         status: "failed",
-        error: "tavily_empty_content",
+        error: reason,
         provider_response_json: extracted.providerResponse
       });
     }

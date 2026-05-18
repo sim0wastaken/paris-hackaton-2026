@@ -1,9 +1,12 @@
 import type { ProviderOptions, ProviderResult } from "./types";
 
+export type TavilyExtractDepth = "basic" | "advanced";
+
 export async function extractUrlWithTavily(
   input: {
     url: string;
     requestId: string;
+    extractDepth?: TavilyExtractDepth;
   },
   options: ProviderOptions = {}
 ): Promise<ProviderResult<{ content: string; url: string }>> {
@@ -27,7 +30,7 @@ export async function extractUrlWithTavily(
     },
     body: JSON.stringify({
       urls: [input.url],
-      extract_depth: "basic",
+      extract_depth: input.extractDepth ?? "basic",
       format: "markdown",
       include_images: false,
       include_favicon: true,
@@ -56,6 +59,14 @@ export async function extractUrlWithTavily(
     raw,
     requestId: input.requestId
   };
+}
+
+export function extractTavilyFailureReason(raw: unknown): string | null {
+  if (!raw || typeof raw !== "object") return null;
+  const failed = (raw as { failed_results?: Array<{ error?: unknown }> }).failed_results;
+  if (!Array.isArray(failed) || failed.length === 0) return null;
+  const first = failed[0]?.error;
+  return typeof first === "string" ? first : null;
 }
 
 function extractContent(raw: unknown): string {

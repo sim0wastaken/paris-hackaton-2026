@@ -1,7 +1,7 @@
 import { MOTIVE_EVENTS } from "@/inngest/events";
 import { inngest } from "@/inngest/client";
 import { processSourceIngestion } from "@/lib/motive/source-ingestion";
-import { extractUrlWithTavily } from "@/lib/providers/tavily";
+import { extractTavilyFailureReason, extractUrlWithTavily } from "@/lib/providers/tavily";
 
 export const sourceIngestion = inngest.createFunction(
   {
@@ -34,16 +34,31 @@ export const sourceIngestion = inngest.createFunction(
           extractor: {
             isConfigured: () => Boolean(process.env.TAVILY_API_KEY),
             extractUrl: async (url) => {
-              const result = await extractUrlWithTavily({
-                url,
-                requestId: String(event.data.requestId ?? crypto.randomUUID())
-              });
-              if (result.status !== "ready") {
-                throw new Error(result.reason);
+              const requestId = String(event.data.requestId ?? crypto.randomUUID());
+              const basic = await extractUrlWithTavily({ url, requestId, extractDepth: "basic" });
+              if (basic.status !== "ready") {
+                throw new Error(basic.reason);
+              }
+              if (basic.data.content.trim()) {
+                return {
+                  content: basic.data.content,
+                  providerResponse: basic.raw as Record<string, unknown>
+                };
+              }
+              // Basic depth returned empty (bot protection, JS-rendered, etc.) —
+              // retry once with the advanced browser-based scraper.
+              const advanced = await extractUrlWithTavily({ url, requestId, extractDepth: "advanced" });
+              if (advanced.status !== "ready") {
+                throw new Error(advanced.reason);
               }
               return {
-                content: result.data.content,
-                providerResponse: result.raw as Record<string, unknown>
+                content: advanced.data.content,
+                providerResponse: advanced.raw as Record<string, unknown>,
+                failureReason: advanced.data.content.trim()
+                  ? undefined
+                  : extractTavilyFailureReason(advanced.raw)
+                    ?? extractTavilyFailureReason(basic.raw)
+                    ?? "advanced extract returned no content"
               };
             }
           }
