@@ -490,6 +490,7 @@
 
 .app-shell {
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .app-main {
@@ -497,6 +498,18 @@
   max-width: var(--maxw);
   padding: var(--s-8) var(--pad) var(--s-10);
   width: 100%;
+}
+
+@media (max-width: 720px) {
+  .app-main {
+    padding: var(--s-6) var(--pad) var(--s-8);
+  }
+}
+
+@media (max-width: 480px) {
+  .app-main {
+    padding: var(--s-5) var(--pad) var(--s-7);
+  }
 }
 
 /* ────────────────────────── Animations & misc ────────────────────────── */

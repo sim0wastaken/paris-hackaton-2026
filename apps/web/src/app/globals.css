@@ -44,12 +44,26 @@
   .nav-inner {
     gap: var(--s-3);
     min-height: 60px;
+    padding: 12px var(--pad);
   }
   .brand-subtitle {
     display: none;
   }
   .nav-tag-version {
     display: none;
+  }
+}
+
+@media (max-width: 400px) {
+  .nav-inner {
+    min-height: 56px;
+    padding: 10px var(--pad);
+  }
+  .brand-title {
+    font-size: 16px;
+  }
+  .nav-actions {
+    gap: 6px;
   }
 }
 
@@ -213,6 +227,28 @@
   }
 }
 
+@media (max-width: 400px) {
+  .workflow-list {
+    gap: 8px;
+  }
+  .workflow-item {
+    min-height: 60px;
+    padding: 10px 12px;
+    gap: 8px;
+    border-radius: var(--r-sm);
+  }
+  .workflow-item-index {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+  }
+  .workflow-item-label {
+    font-size: 13px;
+  }
+  .workflow-icon {
+    display: none;
+  }
+}
+
 /* ────────────────────── Past-projects explorer ────────────────────────── */
 
 .explorer-panel {
@@ -235,6 +271,17 @@
     border-color var(--dur-2) var(--ease),
     transform var(--dur-1) var(--ease);
   width: 100%;
+}
+
+@media (max-width: 400px) {
+  .project-list-item {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--s-3) var(--s-4);
+  }
+  .project-list-item > :last-child {
+    align-items: flex-start;
+    flex-direction: row;
+  }
 }
 
 .project-list-item:hover,
@@ -375,13 +422,27 @@
     flex-direction: row;
     gap: var(--s-2);
     overflow-x: auto;
+    overscroll-behavior-x: contain;
     padding-bottom: var(--s-2);
     scroll-snap-type: x mandatory;
     scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
   }
   .phase-rail-card .phase-rail-list > li {
-    flex: 0 0 200px;
+    flex: 0 0 220px;
     scroll-snap-align: start;
+  }
+}
+
+@media (max-width: 560px) {
+  .phase-rail-card .phase-rail-list > li {
+    flex: 0 0 170px;
+  }
+}
+
+@media (max-width: 400px) {
+  .phase-rail-card .phase-rail-list > li {
+    flex: 0 0 154px;
   }
 }
 
@@ -438,8 +499,17 @@
 .data-table-wrap {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
   margin: 0 calc(var(--pad) * -1);
   padding: 0 var(--pad);
+  scrollbar-width: thin;
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--pad),
+    #000 calc(100% - var(--pad)),
+    transparent 100%
+  );
 }
 
 .data-table-wrap table {
@@ -450,6 +520,7 @@
   .data-table-wrap {
     margin: 0;
     padding: 0;
+    mask-image: none;
   }
 }
 
@@ -488,8 +559,20 @@
   justify-content: space-between;
   padding: 12px 14px;
   position: sticky;
-  top: 60px;
+  top: 64px;
   z-index: 2;
+}
+
+@media (max-width: 640px) {
+  .sticky-panel-head {
+    top: 60px;
+  }
+}
+
+@media (max-width: 400px) {
+  .sticky-panel-head {
+    top: 56px;
+  }
 }
 
 /* ─────────────────────────── Bleed on phone ──────────────────────────── */
