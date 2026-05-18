@@ -15,7 +15,7 @@ export function ProjectWorkflowShell({
   const current = getCurrentStep(pathname);
 
   return (
-    <main className="app-main flex flex-col gap-5">
+    <main className="app-main flex flex-col gap-6">
       <WorkflowNav
         completedSteps={["intake"]}
         current={current}

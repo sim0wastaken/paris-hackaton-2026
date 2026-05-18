@@ -187,10 +187,10 @@ export function CreativeGrid({ initialData }: { initialData: ExtractionReviewDat
   }
 
   return (
-    <section className="grid gap-4">
+    <section className="grid grid-cols-1 gap-4">
       <div className="card">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="grid gap-2">
+          <div className="grid grid-cols-1 gap-2">
             <div className="flex flex-wrap items-center gap-2">
               <Sparkles aria-hidden="true" className="text-[var(--acid-2)]" size={18} />
               <h1 className="text-lg font-semibold text-[var(--ink)]">Creative variants</h1>
@@ -235,13 +235,13 @@ export function CreativeGrid({ initialData }: { initialData: ExtractionReviewDat
       ) : null}
       <p className="sr-only" aria-live="polite">{announcement}</p>
 
-      <div className="grid gap-4">
+      <div className="grid grid-cols-1 gap-4">
         {visibleAdGroups.map((group) => {
           const variants = data.creative_variants.filter((variant) => variant.ad_group_id === group.id);
           return (
             <section className="card grid gap-3" key={group.id}>
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="grid gap-1">
+                <div className="grid grid-cols-1 gap-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-base font-semibold text-[var(--ink)]">{group.name}</h2>
                     <StatusBadge status={reviewBadgeStatus(group.review_status)}>{group.review_status}</StatusBadge>
@@ -264,7 +264,7 @@ export function CreativeGrid({ initialData }: { initialData: ExtractionReviewDat
                   No creative variants yet for this ad group.
                 </p>
               ) : (
-                <div className="grid gap-3 lg:grid-cols-2">
+                <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                   {variants.map((variant) => (
                     <CreativeCard
                       adGroup={group}
@@ -350,7 +350,7 @@ function CreativeCard({
 
   return (
     <article className={cardClass(variant)}>
-      <div className="grid gap-3">
+      <div className="grid grid-cols-1 gap-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <p className="text-xs font-semibold uppercase text-[var(--ink-3)]">{adGroup.name}</p>
@@ -378,7 +378,7 @@ function CreativeCard({
           )}
         </div>
 
-        <div className="grid gap-2">
+        <div className="grid grid-cols-1 gap-2">
           <p className="text-sm leading-6 text-[var(--ink-2)]">{variant.description}</p>
           <div className="flex flex-wrap gap-2">
             <StatusBadge status="available">{variant.creative_angle}</StatusBadge>

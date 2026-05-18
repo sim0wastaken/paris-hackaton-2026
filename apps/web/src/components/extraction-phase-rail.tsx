@@ -36,14 +36,14 @@ export function ExtractionPhaseRail({
   const failed = phases.find((phase) => runByPhase.get(phase.id)?.status === "failed");
 
   return (
-    <aside className="card">
+    <aside className="card phase-rail-card">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-sm font-semibold text-[var(--ink)]">Extraction phases</h2>
         <StatusBadge status={failed ? "failed" : current ? "current" : "available"}>
           {failed ? "Needs retry" : current ? current.label : "Idle"}
         </StatusBadge>
       </div>
-      <ol className="mt-4 grid gap-3">
+      <ol className="phase-rail-list mt-4 grid gap-3">
         {phases.map((phase) => (
           <PhaseItem count={counts?.[phase.id] ?? 0} disabled={phase.disabled} key={phase.id} label={phase.label} run={runByPhase.get(phase.id as ExtractionRunRecord["phase"])} />
         ))}

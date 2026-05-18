@@ -57,7 +57,7 @@ export function SourceStatusPanel({
         </StatusBadge>
       </div>
 
-      <div className="mt-5 grid gap-3">
+      <div className="mt-5 grid grid-cols-1 gap-3">
         {workspace.sources.map((source) => (
           <SourceCard key={source.id} source={source} />
         ))}

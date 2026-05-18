@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { bricolageGrotesque, jetbrainsMono } from "@/lib/fonts";
 import "./globals.css";
 
@@ -13,6 +13,13 @@ export const metadata: Metadata = {
       "Map the prompts where your product belongs. Ship the campaigns, copy, and page fixes that earn the recommendation.",
     type: "website",
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0a0b0d",
 };
 
 export default function RootLayout({

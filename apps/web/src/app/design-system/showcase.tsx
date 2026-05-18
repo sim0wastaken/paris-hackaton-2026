@@ -77,7 +77,7 @@ export function DesignSystemShowcase() {
   const [list, setList] = React.useState(["Reach", "Conversions", "Brand lift"]);
 
   return (
-    <main className="app-main grid gap-10">
+    <main className="app-main grid grid-cols-1 gap-10">
       {/* ────────────────────────── Header ────────────────────────── */}
       <Reveal>
         <Card variant="feature">
@@ -204,7 +204,7 @@ export function DesignSystemShowcase() {
             title="Form controls with full RAC state"
             lede="Inputs expose data-focused, data-hovered, data-invalid, data-disabled. Field wires label + hint + error via aria-describedby and aria-errormessage."
           />
-          <div className="grid gap-5 md:grid-cols-2 mt-6">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 mt-6">
             <Field label="Workspace name" hint="Visible across the team.">
               <Input placeholder="motive.ai" />
             </Field>
@@ -214,7 +214,7 @@ export function DesignSystemShowcase() {
             <Field label="Notes">
               <Textarea placeholder="What should we know?" />
             </Field>
-            <div className="grid gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <Select label="Channel" placeholder="Pick a channel">
                 <SelectItem id="meta">Meta</SelectItem>
                 <SelectItem id="google">Google</SelectItem>
@@ -356,7 +356,7 @@ export function DesignSystemShowcase() {
             title="Progress, Slider, Skeleton, Spinner"
             lede="Loading is never a static spinner — gradients, shimmer, and motion are all baked in."
           />
-          <div className="grid gap-6 md:grid-cols-2 mt-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 mt-6">
             <Stack gap={3}>
               <Progress label="Generating ad groups" value={progress} />
               <Cluster gap={2}>
@@ -430,7 +430,7 @@ export function DesignSystemShowcase() {
             title="AutoAnimate + Press"
             lede="Lists FLIP without ceremony; cards spring under touch."
           />
-          <div className="grid gap-6 md:grid-cols-2 mt-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 mt-6">
             <Stack gap={3}>
               <Cluster gap={2}>
                 <Button
@@ -456,7 +456,7 @@ export function DesignSystemShowcase() {
                   Shuffle
                 </Button>
               </Cluster>
-              <AutoAnimate as="ul" className="grid gap-2">
+              <AutoAnimate as="ul" className="grid grid-cols-1 gap-2">
                 {list.map((item) => (
                   <li
                     key={item}

@@ -117,7 +117,7 @@ export function PastProjectsExplorer({
   }
 
   return (
-    <section className="grid gap-5">
+    <section className="grid grid-cols-1 gap-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="kicker">Past projects</p>
@@ -134,7 +134,7 @@ export function PastProjectsExplorer({
         </button>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[360px_minmax(0,1fr)]">
+      <div className="workspace-split with-explorer">
         <aside className="card explorer-panel">
           <label className="field">
             <span className="field-label">Search</span>
@@ -185,12 +185,12 @@ export function PastProjectsExplorer({
                   <span className="mt-1 block truncate text-xs text-[var(--ink-3)]">
                     {project.brand_url}
                   </span>
+                  <span className="t-mono mt-2 block">{formatDate(project.latest_activity_at)}</span>
                 </span>
-                <span className="flex flex-col items-end gap-2">
+                <span className="flex flex-col items-end justify-start gap-2">
                   <StatusBadge status={badgeStatus(project.status)}>
                     {project.display_stage}
                   </StatusBadge>
-                  <span className="t-mono">{formatDate(project.latest_activity_at)}</span>
                 </span>
               </button>
             ))}
@@ -270,7 +270,7 @@ function PreviewContent({
   if (activeTab === "overview") {
     return (
       <PreviewShell icon={<FileText aria-hidden="true" size={18} />} title="Overview">
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           <Metric label="Review rows" value={project.counts.approved_review_rows} />
           <Metric label="Approved creatives" value={project.counts.approved_creatives} />
           <Metric label="Deployments" value={project.counts.deployments} />
@@ -290,7 +290,7 @@ function PreviewContent({
   if (activeTab === "review") {
     return (
       <PreviewShell icon={<Eye aria-hidden="true" size={18} />} title="Review">
-        <div className="grid gap-3 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
           <PreviewList title="Features" rows={preview.brand_features.map((item) => item.title)} />
           <PreviewList title="Conversations" rows={preview.conversations.map((item) => item.text)} />
           <PreviewList title="Landing gaps" rows={preview.landing_gaps.map((item) => item.description)} />
@@ -302,7 +302,7 @@ function PreviewContent({
   if (activeTab === "creatives") {
     return (
       <PreviewShell icon={<Sparkles aria-hidden="true" size={18} />} title="Creatives">
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {preview.creative_variants.slice(0, 6).map((creative) => (
             <div className="preview-row" key={creative.id}>
               <p className="font-semibold text-[var(--ink)]">{creative.title}</p>
@@ -317,7 +317,7 @@ function PreviewContent({
 
   return (
     <PreviewShell icon={<BarChart3 aria-hidden="true" size={18} />} title="Monitoring">
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         {preview.performance_snapshots.slice(0, 6).map((snapshot) => (
           <div className="preview-row" key={snapshot.id}>
             <p className="stat-num">{snapshot.quality_score}</p>

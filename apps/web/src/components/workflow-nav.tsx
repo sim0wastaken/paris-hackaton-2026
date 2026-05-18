@@ -10,14 +10,15 @@ export type WorkflowItem = {
   id: WorkflowStepId;
   href: string;
   label: string;
+  shortLabel: string;
   state: WorkflowStepState;
 };
 
 const workflowDefinition: Array<Omit<WorkflowItem, "href" | "state">> = [
-  { id: "intake", label: "Intake" },
-  { id: "review", label: "Extraction / Review" },
-  { id: "creatives", label: "Creatives" },
-  { id: "monitoring", label: "Monitoring" }
+  { id: "intake", label: "Intake", shortLabel: "Intake" },
+  { id: "review", label: "Extraction / Review", shortLabel: "Review" },
+  { id: "creatives", label: "Creatives", shortLabel: "Creatives" },
+  { id: "monitoring", label: "Monitoring", shortLabel: "Monitor" }
 ];
 
 export function createWorkflowItems({
@@ -67,39 +68,54 @@ export function WorkflowNav({
     failedSteps,
     projectId
   });
+  const currentIndex = items.findIndex((item) => item.state === "current");
 
   return (
-    <nav aria-label="Workflow" className="grid gap-2 md:grid-cols-4">
-      {items.map((item) => (
-        <Link
-          aria-current={item.state === "current" ? "page" : undefined}
-          className={`workflow-item ${item.state === "current" ? "active" : ""}`}
-          href={item.href}
-          key={item.id}
-        >
-          <span>
-            <span className="block text-sm font-semibold text-[var(--ink)]">
-              {item.label}
-            </span>
-            <span className="mt-2 block">
-              <StatusBadge status={item.state}>
-                {item.state === "blocked"
-                  ? "Blocked"
-                  : item.state === "current"
-                    ? "Current"
-                    : item.state === "complete"
-                      ? "Complete"
-                      : item.state === "failed"
-                        ? "Failed"
-                        : "Available"}
-              </StatusBadge>
-            </span>
-          </span>
-          <WorkflowIcon state={item.state} />
-        </Link>
-      ))}
+    <nav aria-label="Workflow" className="workflow-nav">
+      <ol
+        className="workflow-progress"
+        aria-hidden="true"
+        style={{ "--progress": `${(Math.max(currentIndex, 0) / (items.length - 1)) * 100}%` } as React.CSSProperties}
+      >
+        <li className="workflow-progress-bar" />
+      </ol>
+      <ul className="workflow-list">
+        {items.map((item, index) => (
+          <li className="workflow-list-item" key={item.id}>
+            <Link
+              aria-current={item.state === "current" ? "page" : undefined}
+              className={`workflow-item state-${item.state}`}
+              href={item.href}
+            >
+              <span className="workflow-item-index" aria-hidden="true">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <span className="workflow-item-body">
+                <span className="workflow-item-label">
+                  <span className="workflow-item-label-long">{item.label}</span>
+                  <span className="workflow-item-label-short">{item.shortLabel}</span>
+                </span>
+                <span className="workflow-item-status">
+                  <StatusBadge status={item.state}>
+                    {statusLabel(item.state)}
+                  </StatusBadge>
+                </span>
+              </span>
+              <WorkflowIcon state={item.state} />
+            </Link>
+          </li>
+        ))}
+      </ul>
     </nav>
   );
+}
+
+function statusLabel(state: WorkflowStepState) {
+  if (state === "blocked") return "Blocked";
+  if (state === "current") return "Current";
+  if (state === "complete") return "Complete";
+  if (state === "failed") return "Failed";
+  return "Available";
 }
 
 function WorkflowIcon({ state }: { state: WorkflowStepState }) {

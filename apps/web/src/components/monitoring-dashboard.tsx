@@ -180,10 +180,10 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
   }
 
   return (
-    <section className="grid gap-4">
+    <section className="grid grid-cols-1 gap-4">
       <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-4 py-4 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="grid gap-2">
+          <div className="grid grid-cols-1 gap-2">
             <div className="flex flex-wrap items-center gap-2">
               <Activity aria-hidden="true" className="text-[var(--acid-2)]" size={18} />
               <h1 className="text-lg font-semibold text-[var(--ink)]">Monitoring</h1>
@@ -275,7 +275,7 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
                   }}
                   type="checkbox"
                 />
-                <span className="grid gap-1">
+                <span className="grid grid-cols-1 gap-1">
                   <span className="text-sm font-semibold text-[var(--ink)]">{creative.title}</span>
                   <span className="text-sm text-[var(--ink-2)]">{creative.description}</span>
                   <span className="flex flex-wrap gap-2 pt-1">
@@ -289,7 +289,7 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
         </div>
       </section>
 
-      <div className="grid gap-3 md:grid-cols-5">
+      <div className="kpi-grid">
         <KpiCard label="Impressions" value={integerFormat(stats.impressions)} />
         <KpiCard label="CTR" value={percentFormat(stats.ctr)} />
         <KpiCard label="CVR" value={percentFormat(stats.cvr)} />
@@ -297,7 +297,7 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
         <KpiCard label="Avg quality" value={stats.averageQuality ? String(stats.averageQuality) : "-"} />
       </div>
 
-      <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+      <section className="grid grid-cols-1 gap-4 min-w-0 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
             <BarChart3 aria-hidden="true" className="text-[var(--acid-2)]" size={18} />
@@ -308,11 +308,11 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
               Fake deploy to generate simulated monitoring rows.
             </p>
           ) : (
-            <div className="grid gap-3">
+            <div className="grid grid-cols-1 gap-3">
               {latestSnapshots.map((snapshot) => {
                 const creative = data.creative_variants.find((row) => row.id === snapshot.creative_variant_id);
                 return (
-                  <div className="grid gap-2" key={snapshot.id}>
+                  <div className="grid grid-cols-1 gap-2" key={snapshot.id}>
                     <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                       <span className="font-medium text-[var(--ink)]">{creative?.title ?? "Creative"}</span>
                       <span className="text-[var(--ink-3)]">Q{snapshot.quality_score}</span>
@@ -349,7 +349,7 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
         <div className="border-b border-[var(--line)] px-4 py-3">
           <h2 className="text-base font-semibold text-[var(--ink)]">Simulated outcome rows</h2>
         </div>
-        <div className="overflow-x-auto">
+        <div className="data-table-wrap">
           <table className="min-w-full text-left text-sm">
             <thead className="bg-[var(--bg-2)] text-xs uppercase text-[var(--ink-3)]">
               <tr>
@@ -400,9 +400,9 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
 
 function KpiCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4 shadow-sm">
-      <p className="text-xs font-semibold uppercase text-[var(--ink-3)]">{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-[var(--ink)]">{value}</p>
+    <div className="kpi-card">
+      <p className="kpi-card-label">{label}</p>
+      <p className="kpi-card-value">{value}</p>
     </div>
   );
 }

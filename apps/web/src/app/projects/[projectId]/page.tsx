@@ -21,7 +21,7 @@ export default async function ProjectPage({
     ];
 
     return (
-      <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <section className="workspace-split with-aside">
         <div className="card-feature">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -32,7 +32,7 @@ export default async function ProjectPage({
             </div>
             <StatusBadge status="current">{workspace.project.status}</StatusBadge>
           </div>
-          <div className="mt-6 grid gap-3 md:grid-cols-3">
+          <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-3">
             {stats.map((stat) => (
               <div
                 className="stat-card"
@@ -78,7 +78,7 @@ export default async function ProjectPage({
   }
 
   return (
-    <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
+    <section className="workspace-split with-aside">
       <div className="card-feature">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -89,7 +89,7 @@ export default async function ProjectPage({
           </div>
           <StatusBadge status="available">Ready</StatusBadge>
         </div>
-        <div className="mt-6 grid gap-3 md:grid-cols-3">
+        <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-3">
           {project.stats.map((stat) => (
             <div
               className="stat-card"

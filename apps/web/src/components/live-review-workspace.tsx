@@ -282,11 +282,11 @@ export function LiveReviewWorkspace({
   }
 
   return (
-    <section className="grid gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
+    <section className="workspace-split with-rail">
       <ExtractionPhaseRail counts={phaseCounts} runs={data.extraction_runs} />
-      <div className="grid gap-4">
+      <div className="grid grid-cols-1 gap-4 min-w-0">
         <div className="card flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
             {connection === "live" ? (
               <CheckCircle2 aria-hidden="true" className="text-[var(--acid)]" size={16} />
             ) : (
@@ -296,7 +296,7 @@ export function LiveReviewWorkspace({
               {connection === "live" ? "Realtime live" : "Polling updates"}
             </span>
             <span className="rounded-md border border-[var(--line)] px-2 py-1 text-xs text-[var(--ink-3)]">
-              {data.human_reviews.length} review events
+              {data.human_reviews.length} events
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -439,7 +439,7 @@ function FeaturePanel({
       status={phaseStatus(data, "feature_map")}
       title="Campaign-relevant facts"
     >
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {data.brand_features.map((feature) => (
           <article className={rowCardClass(feature.review_status)} key={feature.id}>
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -503,7 +503,7 @@ function ConversationPanel({
       status={phaseStatus(data, "conversation_map")}
       title="Buyer conversations"
     >
-      <div className="overflow-x-auto">
+      <div className="data-table-wrap">
         <table className="min-w-full border-separate border-spacing-0 text-left text-sm">
           <thead className="text-xs uppercase text-[var(--ink-3)]">
             <tr>
@@ -575,7 +575,7 @@ function LandingGapPanel({
       status={phaseStatus(data, "landing_gaps")}
       title="Conversion proof gaps"
     >
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {data.landing_gaps.map((gap) => (
           <article className={rowCardClass(gap.review_status)} key={gap.id}>
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -672,7 +672,7 @@ function AdGroupPanel({
           </p>
         ) : null}
         {latestCampaign ? (
-          <div className="grid gap-1 border-t border-[var(--line)] pt-3 text-sm text-[var(--ink-2)]">
+          <div className="grid grid-cols-1 gap-1 border-t border-[var(--line)] pt-3 text-sm text-[var(--ink-2)]">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-semibold text-[var(--ink)]">{latestCampaign.name}</span>
               <StatusBadge status="available">{latestCampaign.objective}</StatusBadge>
@@ -682,7 +682,7 @@ function AdGroupPanel({
           </div>
         ) : null}
       </div>
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {data.ad_groups.map((group) => (
           <article className={rowCardClass(group.review_status)} key={group.id}>
             <div className="flex flex-wrap items-center justify-between gap-2">

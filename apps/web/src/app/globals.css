@@ -1,11 +1,12 @@
 @import "@motive/ds/styles";
 
-/* ───────────────────────── Web-app-specific overlay ──────────────────────
-   The design-system package owns tokens, primitives, and base styles.
-   This file holds only product-domain UI (nav layout, explorer, workflow,
-   stat cards, phase rows) that does not belong in the shared package. */
+/* ───────────────────────── Web-app overlay ──────────────────────────────
+   The design-system package owns tokens, primitives, base styles, and
+   responsive primitives. This file holds only product-domain UI (nav,
+   workflow, explorer, stat cards, phase rows) plus per-app breakpoints. */
 
-/* Web nav uses a simple flex header. */
+/* ───────────────────────────────── Nav ───────────────────────────────── */
+
 .nav {
   backdrop-filter: blur(18px);
   background: color-mix(in srgb, var(--bg) 78%, transparent);
@@ -18,29 +19,215 @@
 .nav-inner {
   align-items: center;
   display: flex;
-  gap: var(--s-6);
+  gap: var(--s-4);
   justify-content: space-between;
   margin: 0 auto;
   max-width: var(--maxw);
-  padding: 16px var(--pad);
+  min-height: 64px;
+  padding: 14px var(--pad);
 }
 
-/* Past-projects explorer */
+.brand-stack {
+  display: inline-flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.nav-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .nav-inner {
+    gap: var(--s-3);
+    min-height: 60px;
+  }
+  .brand-subtitle {
+    display: none;
+  }
+  .nav-tag-version {
+    display: none;
+  }
+}
+
+/* ───────────────────────── Workflow nav (4-step) ──────────────────────── */
+
+.workflow-nav {
+  position: relative;
+  display: grid;
+  gap: var(--s-3);
+}
+
+.workflow-progress {
+  position: absolute;
+  inset: auto 0 auto 0;
+  bottom: -2px;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+}
+
+.workflow-progress-bar {
+  display: none;
+}
+
+.workflow-list {
+  display: grid;
+  gap: var(--s-2);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.workflow-list-item {
+  min-width: 0;
+}
+
+.workflow-item {
+  align-items: center;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink-3);
+  display: flex;
+  gap: var(--s-3);
+  min-height: 76px;
+  padding: var(--s-3) var(--s-4);
+  transition:
+    background var(--dur-2) var(--ease),
+    border-color var(--dur-2) var(--ease),
+    color var(--dur-2) var(--ease),
+    transform var(--dur-1) var(--ease);
+  width: 100%;
+}
+
+.workflow-item:hover {
+  transform: translateY(-1px);
+}
+
+.workflow-item.state-current,
+.workflow-item:hover {
+  background: var(--surface);
+  border-color: var(--line-3);
+  color: var(--ink);
+}
+
+.workflow-item.state-current {
+  border-color: color-mix(in srgb, var(--acid) 70%, transparent);
+  box-shadow: var(--shadow-sm), 0 0 0 1px color-mix(in srgb, var(--acid) 35%, transparent);
+}
+
+.workflow-item.state-complete {
+  color: var(--ink-2);
+}
+
+.workflow-item.state-blocked {
+  opacity: 0.62;
+}
+
+.workflow-item-index {
+  color: var(--ink-4);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  flex: 0 0 auto;
+}
+
+.workflow-item.state-current .workflow-item-index {
+  color: var(--acid);
+}
+
+.workflow-item-body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.workflow-item-label {
+  color: inherit;
+  font-size: 14px;
+  font-weight: var(--fw-semi);
+  letter-spacing: -0.005em;
+  line-height: 1.2;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workflow-item.state-current .workflow-item-label,
+.workflow-item:hover .workflow-item-label {
+  color: var(--ink);
+}
+
+.workflow-item-label-short {
+  display: none;
+}
+
+.workflow-item-status {
+  display: inline-flex;
+}
+
+.workflow-icon {
+  color: var(--ink-4);
+  flex: 0 0 auto;
+}
+
+.workflow-item.state-current .workflow-icon {
+  color: var(--acid);
+}
+
+.workflow-item.state-complete .workflow-icon {
+  color: var(--acid);
+}
+
+@media (max-width: 900px) {
+  .workflow-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .workflow-item {
+    min-height: 64px;
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .workflow-item-label-long {
+    display: none;
+  }
+  .workflow-item-label-short {
+    display: inline;
+  }
+  .workflow-item-status {
+    transform: scale(0.92);
+    transform-origin: left center;
+  }
+}
+
+/* ────────────────────── Past-projects explorer ────────────────────────── */
+
 .explorer-panel {
   align-self: start;
-  max-height: calc(100vh - 140px);
-  overflow: auto;
 }
 
 .project-list-item {
-  align-items: center;
+  align-items: stretch;
   background: var(--bg-2);
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
   cursor: pointer;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--s-3);
-  justify-content: space-between;
   padding: var(--s-4);
   text-align: left;
   transition:
@@ -57,21 +244,43 @@
   transform: translateY(-1px);
 }
 
+.project-list-item.active {
+  border-color: color-mix(in srgb, var(--acid) 55%, transparent);
+}
+
 .explorer-tab {
   background: var(--bg-2);
   border: 1px solid var(--line);
   border-radius: var(--r-pill);
   color: var(--ink-3);
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: var(--fw-medium);
   padding: 8px 14px;
+  transition:
+    background var(--dur-2) var(--ease-out),
+    color var(--dur-2) var(--ease-out),
+    border-color var(--dur-2) var(--ease-out);
+  white-space: nowrap;
+}
+
+.explorer-tab:hover {
+  color: var(--ink);
+  border-color: var(--line-3);
 }
 
 .explorer-tab.active {
   background: var(--acid);
   border-color: var(--acid);
   color: var(--acid-on);
+}
+
+@media (min-width: 1024px) {
+  .explorer-panel {
+    max-height: calc(100vh - 140px);
+    overflow: auto;
+    scrollbar-gutter: stable;
+  }
 }
 
 .preview-row {
@@ -81,63 +290,33 @@
   padding: var(--s-4);
 }
 
-/* Workflow nav */
-.workflow-item {
-  background: var(--bg-2);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  box-shadow: var(--shadow-sm);
-  color: var(--ink-3);
-  display: flex;
-  gap: var(--s-4);
-  justify-content: space-between;
-  min-height: 92px;
-  padding: var(--s-4);
-  transition:
-    background var(--dur-2) var(--ease),
-    border-color var(--dur-2) var(--ease),
-    color var(--dur-2) var(--ease);
-}
+/* ─────────────────────────── Stat cards ──────────────────────────────── */
 
-.workflow-item:hover,
-.workflow-item.active {
-  background: var(--surface);
-  border-color: var(--line-3);
-  color: var(--ink);
-}
-
-.workflow-icon {
-  color: var(--ink-4);
-  flex: 0 0 auto;
-}
-
-.workflow-item.active .workflow-icon {
-  color: var(--acid);
-}
-
-/* Stat cards (monitoring + project pages) */
 .stat-card {
   background: var(--bg-2);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   padding: var(--s-4);
+  min-width: 0;
 }
 
 .stat-num {
   color: var(--ink);
-  font-size: 34px;
+  font-size: clamp(26px, 3.4vw, 34px);
   font-variation-settings: "wdth" 100, "opsz" 34;
   font-weight: var(--fw-medium);
   letter-spacing: 0;
   line-height: 1;
 }
 
-/* Extraction phase + source rows */
+/* ─────────────────── Extraction phase + source rows ──────────────────── */
+
 .phase-row,
 .source-card {
   background: var(--bg-2);
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
+  min-width: 0;
   transition:
     background var(--dur-2) var(--ease),
     border-color var(--dur-2) var(--ease);
@@ -151,4 +330,178 @@
 
 .empty-state {
   color: var(--ink-3);
+}
+
+/* ────────────────── Review / creative / monitoring layout ────────────── */
+
+/* Two-column layouts must let their content shrink — without min-w-0 on the
+   row + column children, intrinsic content (tables, long labels, badges)
+   forces horizontal overflow at small viewports. */
+.workspace-split,
+.workspace-split > * {
+  min-width: 0;
+}
+
+.workspace-split {
+  display: grid;
+  gap: var(--s-4);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1080px) {
+  .workspace-split.with-rail {
+    grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+  }
+  .workspace-split.with-aside {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+  }
+  .workspace-split.with-explorer {
+    grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+  }
+}
+
+/* On tablet + mobile the extraction rail moves to a horizontal strip
+   above the workspace so people see content first. */
+.phase-rail-strip {
+  display: none;
+}
+
+@media (max-width: 1079px) {
+  .phase-rail-card {
+    overflow: visible;
+  }
+  .phase-rail-card .phase-rail-list {
+    display: flex;
+    flex-direction: row;
+    gap: var(--s-2);
+    overflow-x: auto;
+    padding-bottom: var(--s-2);
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+  }
+  .phase-rail-card .phase-rail-list > li {
+    flex: 0 0 200px;
+    scroll-snap-align: start;
+  }
+}
+
+/* ─────────────────────────── KPI / metrics ───────────────────────────── */
+
+.kpi-grid {
+  display: grid;
+  gap: var(--s-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 640px) {
+  .kpi-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .kpi-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--s-4);
+  min-width: 0;
+}
+
+.kpi-card-label {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono-sm);
+  font-weight: var(--fw-semi);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.kpi-card-value {
+  color: var(--ink);
+  font-size: clamp(22px, 2.6vw, 28px);
+  font-weight: var(--fw-semi);
+  font-variation-settings: "wdth" 100, "opsz" 28;
+  letter-spacing: -0.012em;
+  line-height: 1.08;
+  margin-top: 8px;
+}
+
+/* ─────────────────────────── Data tables ─────────────────────────────── */
+
+.data-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 calc(var(--pad) * -1);
+  padding: 0 var(--pad);
+}
+
+.data-table-wrap table {
+  min-width: 640px;
+}
+
+@media (min-width: 768px) {
+  .data-table-wrap {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* Hide the table on phones in favor of stacked cards, when both are present. */
+.mobile-stack-only {
+  display: grid;
+  gap: var(--s-2);
+}
+
+@media (min-width: 768px) {
+  .mobile-stack-only {
+    display: none;
+  }
+}
+
+.desktop-table-only {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .desktop-table-only {
+    display: block;
+  }
+}
+
+/* ─────────────────────────── Sticky headers ──────────────────────────── */
+
+.sticky-panel-head {
+  align-items: center;
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  backdrop-filter: blur(10px);
+  border-radius: var(--r-md) var(--r-md) 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  justify-content: space-between;
+  padding: 12px 14px;
+  position: sticky;
+  top: 60px;
+  z-index: 2;
+}
+
+/* ─────────────────────────── Bleed on phone ──────────────────────────── */
+
+/* On small viewports the global --pad already shrinks. But large cards can
+   feel cramped — let the card-feature breathe a tiny bit less padding. */
+@media (max-width: 560px) {
+  .card-feature {
+    padding: var(--s-5);
+    border-radius: var(--r-lg);
+  }
+  .card {
+    padding: var(--s-5);
+  }
 }

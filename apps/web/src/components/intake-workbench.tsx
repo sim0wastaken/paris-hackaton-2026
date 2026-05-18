@@ -37,7 +37,7 @@ export function IntakeWorkbench() {
 
   return (
     <form
-      className="grid gap-5"
+      className="grid grid-cols-1 gap-5"
       onSubmit={async (event) => {
         event.preventDefault();
         if (!canSubmit || submitting) return;
