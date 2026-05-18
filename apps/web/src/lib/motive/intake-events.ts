@@ -3,6 +3,7 @@ import "server-only";
 import { inngest } from "@/inngest/client";
 import { MOTIVE_EVENTS } from "@/inngest/functions";
 
+import { log } from "./log";
 import type { IntakeEventSink } from "./projects";
 
 export function createBestEffortIntakeEventSink(): IntakeEventSink {
@@ -40,8 +41,12 @@ async function sendBestEffort(event: Parameters<typeof inngest.send>[0]) {
   try {
     await inngest.send(event);
   } catch (error) {
-    console.warn("[motive] Inngest event was not delivered", {
-      error: error instanceof Error ? error.message : "Unknown error"
-    });
+    log.warn(
+      {
+        actor: "system",
+        error_message: error instanceof Error ? error.message : "Unknown error",
+      },
+      "Inngest event was not delivered",
+    );
   }
 }

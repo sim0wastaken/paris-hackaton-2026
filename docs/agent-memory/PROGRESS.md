@@ -27,3 +27,4 @@ Rules:
 - [2026-05-16 16:33] DONE Spec 09 seeded demo resilience verified locally: focused demo/env tests, full web test suite, typecheck, lint, build, `supabase db reset`, Supabase lint/advisors, fallback reset without Inngest, Inngest replay reset, seeded table-count smoke, and HTTP 200 for seeded review, review-data, monitoring, and deploy data.
 - [2026-05-18 10:17] COMMIT [commit 1123407] chore(harness): delete stale .codex/hooks.json with broken absolute paths
 - [2026-05-18 10:28] COMMIT [commit 6e23314] docs(harness): split agent-legibility surface into TOC + dedicated files
+- [2026-05-18 10:34] COMMIT [commit f7be7db] build(harness): add db-schema generator, freshness verifier, references cache
