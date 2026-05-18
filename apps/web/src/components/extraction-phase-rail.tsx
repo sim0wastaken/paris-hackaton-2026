@@ -89,8 +89,12 @@ function PhaseItem({
 
 function formatError(value: string) {
   try {
-    const parsed = JSON.parse(value) as { code?: unknown };
-    if (typeof parsed.code === "string") return parsed.code;
+    const parsed = JSON.parse(value) as { code?: unknown; message?: unknown };
+    const code = typeof parsed.code === "string" ? parsed.code : null;
+    const message = typeof parsed.message === "string" ? parsed.message : null;
+    if (code && message) return `${code}: ${message}`;
+    if (code) return code;
+    if (message) return message;
   } catch {
     return value;
   }

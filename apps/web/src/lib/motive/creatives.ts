@@ -401,7 +401,12 @@ export function validateCreativeGenerationOutput(
   if (!parsed.success) {
     throw new CreativeGenerationError(
       "invalid_creative_output",
-      parsed.error.issues.map((issue) => issue.message).join("; "),
+      parsed.error.issues
+        .map((issue) => {
+          const path = issue.path.length > 0 ? issue.path.join(".") : "(root)";
+          return `${path}: ${issue.message}`;
+        })
+        .join("; "),
       true
     );
   }
