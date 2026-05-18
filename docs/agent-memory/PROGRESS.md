@@ -30,3 +30,4 @@ Rules:
 - [2026-05-18 10:34] COMMIT [commit f7be7db] build(harness): add db-schema generator, freshness verifier, references cache
 - [2026-05-18 10:44] COMMIT [commit f0e0307] build(harness): custom ESLint rules + CI workflow + structured logger
 - [2026-05-18 10:50] COMMIT [commit 233defb] feat(harness): session-start context loader, post-edit layer check, slash commands
+- [2026-05-18 10:51] COMMIT [commit 9587347] feat(harness): add doc-gardening skill for continuous slop GC

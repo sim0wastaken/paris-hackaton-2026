@@ -20,6 +20,13 @@ This is the answer to "what's in this repo" in 60 seconds.
 | Feedback loop | `human_reviews` + story-driven `performance_snapshots` | Captures corrections/outcomes and creates the future Pioneer training set. |
 | Hosting | Vercel (project `paris-hackaton-2026`, prod URL https://paris-hackaton-2026.vercel.app) | Serves the Next.js app + serverless route handlers; auto-detects pnpm workspace; Inngest functions served from `/api/inngest`. |
 | Production database | Supabase via Vercel Marketplace (`supabase-amber-harbor`, region `cdg1`, ref `aersalcsnejltyklimeb`) | Auto-injects 16 env vars (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `POSTGRES_URL`, `POSTGRES_URL_NON_POOLING`, etc.) across Production/Preview/Development. |
+| Structured logging | `apps/web/src/lib/motive/log.ts` | JSON-line logger; server uses stdout/stderr, browser falls back to `console` with the same payload. Required fields: `request_id`, `actor`, `route`. Enforced by ESLint rule `motive/no-unstructured-log`. |
+| Custom linters | `apps/web/eslint-rules/{no-cross-layer-import,no-unstructured-log}.mjs` | Local ESLint plugin `motive` wired in `apps/web/eslint.config.mjs`. Enforces ARCHITECTURE.md § Domain layers + golden-principles R2. Error messages include remediation hints. |
+| Generated docs | `scripts/generate-db-schema-doc.mjs` → `docs/generated/db-schema.md` | Deterministic SQL → Markdown summary of every table, alter, RLS policy. `pnpm db:schema:doc:check` runs in CI. |
+| Doc freshness verifier | `scripts/verify-doc-freshness.mjs` | Fails CI when db-schema.md is stale, when a TODO(blocker:) tag lacks a BLOCKERS.md entry, or when a plan filename violates `YYYY-MM-DD-<slug>.md`. |
+| CI pipeline | `.github/workflows/ci.yml` | Single Ubuntu job: lint → typecheck → test → db-schema check → freshness → spec02 verify. Runs on PR + push to main. |
+| Agent slash commands | `.claude/commands/{feature,review,gc,grade}.md` | `/feature` loads architecture + spec + active plan; `/review` runs lint/typecheck/test plus spec-grounding self-critique; `/gc` produces the doc-gardening worklist; `/grade` re-grades `docs/QUALITY_SCORE.md`. |
+| Session hooks | `.claude/hooks/*.sh` | `session_start_load_context.sh` prints PROGRESS head + active plan + open-blockers count. `post_edit_layer_check.sh` runs the layer-import rule on touched files. Plus the existing safety / commit / stop hooks. |
 
 ## Data flow
 

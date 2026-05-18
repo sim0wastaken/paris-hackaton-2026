@@ -78,12 +78,12 @@ Guardrails:
 ## Pointers (compaction-survive)
 
 Read in order:
-1. `CLAUDE.md`
+1. `CLAUDE.md` (non-negotiables) → `AGENTS.md` (TOC) → `ARCHITECTURE.md`
 2. `docs/agent-memory/PROGRESS.md`
 3. `docs/agent-memory/BLOCKERS.md`
 4. `docs/briefing-files/index.md`
 5. `docs/briefing-files/motive-openai-first-hackathon-plan.md`
-6. `docs/superpowers/plans/2026-05-16-openai-first-demo-plan.md`
+6. Latest plan in `docs/exec-plans/active/` (e.g. `2026-05-16-openai-first-demo-plan.md`)
 
 ## Acceptance contract
 
