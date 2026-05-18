@@ -57,6 +57,7 @@ export async function POST(request: Request, context: RouteContext) {
                 requestId: input.requestId,
                 schemaName: input.schemaName,
                 schema: input.schema,
+                parseSchema: input.parseSchema,
                 system: input.system,
                 prompt: input.prompt
               },

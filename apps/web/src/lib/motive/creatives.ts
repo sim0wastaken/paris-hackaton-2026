@@ -102,6 +102,46 @@ export const creativeGenerationOutputSchema = z.object({
   variants: z.array(creativeGenerationVariantSchema).min(1)
 }).strict();
 
+// Loose mirror of `creativeGenerationVariantSchema` for parsing the raw OpenAI
+// response. OpenAI's strict structured-output mode rejects keywords like
+// minLength/maxLength/pattern/format/minItems, so we strip them before sending
+// (see stripUnsupportedStrictSchemaKeywords). The model can then return values
+// that satisfy OpenAI's view of the schema but violate our Zod constraints —
+// parsing with this loose schema first lets validateCreativeGenerationOutput
+// raise a clearer CreativeGenerationError on the strict constraints downstream.
+const creativeGenerationLooseVariantSchema = z.object({
+  ad_group_id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  creative_angle: z.string(),
+  asset_type: z.enum(["image", "none"]),
+  asset_prompt: z.string(),
+  target_url: z.string(),
+  grounding: z.object({
+    conversation_ids: z.array(z.string()),
+    brand_feature_ids: z.array(z.string()),
+    landing_gap_ids: z.array(z.string()),
+    product_feed_item_ids: z.array(z.string()),
+    quality_signals: z.array(z.enum(qualitySignalValues))
+  }).strict(),
+  risks: z.array(z.string()),
+  awareness_level: z.enum(awarenessLevelValues).nullable(),
+  copy_formula: z.enum(copyFormulaValues).nullable(),
+  hook_archetype: z.enum(hookArchetypeValues).nullable(),
+  verbatim_phrase: z.string().nullable(),
+  copy_self_check: copySelfCheckSchema.nullable(),
+  image_composition_archetype: z.enum(imageCompositionArchetypeValues).nullable(),
+  image_subject: z.string().nullable(),
+  image_lighting: z.string().nullable(),
+  image_lens: z.string().nullable(),
+  image_mood_keywords: z.array(z.string()).nullable(),
+  image_self_check: imageSelfCheckSchema.nullable()
+}).strict();
+
+export const creativeGenerationLooseOutputSchema = z.object({
+  variants: z.array(creativeGenerationLooseVariantSchema)
+}).strict();
+
 export type CreativeGenerationOutput = z.infer<typeof creativeGenerationOutputSchema>;
 export type CreativeQualitySignal = (typeof qualitySignalValues)[number];
 
@@ -150,6 +190,7 @@ export type StructuredCreativeProvider = {
     model: string;
     schemaName: string;
     schema: ZodType<T>;
+    parseSchema?: ZodType<T>;
     system: string;
     prompt: string;
   }): Promise<{
@@ -826,6 +867,15 @@ async function callCreativeProvider(
     "- Use target_url from the project brand URL or linked product URL.",
     "- asset_type image by default. asset_prompt is a visual description, not UI instructions.",
     "",
+    "## OUTPUT INVARIANTS (the harness cannot enforce these — you must)",
+    "- ad_group_id: echo verbatim one UUID from ad_group_contexts[].ad_group.id (do not invent).",
+    "- grounding.conversation_ids: ≥1 entry, each must be a UUID drawn from the matching ad group's approved conversations.",
+    "- grounding.brand_feature_ids / landing_gap_ids / product_feed_item_ids: only UUIDs from the matching ad group's approved evidence (may be empty).",
+    "- grounding.quality_signals: ≥1 entry from the enum.",
+    "- target_url: fully-qualified https:// URL — use the project brand URL or a linked product URL only.",
+    "- title 3–50 chars, description 1–100 chars, creative_angle ≥1 char, asset_prompt ≥1 char.",
+    "- Return at least one variant in `variants`.",
+    "",
     "## STRATEGY TABLE (defaults — override only if approved conversation contradicts)",
     JSON.stringify(strategyHints, null, 2),
     "",
@@ -841,6 +891,7 @@ async function callCreativeProvider(
     model: options.model,
     schemaName: "creative_generation",
     schema: creativeGenerationOutputSchema,
+    parseSchema: creativeGenerationLooseOutputSchema,
     system: SYSTEM_PROMPT,
     prompt
   });

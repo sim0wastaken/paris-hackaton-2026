@@ -133,6 +133,87 @@ describe("provider client boundaries", () => {
     expect(serializedSchema).not.toContain("minItems");
   });
 
+  it("uses an optional parseSchema for response validation while sending the strict schema to OpenAI", async () => {
+    // OpenAI strict mode does not enforce min/max/pattern/format — after sanitization
+    // the model can return values that match the loose shape but violate the strict
+    // schema. The caller passes a loose parseSchema so the provider accepts the
+    // response and lets downstream validators raise specific errors.
+    const strictSchema = z.object({
+      title: z.string().min(10),
+      target_url: z.url()
+    }).strict();
+    const looseSchema = z.object({
+      title: z.string(),
+      target_url: z.string()
+    }).strict();
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: "resp_parse_schema",
+          output_text: "{\"title\":\"short\",\"target_url\":\"not a url\"}"
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" }
+        }
+      )
+    );
+
+    const result = await generateOpenAIStructuredObject(
+      {
+        requestId: "req_parse_schema",
+        schemaName: "loose_parse",
+        schema: strictSchema,
+        parseSchema: looseSchema,
+        prompt: "Return short text."
+      },
+      { apiKey: "sk_test", model: "gpt-5-mini", fetcher }
+    );
+
+    expect(result.status).toBe("ready");
+    if (result.status === "ready") {
+      expect(result.data.object).toEqual({
+        title: "short",
+        target_url: "not a url"
+      });
+    }
+  });
+
+  it("includes failing zod paths in the reason when the response violates the parse schema", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: "resp_invalid_shape",
+          output_text: "{\"title\":42,\"items\":\"oops\"}"
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" }
+        }
+      )
+    );
+
+    const result = await generateOpenAIStructuredObject(
+      {
+        requestId: "req_invalid_shape",
+        schemaName: "strict_shape",
+        schema: z.object({
+          title: z.string(),
+          items: z.array(z.string())
+        }).strict(),
+        prompt: "Return valid shape."
+      },
+      { apiKey: "sk_test", model: "gpt-5-mini", fetcher }
+    );
+
+    expect(result.status).toBe("failed");
+    if (result.status === "failed") {
+      expect(result.reason).toContain("did not match the requested schema");
+      expect(result.reason).toContain("title");
+      expect(result.reason).toContain("items");
+    }
+  });
+
   it("parses structured output text from the Responses REST output array", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(

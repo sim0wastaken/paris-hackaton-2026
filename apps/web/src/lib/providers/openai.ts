@@ -81,6 +81,7 @@ export async function generateOpenAIStructuredObject<T>(
     prompt: string;
     requestId: string;
     schema: ZodType<T>;
+    parseSchema?: ZodType<T>;
     schemaName: string;
     system?: string;
   },
@@ -145,12 +146,13 @@ export async function generateOpenAIStructuredObject<T>(
   }
 
   const parsedJson = extractResponseJson(raw);
-  const parsedObject = input.schema.safeParse(parsedJson);
+  const parseSchema = input.parseSchema ?? input.schema;
+  const parsedObject = parseSchema.safeParse(parsedJson);
   if (!parsedObject.success) {
     return {
       provider: "openai",
       status: "failed",
-      reason: "OpenAI response did not match the requested schema",
+      reason: `OpenAI response did not match the requested schema: ${summarizeZodIssues(parsedObject.error.issues)}`,
       raw: {
         response: raw,
         issues: parsedObject.error.issues
@@ -176,6 +178,18 @@ export async function generateOpenAIStructuredObject<T>(
 function parseReasoningEffort(value: unknown): z.infer<typeof reasoningEffortSchema> | undefined {
   const result = reasoningEffortSchema.safeParse(value);
   return result.success ? result.data : undefined;
+}
+
+function summarizeZodIssues(issues: z.core.$ZodIssue[]): string {
+  if (issues.length === 0) return "no issue paths reported";
+  const summary = issues
+    .slice(0, 3)
+    .map((issue) => {
+      const path = issue.path.length > 0 ? issue.path.join(".") : "(root)";
+      return `${path} (${issue.code})`;
+    })
+    .join("; ");
+  return issues.length > 3 ? `${summary}; +${issues.length - 3} more` : summary;
 }
 
 function toOpenAIStructuredOutputSchema<T>(schema: ZodType<T>): Record<string, unknown> {
