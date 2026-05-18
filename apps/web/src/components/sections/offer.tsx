@@ -1,11 +1,13 @@
-import { TIERS, DELIVERABLES } from "@/lib/data";
+import Link from "next/link";
+
+import { TIERS, DELIVERABLES } from "@/lib/marketing/data";
 
 export function Offer() {
   return (
     <section className="offer" id="offer">
       <div className="offer-card">
         <div className="offer-l">
-          <div className="kicker">03 — The sprint</div>
+          <div className="m-kicker">03 — The sprint</div>
           <h2 className="h2">Five days. One launch-ready map.</h2>
           <p className="offer-sub">
             Your messy positioning, set up before you spend on the channel. Founder-led,
@@ -22,9 +24,9 @@ export function Offer() {
             ))}
           </div>
           <div className="offer-ctas">
-            <a href="#" className="btn btn-primary btn-lg">
-              Book a readiness sprint <span className="arr" aria-hidden>→</span>
-            </a>
+            <Link href="/intake" className="btn btn-primary btn-lg">
+              Try the demo <span className="arr" aria-hidden>→</span>
+            </Link>
             <a href="#demo" className="btn btn-ghost btn-lg">
               Replay the demo
             </a>

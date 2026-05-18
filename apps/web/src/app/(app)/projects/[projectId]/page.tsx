@@ -68,7 +68,7 @@ export default async function ProjectPage({
       <EmptyState eyebrow="Project missing" title="No project shell was found.">
         <Link
           className="btn btn-primary mt-4"
-          href="/"
+          href="/intake"
         >
           Back to intake
           <ArrowRight aria-hidden="true" size={16} />

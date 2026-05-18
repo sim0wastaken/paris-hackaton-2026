@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties } from "react";
-import { SHOWCASE, CHANNEL_BADGES } from "@/lib/data";
+import Link from "next/link";
+
+import { SHOWCASE, CHANNEL_BADGES } from "@/lib/marketing/data";
 
 function ChannelBadges() {
   return (
@@ -105,9 +107,9 @@ export function Hero() {
             className="hero-ctas hl-anim"
             style={{ "--d": "440ms" } as CSSProperties}
           >
-            <a href="#offer" className="btn btn-primary btn-lg">
-              Book a readiness sprint <span className="arr" aria-hidden>→</span>
-            </a>
+            <Link href="/intake" className="btn btn-primary btn-lg">
+              Try the demo <span className="arr" aria-hidden>→</span>
+            </Link>
             <a href="#demo" className="btn btn-ghost btn-lg">
               See what we mean
             </a>

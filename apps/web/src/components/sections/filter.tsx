@@ -1,10 +1,10 @@
-import { FILTER_YES, FILTER_NO } from "@/lib/data";
+import { FILTER_YES, FILTER_NO } from "@/lib/marketing/data";
 
 export function Filter() {
   return (
     <section className="filter" id="filter">
       <div className="section-head">
-        <div className="kicker">02 — Is this you</div>
+        <div className="m-kicker">02 — Is this you</div>
         <h2 className="h2">If your buyers are asking AI, we&apos;re built for you.</h2>
         <p className="sub-lede">
           B2B SaaS, devtools, AI products, ecommerce, automotive, fashion, hospitality — anywhere

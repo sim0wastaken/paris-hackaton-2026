@@ -1,28 +1,34 @@
-@import "@motive/ds/styles";
+/* ───────────────────────── Marketing surface CSS ────────────────────────
+   Loaded ONLY by `app/page.tsx` (the `/` marketing route). The DS package
+   (loaded via `globals.css` in the root layout) owns tokens, primitives,
+   base styles, and Tailwind utilities — those are always available.
 
-/* ─────────────────────── Landing-specific overrides ────────────────────
-   The design-system package owns tokens, primitives, and base. Landing keeps
-   only its editorial section styles (hero, demo, filter, offer, founder,
-   final, foot, nav) and a couple of brand sizing overrides below. */
+   Scoping convention (for auditability and to avoid collisions with the
+   product nav defined in `globals.css`):
+     • Selectors that collide with product/shared CSS are prefixed `.m-*`.
+       Today: `.m-nav`, `.m-nav-inner`, `.m-nav-links`, `.m-nav-cta`,
+       `.m-kicker`. New marketing-only selectors that collide must follow
+       this convention.
+     • Editorial section classes (`.hero-*`, `.demo-*`, `.filter-*`,
+       `.offer-*`, `.founder-*`, `.final-*`, `.foot-*`, `.fc-*`) have no
+       product-side collision and stay unprefixed.
+     • Brand sizing uses `<BrandMark size="sm" />` from `@motive/ds/primitives`
+       (renders `.brand-mark-sm`) — no local override here.
 
-/* Landing-page safety: the editorial layout has full-bleed gradients and
-   showcase cards positioned with translate; guard against accidental
-   horizontal scroll on small viewports. */
+   Promotion candidates (move to `@motive/ds` if a second consumer appears):
+   `.lede`, `.eyebrow`, `.display`, `.hl-accent`, `.hl-line`.
+
+   Full-bleed gradients + translated showcase cards can spill horizontally on
+   narrow viewports; the rule below is a safety guard for this route only. */
 html, body { overflow-x: clip; }
 
-/* Brand mark uses the smaller 28px size in landing's nav. */
-.brand-mark {
-  height: 28px;
-  width: 28px;
-}
-
-/* Editorial kicker in landing sections sits above the headline with breathing room. */
-.kicker {
+/* Editorial kicker in marketing sections sits above the headline with breathing room. */
+.m-kicker {
   margin-bottom: 24px;
 }
 
-/* Nav — landing's 3-column grid layout */
-.nav {
+/* Nav — marketing's 3-column grid layout (collides with product `.nav`, hence the `.m-` prefix). */
+.m-nav {
   position: sticky;
   top: 0;
   z-index: 50;
@@ -30,7 +36,7 @@ html, body { overflow-x: clip; }
   background: color-mix(in srgb, var(--bg) 78%, transparent);
   border-bottom: 1px solid var(--line);
 }
-.nav-inner {
+.m-nav-inner {
   max-width: var(--maxw);
   margin: 0 auto;
   padding: 16px var(--pad);
@@ -39,13 +45,13 @@ html, body { overflow-x: clip; }
   align-items: center;
   gap: 24px;
 }
-.nav-links {
+.m-nav-links {
   display: flex; gap: 32px; justify-content: center;
   font-size: 14px; color: var(--ink-3);
 }
-.nav-links a { position: relative; }
-.nav-links a:hover { color: var(--ink); }
-.nav-cta { display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
+.m-nav-links a { position: relative; }
+.m-nav-links a:hover { color: var(--ink); }
+.m-nav-cta { display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
 
 /* Brand wordmark */
 .brand { display: inline-flex; align-items: center; gap: 12px; }
@@ -1071,9 +1077,9 @@ html, body { overflow-x: clip; }
   .hero-split-inner { grid-template-columns: 1fr; gap: 56px; }
   .showcase-stage { min-height: 480px; }
   .showcase-card { width: 88%; }
-  .nav-links { display: none; }
-  .nav-inner { grid-template-columns: auto 1fr; }
-  .nav-cta { justify-content: flex-end; }
+  .m-nav-links { display: none; }
+  .m-nav-inner { grid-template-columns: auto 1fr; }
+  .m-nav-cta { justify-content: flex-end; }
   .demo-step { grid-template-columns: 160px 1fr; gap: 32px; padding: 56px 0; }
   .demo-step-n { position: static; }
   .demo-answer-wrap { grid-template-columns: 1fr; gap: 28px; }
@@ -1136,7 +1142,7 @@ html, body { overflow-x: clip; }
   .foot-meta { text-align: left; max-width: 100%; }
   .hero-meta { flex-wrap: wrap; gap: 20px; }
   .meta-divider { display: none; }
-  .nav-cta .btn-ghost { display: none; }
+  .m-nav-cta .btn-ghost { display: none; }
   .display { font-size: clamp(40px, 11vw, 64px); }
   .offer-l, .offer-r { padding: 32px 28px; }
   .section-head { margin-bottom: 44px; }
@@ -1144,7 +1150,7 @@ html, body { overflow-x: clip; }
 
 /* Small phones — sub-480px polish */
 @media (max-width: 480px) {
-  .nav-inner { padding: 14px var(--pad); gap: 16px; }
+  .m-nav-inner { padding: 14px var(--pad); gap: 16px; }
   .brand-word { font-size: 18px; }
 
   .hero-split { padding: 48px var(--pad) 52px; }
@@ -1183,7 +1189,7 @@ html, body { overflow-x: clip; }
 
   .h2 { font-size: clamp(32px, 9vw, 48px); margin-bottom: 14px; }
   .sub-lede { font-size: 16px; }
-  .kicker { margin-bottom: 18px; }
+  .m-kicker { margin-bottom: 18px; }
 
   .demo { padding: 48px var(--pad) 64px; }
   .demo-intro { margin-bottom: 48px; }

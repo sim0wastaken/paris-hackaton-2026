@@ -1,4 +1,6 @@
-import { MARQUEE_ITEMS } from "@/lib/data";
+import Link from "next/link";
+
+import { MARQUEE_ITEMS } from "@/lib/marketing/data";
 
 export function FinalCta() {
   return (
@@ -11,9 +13,9 @@ export function FinalCta() {
           </span>
         </h2>
         <div className="final-ctas">
-          <a href="#offer" className="btn btn-primary btn-lg">
-            Book a readiness sprint <span className="arr" aria-hidden>→</span>
-          </a>
+          <Link href="/intake" className="btn btn-primary btn-lg">
+            Try the demo <span className="arr" aria-hidden>→</span>
+          </Link>
           <a href="#demo" className="btn btn-ghost btn-lg">
             Replay the demo
           </a>

@@ -108,7 +108,7 @@ export function PastProjectsExplorer({
   if (projects.length === 0) {
     return (
       <EmptyState eyebrow="Past projects" title="No persisted projects yet">
-        <Link className="btn btn-primary mt-4" href="/">
+        <Link className="btn btn-primary mt-4" href="/intake">
           Open intake
           <ArrowRight aria-hidden="true" size={16} />
         </Link>

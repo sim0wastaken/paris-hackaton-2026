@@ -26,7 +26,7 @@ describe("PastProjectsExplorer", () => {
     );
 
     expect(html).toContain("No persisted projects yet");
-    expect(html).toContain('href="/"');
+    expect(html).toContain('href="/intake"');
   });
 });
 

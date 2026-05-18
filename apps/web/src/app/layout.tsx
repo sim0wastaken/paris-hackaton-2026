@@ -3,14 +3,15 @@ import type { Metadata, Viewport } from "next";
 import { bricolageGrotesque, jetbrainsMono } from "@motive/ds/fonts";
 import { cn } from "@motive/ds";
 
-import { AppShell } from "@/components/app-shell";
-import { MotiveProviders } from "@/components/motive-providers";
-
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Motive",
-  description: "OpenAI-first campaign workbench for the Paris AI Hackathon demo."
+  title: {
+    default: "Motive — show up where AI gets asked",
+    template: "%s · Motive"
+  },
+  description:
+    "Motive finds the buying conversations where your product belongs — then ships the campaigns, copy, and page fixes you need to win them."
 };
 
 export const viewport: Viewport = {
@@ -26,12 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn(bricolageGrotesque.variable, jetbrainsMono.variable)}>
-      <body>
-        <MotiveProviders>
-          <AppShell>{children}</AppShell>
-        </MotiveProviders>
-      </body>
+    <html lang="en" data-grain="on" className={cn(bricolageGrotesque.variable, jetbrainsMono.variable)}>
+      <body>{children}</body>
     </html>
   );
 }

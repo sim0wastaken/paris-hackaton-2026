@@ -1,27 +1,42 @@
-import { SetupError } from "@/components/setup-error";
-import { IntakeWorkbench } from "@/components/intake-workbench";
-import { clientEnv } from "@/lib/env";
+import type { Metadata } from "next";
 
-export default function IntakePage() {
+import { TopNav } from "@/components/sections/top-nav";
+import { Hero } from "@/components/sections/hero";
+import { TheDemo } from "@/components/sections/the-demo";
+import { Filter } from "@/components/sections/filter";
+import { Offer } from "@/components/sections/offer";
+import { Founder } from "@/components/sections/founder";
+import { FinalCta } from "@/components/sections/final-cta";
+import { SiteFooter } from "@/components/sections/site-footer";
+
+import "./marketing.css";
+
+export const metadata: Metadata = {
+  title: "Motive — show up where AI gets asked",
+  description:
+    "Motive finds the buying conversations where your product belongs — then ships the campaigns, copy, and page fixes you need to win them. Before the channel fills up.",
+  metadataBase: new URL("https://motive.app"),
+  openGraph: {
+    title: "Motive — get found on ChatGPT",
+    description:
+      "Map the prompts where your product belongs. Ship the campaigns, copy, and page fixes that earn the recommendation.",
+    type: "website",
+  },
+};
+
+export default function MarketingHome() {
   return (
-    <main className="app-main workspace-split with-aside">
-      <section className="card-feature">
-        <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="kicker">Intake</p>
-            <h1 className="t-h2 mt-3">Create a campaign workspace</h1>
-          </div>
-          <span className="tag tag-cyan">Demo shell</span>
-        </div>
-        <IntakeWorkbench />
-      </section>
-
-      <aside className="card">
-        <h2 className="t-h4">Runtime setup</h2>
-        <div className="mt-4">
-          <SetupError env={clientEnv} />
-        </div>
-      </aside>
-    </main>
+    <>
+      <TopNav />
+      <main>
+        <Hero />
+        <TheDemo />
+        <Filter />
+        <Offer />
+        <Founder />
+        <FinalCta />
+      </main>
+      <SiteFooter />
+    </>
   );
 }

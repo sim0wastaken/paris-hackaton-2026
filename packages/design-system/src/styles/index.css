@@ -1,5 +1,5 @@
 /* Motive design system — entry stylesheet.
-   Both apps consume this via `@import "@motive/ds/styles";` in their globals.css.
+   The web app consumes this via `@import "@motive/ds/styles";` in its globals.css.
    Order matters: tailwindcss first, then tokens, theme bridge, base, utilities. */
 
 @import "tailwindcss";
@@ -11,7 +11,6 @@
 @import "./motion.css";
 
 /* Tailwind v4: explicit source globs are required for files outside each app's
-   auto-scan root (the design system package + both consuming apps). */
+   auto-scan root (the design system package + the consuming app). */
 @source "../primitives/**/*.{ts,tsx}";
-@source "../../../../apps/landing/src/**/*.{ts,tsx}";
 @source "../../../../apps/web/src/**/*.{ts,tsx}";

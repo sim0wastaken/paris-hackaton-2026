@@ -1,10 +1,15 @@
-import { BrandMark } from "@/components/brand-mark";
+import Link from "next/link";
+
+import { BrandMark } from "@motive/ds/primitives";
 
 export function SiteFooter() {
   return (
     <footer className="foot">
       <div className="foot-inner">
-        <BrandMark />
+        <span className="brand">
+          <BrandMark size="sm" />
+          <span className="brand-word">Motive</span>
+        </span>
         <div className="foot-cols">
           <div>
             <div className="fc-k">Read</div>
@@ -13,8 +18,8 @@ export function SiteFooter() {
           </div>
           <div>
             <div className="fc-k">Start</div>
+            <Link href="/intake">Try the demo</Link>
             <a href="#offer">Readiness sprint</a>
-            <a href="#">Agency program</a>
           </div>
           <div>
             <div className="fc-k">Company</div>

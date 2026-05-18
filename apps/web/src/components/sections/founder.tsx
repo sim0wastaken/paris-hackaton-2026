@@ -3,7 +3,7 @@ export function Founder() {
     <section className="founder" id="founder">
       <div className="founder-grid">
         <div className="founder-l">
-          <div className="kicker">04 — Who&apos;s behind it</div>
+          <div className="m-kicker">04 — Who&apos;s behind it</div>
           <p className="founder-quote">
             I&apos;m not your media buyer.
             <br />I build the <span className="q-acid">prep layer</span> your product needs —

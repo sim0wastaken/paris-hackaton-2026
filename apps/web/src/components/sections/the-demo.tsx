@@ -1,10 +1,12 @@
-import { SCAN_ROWS, GAP_ROWS } from "@/lib/data";
+import Link from "next/link";
+
+import { SCAN_ROWS, GAP_ROWS } from "@/lib/marketing/data";
 
 export function TheDemo() {
   return (
     <section className="demo" id="demo">
       <div className="demo-intro">
-        <div className="kicker demo-kicker">01 — The shift, on one prompt</div>
+        <div className="m-kicker demo-kicker">01 — The shift, on one prompt</div>
         <h2 className="demo-h2">
           Here&apos;s a sale you didn&apos;t know you <span className="hl-accent">lost</span>.
         </h2>
@@ -197,9 +199,9 @@ export function TheDemo() {
             </article>
           </div>
           <div className="demo-cta-wrap">
-            <a href="#offer" className="btn btn-primary btn-lg">
-              Book a readiness sprint <span className="arr" aria-hidden>→</span>
-            </a>
+            <Link href="/intake" className="btn btn-primary btn-lg">
+              Try the demo <span className="arr" aria-hidden>→</span>
+            </Link>
             <span className="demo-cta-fine">5 sprints / month · cohort opens May 18</span>
           </div>
         </div>
