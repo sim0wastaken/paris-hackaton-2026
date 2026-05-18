@@ -7,10 +7,10 @@
 Agents must read these files before drafting any spec:
 
 1. `docs/briefing-files/motive-openai-first-hackathon-plan.md`
-2. `docs/superpowers/plans/2026-05-16-openai-first-demo-plan.md`
+2. Latest plan in `docs/exec-plans/active/` (e.g. `2026-05-16-openai-first-demo-plan.md`)
 3. `README.md`
 4. `RUNBOOK.md`
-5. `CLAUDE.md`
+5. `CLAUDE.md` → `AGENTS.md` → `ARCHITECTURE.md`
 6. `docs/agent-memory/DECISIONS.md`
 7. `docs/agent-memory/STACK.md`
 8. `parishack.excalidraw`

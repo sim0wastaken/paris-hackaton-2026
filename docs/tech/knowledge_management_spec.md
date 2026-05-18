@@ -2,6 +2,8 @@
 
 > **Project-specific pointer.** For this repo's current product direction, read `docs/briefing-files/motive-openai-first-hackathon-plan.md` before implementation work. It defines Motive's OpenAI-first workflow, persistence model, user flow, and Pioneer-after-v1 narrative.
 
+> **Path migration (2026-05-18).** This spec describes the original layout where plans lived in `docs/superpowers/plans/`. After the harness upgrade, **plans now live in `docs/exec-plans/active/` (and `completed/`)** with a sibling `tech-debt-tracker.md`. The `docs/superpowers/specs/` directory is unchanged. Distilled operating principles from this spec live in `docs/design-docs/core-beliefs.md`; mechanical rules used by the `/gc` doc-gardening agent live in `docs/design-docs/golden-principles.md`. References to `docs/superpowers/plans/` below should be read as `docs/exec-plans/active/`.
+
 > **Purpose.** This spec defines the knowledge-management system that a long-running coding agent needs in order to do useful work in a repository over hours, days, or sprints without losing progress, context, or discipline. It names every file, directory, hook, MCP, skill, and procedure required, plus the operating rules that make the system survive multi-hour autonomous runs and context compaction.
 >
 > **Scope.** This spec is **repository-agnostic and stack-agnostic**. It does not assume Python vs TypeScript vs Go, does not assume Postgres vs Neo4j vs SQLite, does not assume any particular LLM provider, ontology, framework, or cloud. Concrete patterns name 2-3 alternatives per slot so the setup-agent picks the one that fits the target repo.

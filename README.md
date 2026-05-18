@@ -20,9 +20,9 @@ Read [`docs/briefing-files/motive-openai-first-hackathon-plan.md`](docs/briefing
 - Landing prototype: `Motive - Landing + SaaS (4)/Motive Landing.html`
 - Architecture sketch: `parishack.excalidraw`
 - Hackathon strategy: `docs/Hackathon-Briefs/PROJECT_STRATEGY.md`
-- Implementation plan: `docs/superpowers/plans/2026-05-16-openai-first-demo-plan.md`
+- Implementation plan: `docs/exec-plans/active/2026-05-16-openai-first-demo-plan.md`
 - Source hackathon docs: `docs/Hackathon-Briefs/`
-- Operational notes: `RUNBOOK.md`, `CLAUDE.md`, `docs/agent-memory/`
+- Operational notes: `RUNBOOK.md`, `CLAUDE.md`, `AGENTS.md`, `ARCHITECTURE.md`, `RELIABILITY.md`, `SECURITY.md`, `docs/agent-memory/`
 
 ## Local App
 

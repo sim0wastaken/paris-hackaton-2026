@@ -1,0 +1,65 @@
+# Inngest — Motive cheatsheet
+
+Version: inngest@4.4.0, inngest-cli@1.19.4.
+Used in: background extraction workflows, creative generation, monitoring, demo replay.
+Full docs: Context7 query "inngest functions step-run".
+
+## Setup
+
+- Client in `apps/web/src/inngest/client.ts`.
+- Events typed in `apps/web/src/inngest/events.ts`.
+- Functions registered in `apps/web/src/inngest/functions/*.ts`.
+- HTTP endpoint at `app/api/inngest/route.ts` serves all functions.
+- Local dev: `pnpm inngest:dev` runs the CLI at `localhost:8288`.
+
+## Defining a function
+
+```ts
+export const extractFromUrl = inngest.createFunction(
+  { id: "extract-from-url", retries: 3 },
+  { event: "motive/extraction.requested" },
+  async ({ event, step }) => {
+    const { project_id, request_id } = event.data;
+
+    const recap = await step.run("source-recap", async () =>
+      callOpenAI(project_id, request_id, "source_recap"),
+    );
+
+    await step.sendEvent("queue-features", {
+      name: "motive/features.requested",
+      data: { project_id, request_id }, // same request_id end-to-end
+    });
+  },
+);
+```
+
+`step.run` makes each block durable + memoized: a retry replays only the failed
+step. Always nest external calls in `step.run` so they don't re-fire on retry.
+
+## Sending events
+
+```ts
+await inngest.send({
+  name: "motive/extraction.requested",
+  data: { project_id, request_id },
+});
+```
+
+Every event payload carries `request_id` — see RELIABILITY.md Invariant 10.
+
+## Reading the event in Next.js
+
+In route handlers, send via the same client. The Inngest dev UI shows
+end-to-end traces of all steps and child events.
+
+## Common pitfalls
+
+- Generating a new `request_id` inside a function — breaks correlation.
+- Calling Supabase admin client from a step without checking it's server-only context (Inngest functions ARE server-only — safe).
+- Putting expensive work outside `step.run` — it re-runs on every retry.
+- Forgetting to register the function in the `serve()` array in `app/api/inngest/route.ts`.
+
+## Testing
+
+vitest unit tests stub the client. Don't actually call `inngest.send` in tests;
+mock `step.run` to return canned values.

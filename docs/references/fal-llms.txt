@@ -1,0 +1,49 @@
+# fal.ai — Motive cheatsheet
+
+Version: @fal-ai/client@1.10.1.
+Used in: image / video generation for creative variants.
+Full docs: Context7 query "fal-ai client subscribe".
+
+## Setup
+
+```ts
+import { fal } from "@fal-ai/client";
+
+fal.config({ credentials: process.env.FAL_KEY }); // server-only
+```
+
+Never construct or expose the fal client from a browser bundle. See SECURITY.md.
+
+## Subscribe pattern (preferred for our use)
+
+```ts
+const result = await fal.subscribe("fal-ai/flux/dev", {
+  input: {
+    prompt,
+    image_size: { width: 1024, height: 1024 },
+    num_inference_steps: 28,
+    seed,
+  },
+  logs: false,
+  onQueueUpdate: (update) => {
+    if (update.status === "IN_PROGRESS") {
+      // emit a Realtime event so HITL workspace shows progress
+    }
+  },
+});
+```
+
+`subscribe` polls until done and returns the final result. For long generations
+we wrap it inside an Inngest `step.run` so retries don't re-charge.
+
+## Persist payloads
+
+Same rule as OpenAI: write the request and response (including the asset URL)
+to `creative_variants.provider_payload` JSONB before any post-processing.
+RELIABILITY.md Invariant 3.
+
+## Common pitfalls
+
+- fal returns asset URLs hosted on fal's CDN. Either store the URL (cheap, may expire) or download + re-upload to Supabase Storage (more durable, costs space). We currently store the URL; if the demo runs long the asset may 404 — tracked in tech-debt-tracker.md.
+- `subscribe` will hang if the model id is wrong — there's no upfront validation.
+- Don't forget `fal.config(...)` before the first call — it's a no-op if env is set, but explicit is safer in tests.

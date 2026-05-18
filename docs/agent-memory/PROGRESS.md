@@ -27,3 +27,10 @@ Rules:
 - [2026-05-16 16:33] DONE Spec 09 seeded demo resilience verified locally: focused demo/env tests, full web test suite, typecheck, lint, build, `supabase db reset`, Supabase lint/advisors, fallback reset without Inngest, Inngest replay reset, seeded table-count smoke, and HTTP 200 for seeded review, review-data, monitoring, and deploy data.
 - [2026-05-18 09:49] COMMIT [commit f739d22] feat(design-system): unify Motive UI with @motive/ds + React Aria Components
 - [2026-05-18 09:49] COMMIT [commit 57e49f6] feat(design-system): unify Motive UI with @motive/ds + React Aria Components
+- [2026-05-18 10:17] COMMIT [commit 1123407] chore(harness): delete stale .codex/hooks.json with broken absolute paths
+- [2026-05-18 10:28] COMMIT [commit 6e23314] docs(harness): split agent-legibility surface into TOC + dedicated files
+- [2026-05-18 10:34] COMMIT [commit f7be7db] build(harness): add db-schema generator, freshness verifier, references cache
+- [2026-05-18 10:44] COMMIT [commit f0e0307] build(harness): custom ESLint rules + CI workflow + structured logger
+- [2026-05-18 10:50] COMMIT [commit 233defb] feat(harness): session-start context loader, post-edit layer check, slash commands
+- [2026-05-18 10:51] COMMIT [commit 9587347] feat(harness): add doc-gardening skill for continuous slop GC
+- [2026-05-18 11:01] COMMIT [commit 69715de] docs(harness): finalize migration — repoint stale paths, log ADR-0005, refresh STACK

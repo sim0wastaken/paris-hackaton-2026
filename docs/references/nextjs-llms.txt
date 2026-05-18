@@ -1,0 +1,61 @@
+# Next.js — Motive cheatsheet
+
+Version: next@16.2.6 (App Router, Turbopack default).
+Used in: apps/web (primary), apps/landing.
+Full docs: Context7 query "next.js 16 app router".
+
+## App Router structure we use
+
+- `app/layout.tsx` — root layout (HTML, providers).
+- `app/page.tsx` — landing page (server component by default).
+- `app/projects/[projectId]/page.tsx` — dynamic route, server component.
+- `app/api/<name>/route.ts` — route handlers (GET / POST / etc).
+- `app/loading.tsx`, `app/error.tsx` — Suspense + error boundaries.
+
+## Server vs client
+
+- Files are server components by default.
+- `"use client"` at top makes the file (and everything it imports) client-only.
+- `"use server"` marks a server action — callable from client components.
+- `next/dynamic` for client-only loading when needed.
+
+## Route handlers
+
+```ts
+export async function POST(req: Request) {
+  const body = await req.json();
+  const parsed = SomeSchema.parse(body); // boundary parse — see SECURITY.md
+  const requestId = crypto.randomUUID();
+  // ... call lib/motive/<domain>
+  return Response.json({ ok: true }, { status: 200 });
+}
+```
+
+Routes never read process.env keys that aren't NEXT_PUBLIC_*. Service-role
+Supabase client only from server code. See SECURITY.md.
+
+## Caching (Cache Components / fetch)
+
+Next.js 16 defaults: fetch is uncached unless wrapped with `cache:"force-cache"`
+or you mark a function with `use cache`. We deliberately do not rely on
+fetch-level caching in Motive — Supabase rows are the cache.
+
+## Common pitfalls
+
+- Don't import server-only modules from a client component — the bundle blows up.
+- `cookies()`, `headers()`, `searchParams` are async in Next.js 16.
+- Route handlers return `Response`, not `NextResponse` (still works but prefer Response).
+- `revalidatePath` and `revalidateTag` only apply to fetch — not Supabase queries.
+
+## Dev / build commands
+
+- `pnpm dev` (port 3000) — Turbopack.
+- `pnpm build` then `pnpm start` for prod simulation.
+- `pnpm typecheck` runs `tsc --noEmit` (not `next build`).
+- `pnpm lint` runs the project's ESLint (eslint.config.mjs).
+
+## Files in this repo that exemplify our patterns
+
+- `apps/web/src/app/api/projects/route.ts` — route handler with boundary parsing.
+- `apps/web/src/app/projects/[projectId]/page.tsx` — server component fetching from Supabase.
+- `apps/web/src/components/live-review-workspace.tsx` — client component with Supabase Realtime.

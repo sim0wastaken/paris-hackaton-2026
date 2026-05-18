@@ -22,6 +22,17 @@ if [[ -z "$cmd" ]]; then
   exit 0
 fi
 
+# `git commit` does not execute the commit message text — it merely records
+# it. Substring-matching dangerous patterns inside a commit message would
+# block legitimate commits that *describe* dangerous operations (e.g. this
+# very hook's update commits). Skip the check for git-commit commands.
+case "$cmd" in
+  "git commit"*|*"; git commit"*|*"&& git commit"*|*"|| git commit"*)
+    emit allow "git commit — message text is not executed"
+    exit 0
+    ;;
+esac
+
 # Dangerous-pattern allowlist of denials. Substring match; intentionally broad.
 patterns=(
   'rm -rf /'
@@ -44,6 +55,11 @@ patterns=(
   'chmod -R 777 /'
   'chown -R '
   '> /dev/sda'
+  'vercel deploy --prod'
+  'vercel --prod'
+  'vercel promote'
+  'supabase db reset --linked'
+  'supabase db push --linked'
 )
 
 for p in "${patterns[@]}"; do

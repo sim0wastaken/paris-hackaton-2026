@@ -11,7 +11,10 @@
     "db:start": "supabase start",
     "db:reset": "supabase db reset",
     "demo:reset": "node scripts/demo-reset.mjs",
-    "inngest:dev": "inngest-cli dev -u http://localhost:3000/api/inngest"
+    "inngest:dev": "inngest-cli dev -u http://localhost:3000/api/inngest",
+    "db:schema:doc": "node scripts/generate-db-schema-doc.mjs",
+    "db:schema:doc:check": "node scripts/generate-db-schema-doc.mjs --check",
+    "verify:freshness": "node scripts/verify-doc-freshness.mjs"
   },
   "devDependencies": {
     "inngest-cli": "1.19.4",
