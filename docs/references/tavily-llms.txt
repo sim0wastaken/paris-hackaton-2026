@@ -1,0 +1,57 @@
+# Tavily — Motive cheatsheet
+
+We call Tavily directly over HTTP (no SDK).
+Used in: URL ingestion (Map + Extract). Deferred path — see `docs/post-hackathon/tavily-ingestion-deferred.md`.
+Full docs: Context7 query "tavily api map extract".
+
+## Two endpoints we touch
+
+| Endpoint | Use |
+|---|---|
+| `POST https://api.tavily.com/map` | Crawl a starting URL and enumerate reachable pages (sitemap-style). |
+| `POST https://api.tavily.com/extract` | Pull cleaned text + metadata from a list of URLs. |
+
+## Map call
+
+```ts
+const res = await fetch("https://api.tavily.com/map", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    api_key: process.env.TAVILY_API_KEY,
+    url: brandUrl,
+    max_depth: 2,
+    max_pages: 25,
+  }),
+});
+```
+
+Returns `{ urls: string[] }` for pages reachable from the seed.
+
+## Extract call
+
+```ts
+const res = await fetch("https://api.tavily.com/extract", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    api_key: process.env.TAVILY_API_KEY,
+    urls: urlsFromMap,
+    extract_depth: "advanced",
+  }),
+});
+```
+
+Returns `{ results: [{ url, raw_content, ... }] }`.
+
+## Persistence
+
+Write the request + response to `sources.provider_payload`. Cleaned text goes
+into `sources.content_text` after a length cap. Spec: `docs/superpowers/specs/2026-05-16-03-intake-source-ingestion-spec.md`.
+
+## Common pitfalls
+
+- Tavily map sometimes returns the seed URL twice — dedupe before passing to extract.
+- `extract_depth: "advanced"` is ~2x cost of "basic" but materially better for landing pages.
+- The API key goes in the JSON body, NOT as a Bearer header — different from OpenAI / fal.
+- Some sites block Tavily's crawler — handle the "no results" case explicitly (`spec 03` covers the fallback).

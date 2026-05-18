@@ -1,0 +1,83 @@
+# Supabase — Motive cheatsheet
+
+Versions: @supabase/ssr@0.10.3, @supabase/supabase-js@2.105.4. Local CLI: supabase@2.98.2.
+Used in: apps/web (DB, Realtime, Auth). Service-role for admin ops only.
+Full docs: Context7 query "supabase ssr next.js 16".
+
+## Three client variants — pick the right one
+
+| Use | Factory location | Key |
+|---|---|---|
+| Browser (RLS-aware) | `lib/supabase/client.ts` | `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
+| Server component / route handler (RLS-aware) | `lib/supabase/server.ts` | anon key + cookie session |
+| Admin / service-role (NEVER on client) | `lib/supabase/admin.ts` | `SUPABASE_SERVICE_ROLE_KEY` (server-only) |
+
+**Critical:** the admin client bypasses RLS. It is only constructed in admin
+factories and only invoked from server-only code (route handlers, Inngest
+functions, scripts). See SECURITY.md.
+
+## Reading
+
+```ts
+const supabase = createServerClient(); // or createBrowserClient()
+const { data, error } = await supabase
+  .from("projects")
+  .select("id, status, sources(id, url)")
+  .eq("id", projectId)
+  .single();
+if (error) throw error;
+```
+
+Always check `error` — Supabase never throws by default.
+
+## Writing
+
+```ts
+const { data, error } = await supabase
+  .from("ad_groups")
+  .insert({ project_id, campaign_id, status: "draft" })
+  .select()
+  .single();
+```
+
+Pair every write with an audit-log row (RELIABILITY.md Invariant 2).
+
+## Realtime
+
+```ts
+const channel = supabase.channel(`project:${projectId}`)
+  .on("postgres_changes",
+    { event: "*", schema: "public", table: "extraction_runs", filter: `project_id=eq.${projectId}` },
+    (payload) => { /* ... */ })
+  .subscribe();
+// later:
+await supabase.removeChannel(channel);
+```
+
+Realtime is enabled per-table via `alter publication supabase_realtime add table public.<name>`. Check migrations for which tables are realtime-enabled.
+
+## Auth
+
+`@supabase/ssr` handles session cookies. `getUser()` is preferred over
+`getSession()` server-side because it revalidates the JWT against Supabase.
+
+## RLS
+
+All 14 core tables have RLS enabled. Policies are defined in migrations under
+`supabase/migrations/`. To debug a "row not returned" issue:
+1. Check the policy in the migration.
+2. Verify the client used (browser/server vs admin).
+3. Look at `auth.uid()` if the policy depends on the JWT.
+
+## Local dev
+
+- `pnpm db:start` — boots Supabase locally on 54321.
+- `pnpm db:reset` — re-applies all migrations and runs seed.sql.
+- `pnpm demo:reset` — calls the demo-reset endpoint to restore seeded state.
+
+## Common pitfalls
+
+- Forgetting to add a table to `supabase_realtime` publication when you want Realtime.
+- Using the browser client in a server component (or vice versa) — silently breaks auth.
+- Importing the admin client from a path that ends up bundled to the browser.
+- Querying with the service-role client by mistake — bypasses RLS without leaving a trail.

@@ -1,0 +1,67 @@
+# OpenAI Responses API — Motive cheatsheet
+
+We call the Responses API directly over HTTP (no SDK). Endpoint: `https://api.openai.com/v1/responses`.
+Used in: every extraction phase, ad-group generation, creative copy generation.
+Full docs: Context7 query "openai responses api".
+
+## Why Responses (not Chat Completions)
+
+Responses is the newer API. It supports structured outputs, tools, streaming
+deltas, and request/response payload archival in a clean shape that we persist
+to `extraction_runs.provider_payload` (RELIABILITY.md Invariant 3).
+
+## Basic call
+
+```ts
+const res = await fetch("https://api.openai.com/v1/responses", {
+  method: "POST",
+  headers: {
+    "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    model: "gpt-4.1-mini", // or whatever's pinned in VERSIONS.md
+    input: [
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "user", content: userPrompt },
+    ],
+    response_format: { type: "json_schema", json_schema: { name: "...", schema: {...}, strict: true } },
+    metadata: { request_id, project_id, phase: "source_recap" },
+  }),
+});
+const json = await res.json();
+if (!res.ok) throw new Error(`openai ${res.status}: ${JSON.stringify(json)}`);
+```
+
+## Structured outputs (we use these for every extraction phase)
+
+`response_format.json_schema` is the contract. The JSON schemas live in
+`apps/web/src/lib/motive/extraction-schemas.ts` (Zod source-of-truth) and are
+emitted to JSON-Schema when we make the call. We always pair the call with a
+Zod parse on the response — never `as` cast (Golden Principle R1).
+
+## Persist payloads (mandatory)
+
+Before any post-processing of `json.output_text` or `json.output`, write the
+full request body and full response body to the `provider_payload` JSONB column
+on the relevant row. This lets us replay without re-calling the model — see
+RELIABILITY.md Invariant 3.
+
+## Metadata threading
+
+Always include `metadata: { request_id, project_id, phase }` in the request body
+so OpenAI's logs are correlated with ours.
+
+## Streaming (when we use it)
+
+Set `"stream": true` to get an SSE stream of deltas. We use streaming for
+extraction phases that feed the HITL workspace (RELIABILITY.md Invariant 5).
+Persist the *final* assembled response — not each delta — to `provider_payload`.
+
+## Common pitfalls
+
+- Forgetting to await `res.json()` before reading `output_text`.
+- Sending a JSON schema with `additionalProperties: true` and getting bad fields back.
+- Not setting `strict: true` on the json_schema — OpenAI may drop required fields.
+- Using `chat/completions` for a new feature (use Responses).
+- Logging the full response body — it contains user-derived content; redact per SECURITY.md before logging.

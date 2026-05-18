@@ -1,0 +1,71 @@
+# Zod — Motive cheatsheet
+
+Version: zod@4.4.3.
+Used in: every boundary (HTTP body, Inngest event, OpenAI response, env vars).
+Full docs: Context7 query "zod v4".
+
+Schemas are the contract. See Golden Principle R1.
+
+## Pattern: enum + schema together
+
+```ts
+export const reviewStatusValues = ["pending", "approved", "edited", "rejected", "enriched"] as const;
+export type ReviewStatus = (typeof reviewStatusValues)[number];
+export const reviewStatusSchema = z.enum(reviewStatusValues);
+```
+
+This shape pairs a JS-runtime tuple with a TS type and a Zod schema. We use it
+for every enum across the 14 tables — see `apps/web/src/lib/motive/types.ts`.
+
+## Pattern: object schema + inferred type
+
+```ts
+export const adGroupRowSchema = z.object({
+  id: z.string().uuid(),
+  campaign_id: z.string().uuid(),
+  status: adGroupStatusSchema,
+  created_at: z.string(), // ISO timestamp from Supabase
+});
+export type AdGroupRow = z.infer<typeof adGroupRowSchema>;
+```
+
+## Boundary parse
+
+```ts
+// In an API route or Inngest function:
+const body = await req.json();
+const parsed = createAdGroupBodySchema.parse(body); // throws on invalid
+// `parsed` is now typed AdGroupRow — no cast needed.
+```
+
+`.parse(...)` throws a `ZodError` with a structured `issues` array. The route
+handler catches it and returns a 400. Never `.safeParse` and ignore the result.
+
+## Pattern: OpenAI structured output
+
+Define the Zod schema in `extraction-schemas.ts`, then derive the JSON-Schema
+for the OpenAI Responses API call. Re-parse the response with the same Zod
+schema before persisting. Two parses, one schema definition.
+
+## Pattern: env validation
+
+```ts
+// apps/web/src/env.ts
+const envSchema = z.object({
+  OPENAI_API_KEY: z.string().min(1),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
+});
+export const env = envSchema.parse(process.env);
+```
+
+Throws at startup if any env is missing. Better than a runtime KeyError 30s
+into a request.
+
+## Common pitfalls
+
+- Using `.optional()` when you mean `.nullable()` or vice versa.
+- `z.string().uuid()` — make sure the source actually produces UUIDs (Supabase does).
+- `z.coerce.number()` — useful for URL params but never for trust boundaries.
+- Forgetting that `.parse()` strips unknown keys by default — use `.passthrough()` if you need to preserve provider payloads verbatim before persistence.
+- v4 is mostly source-compatible with v3, but a few rarely-used APIs differ — Context7 the breaking changes if you hit one.
