@@ -12,7 +12,16 @@ if [[ -z "$status" ]]; then
   exit 0
 fi
 
-msg="Uncommitted changes detected. Before stopping, run the project's test command (TBD — populate in CLAUDE.md § Operating rules). Skipping verification = breaking §8.6."
+# Suggest a focused test command if any tests under lib/motive/ were touched.
+touched_tests="$(printf '%s' "$status" | awk '{print $2}' | grep -E 'apps/web/src/lib/motive/.*\.test\.ts$' | head -n 3 || true)"
+
+if [[ -n "$touched_tests" ]]; then
+  focus_hint="Focused tests touched. Run: pnpm test -- ${touched_tests//$'\n'/ }"$'\n'
+else
+  focus_hint=""
+fi
+
+msg="Uncommitted changes detected. Before stopping, run \`pnpm test\` (and \`pnpm lint && pnpm typecheck\` if you touched code). Skipping verification breaks CLAUDE.md non-negotiable #6."$'\n'"$focus_hint"
 
 jq -n --arg m "$msg" '{
   continue: true,

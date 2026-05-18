@@ -28,3 +28,4 @@ Rules:
 - [2026-05-18 10:17] COMMIT [commit 1123407] chore(harness): delete stale .codex/hooks.json with broken absolute paths
 - [2026-05-18 10:28] COMMIT [commit 6e23314] docs(harness): split agent-legibility surface into TOC + dedicated files
 - [2026-05-18 10:34] COMMIT [commit f7be7db] build(harness): add db-schema generator, freshness verifier, references cache
+- [2026-05-18 10:44] COMMIT [commit f0e0307] build(harness): custom ESLint rules + CI workflow + structured logger
