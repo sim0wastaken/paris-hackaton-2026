@@ -1,0 +1,687 @@
+/* Motive primitive utility classes.
+   The visual source of truth. React primitives in src/primitives/* are typed wrappers
+   over these classes — keep them in sync. */
+
+/* ───────────────────────────── Typography ─────────────────────────────── */
+
+.t-h1,
+.t-h2,
+.t-h3,
+.t-h4 {
+  color: var(--ink);
+  font-weight: var(--fw-medium);
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.t-h1 {
+  font-size: var(--fs-h1);
+  font-variation-settings: "wdth" 100, "opsz" 48;
+  letter-spacing: var(--tr-h1);
+  line-height: 1.02;
+}
+
+.t-h2 {
+  font-size: var(--fs-h2);
+  font-variation-settings: "wdth" 100, "opsz" 36;
+  letter-spacing: var(--tr-h2);
+  line-height: 1.08;
+}
+
+.t-h3 {
+  font-size: var(--fs-h3);
+  font-variation-settings: "wdth" 100, "opsz" 28;
+  letter-spacing: var(--tr-h3);
+  line-height: 1.15;
+}
+
+.t-h4 {
+  font-size: var(--fs-h4);
+  font-variation-settings: "wdth" 100, "opsz" 22;
+  letter-spacing: var(--tr-h4);
+  line-height: 1.18;
+}
+
+.t-lede {
+  color: var(--ink-2);
+  font-size: var(--fs-lede);
+  line-height: 1.45;
+  letter-spacing: -0.012em;
+}
+
+.t-small {
+  color: var(--ink-2);
+  font-size: var(--fs-body-sm);
+  line-height: 1.5;
+}
+
+.t-caption {
+  color: var(--ink-3);
+  font-size: var(--fs-caption);
+  line-height: 1.45;
+}
+
+.mono,
+.t-mono {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+}
+
+/* Kicker — editorial eyebrow label with hairline */
+.kicker {
+  align-items: center;
+  color: var(--acid);
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  gap: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.kicker::before {
+  background: currentColor;
+  content: "";
+  display: inline-block;
+  height: 1px;
+  width: 24px;
+}
+
+.kicker-muted {
+  color: var(--ink-3);
+}
+
+/* ────────────────────────────── Buttons ──────────────────────────────── */
+
+.btn {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: var(--fw-medium);
+  gap: 10px;
+  justify-content: center;
+  letter-spacing: -0.005em;
+  min-height: 42px;
+  padding: 12px 18px;
+  transition:
+    transform var(--dur-1) var(--ease),
+    background var(--dur-2) var(--ease),
+    border-color var(--dur-2) var(--ease),
+    color var(--dur-2) var(--ease);
+  white-space: nowrap;
+}
+
+.btn-sm {
+  font-size: 13.5px;
+  min-height: 36px;
+  padding: 8px 14px;
+}
+
+.btn-lg {
+  font-size: 16px;
+  min-height: 48px;
+  padding: 16px 24px;
+}
+
+.btn-primary {
+  background: var(--acid);
+  border-color: color-mix(in srgb, var(--acid) 80%, white 20%);
+  color: var(--acid-on);
+}
+
+.btn-primary:hover:not([disabled]):not([aria-disabled="true"]) {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  border-color: var(--line-3);
+  color: var(--ink);
+}
+
+.btn-ghost:hover:not([disabled]):not([aria-disabled="true"]) {
+  background: var(--acid);
+  border-color: var(--acid);
+  color: var(--bg);
+  transform: translateY(-1px);
+}
+
+.btn-ghost-dark {
+  background: transparent;
+  border-color: var(--line-3);
+  color: var(--ink-2);
+}
+
+.btn-ghost-dark:hover:not([disabled]):not([aria-disabled="true"]) {
+  background: var(--surface-2);
+  border-color: var(--ink-3);
+  color: var(--ink);
+}
+
+.btn-quiet {
+  box-shadow: none;
+  color: var(--ink-3);
+}
+
+.btn-quiet:hover:not([disabled]):not([aria-disabled="true"]) {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.btn[disabled],
+.btn[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.42;
+  transform: none !important;
+}
+
+.btn .arr {
+  display: inline-block;
+  transition: transform var(--dur-2) var(--ease);
+}
+
+.btn:hover:not([disabled]):not([aria-disabled="true"]) .arr {
+  transform: translateX(2px);
+}
+
+/* ─────────────────────────────── Cards ───────────────────────────────── */
+
+.card,
+.card-inset,
+.card-feature {
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-sm);
+}
+
+.card {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  padding: var(--s-6);
+}
+
+.card-inset {
+  background: var(--bg-2);
+  border-radius: var(--r-lg);
+  padding: var(--s-6);
+}
+
+.card-feature {
+  background: var(--surface);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg);
+  padding: var(--s-8);
+}
+
+.card-padless {
+  padding: 0;
+}
+
+/* ─────────────────────────────── Tags ────────────────────────────────── */
+
+.tag {
+  align-items: center;
+  background: var(--surface-3);
+  border-radius: 5px;
+  color: var(--ink-2);
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono-sm);
+  font-weight: var(--fw-medium);
+  gap: 6px;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+  padding: 4px 9px;
+  text-transform: uppercase;
+}
+
+.tag-acid {
+  background: var(--accent-soft);
+  color: var(--acid);
+}
+
+.tag-cyan {
+  background: rgba(93, 242, 214, 0.14);
+  color: var(--acid-2);
+}
+
+.tag-warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.tag-solid {
+  background: var(--acid);
+  color: var(--acid-on);
+}
+
+.tag-outline {
+  background: transparent;
+  border: 1px solid var(--line-3);
+  color: var(--ink-2);
+}
+
+/* ───────────────────────────── Indicators ────────────────────────────── */
+
+.dot {
+  background: var(--acid);
+  border-radius: 50%;
+  display: inline-block;
+  height: 7px;
+  width: 7px;
+}
+
+.dot-cyan {
+  background: var(--acid-2);
+}
+
+.dot-warn {
+  background: var(--warn);
+}
+
+.dot-muted {
+  background: var(--ink-4);
+}
+
+.dot.pulse {
+  animation: motive-pulse 1.8s infinite;
+}
+
+@keyframes motive-pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--accent-glow);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(212, 255, 58, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(212, 255, 58, 0);
+  }
+}
+
+/* ─────────────────────────────── Forms ───────────────────────────────── */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-label {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono-sm);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.field-hint {
+  color: var(--ink-4);
+  font-size: var(--fs-caption);
+  line-height: 1.4;
+}
+
+.field-error {
+  color: var(--warn);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono-sm);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.field-control {
+  position: relative;
+}
+
+.field-icon {
+  color: var(--ink-4);
+  left: 14px;
+  pointer-events: none;
+  position: absolute;
+  top: 13px;
+}
+
+.input,
+.textarea,
+.select {
+  background: var(--bg-2);
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-sm);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: 0;
+  padding: 12px 14px;
+  transition:
+    background var(--dur-2) var(--ease),
+    border-color var(--dur-2) var(--ease);
+  width: 100%;
+}
+
+.input.has-icon {
+  padding-left: 42px;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--ink-4);
+}
+
+.input:hover,
+.textarea:hover,
+.select:hover {
+  border-color: var(--ink-4);
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  background: var(--surface);
+  border-color: var(--acid);
+  outline: none;
+}
+
+.input-invalid,
+.textarea-invalid {
+  border-color: var(--warn-line);
+}
+
+.input-invalid:focus,
+.textarea-invalid:focus {
+  border-color: var(--warn);
+}
+
+.textarea {
+  line-height: 1.5;
+  min-height: 96px;
+  resize: vertical;
+}
+
+/* Legacy plain-checkbox switch (used by older markup that wraps an <input type="checkbox">) */
+.switch {
+  display: inline-block;
+  flex: 0 0 auto;
+  height: 20px;
+  position: relative;
+  width: 36px;
+}
+
+.switch input {
+  height: 0;
+  opacity: 0;
+  width: 0;
+}
+
+.switch-slider {
+  background: var(--surface-3);
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  inset: 0;
+  position: absolute;
+  transition: background var(--dur-2) var(--ease);
+}
+
+.switch-slider::before {
+  background: var(--ink-2);
+  border-radius: 50%;
+  content: "";
+  height: 14px;
+  left: 3px;
+  position: absolute;
+  top: 3px;
+  transition: transform var(--dur-2) var(--ease);
+  width: 14px;
+}
+
+.switch input:checked + .switch-slider {
+  background: var(--acid);
+}
+
+.switch input:checked + .switch-slider::before {
+  background: var(--bg);
+  transform: translateX(16px);
+}
+
+/* React Aria Switch — keyboard-accessible toggle with track + thumb.
+   State exposed via data-[selected], data-[focus-visible], data-[hovered],
+   data-[disabled] attributes set by react-aria-components. */
+.motive-switch {
+  align-items: center;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--ink-2);
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.motive-switch[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.motive-switch .switch-track {
+  background: var(--surface-3);
+  border-radius: var(--r-pill);
+  display: inline-block;
+  flex: 0 0 auto;
+  height: 20px;
+  position: relative;
+  transition: background var(--dur-2) var(--ease);
+  width: 36px;
+}
+
+.motive-switch .switch-thumb {
+  background: var(--ink-2);
+  border-radius: 50%;
+  display: block;
+  height: 14px;
+  left: 3px;
+  position: absolute;
+  top: 3px;
+  transition: transform var(--dur-2) var(--ease), background var(--dur-2) var(--ease);
+  width: 14px;
+}
+
+.motive-switch[data-selected] .switch-track {
+  background: var(--acid);
+}
+
+.motive-switch[data-selected] .switch-thumb {
+  background: var(--bg);
+  transform: translateX(16px);
+}
+
+.motive-switch[data-focus-visible] .switch-track {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--acid);
+}
+
+.motive-switch[data-hovered]:not([data-disabled]) .switch-track {
+  background: color-mix(in srgb, var(--surface-3) 75%, var(--ink-3));
+}
+
+.motive-switch[data-hovered][data-selected]:not([data-disabled]) .switch-track {
+  background: color-mix(in srgb, var(--acid) 88%, white);
+}
+
+.motive-switch-text {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.motive-switch-label {
+  color: var(--ink-2);
+  font-size: 14px;
+}
+
+.motive-switch-description {
+  color: var(--ink-4);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* ─────────────────────────────── Brand ───────────────────────────────── */
+
+.brand-lockup {
+  align-items: center;
+  display: inline-flex;
+  gap: 12px;
+  min-width: 0;
+}
+
+.brand-mark {
+  background: var(--acid);
+  border-radius: 50%;
+  display: inline-block;
+  flex: 0 0 auto;
+  height: 30px;
+  position: relative;
+  width: 30px;
+}
+
+.brand-mark::after {
+  background: var(--bg);
+  border-radius: 50%;
+  content: "";
+  height: 12px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+}
+
+.brand-mark-sm {
+  height: 28px;
+  width: 28px;
+}
+
+.brand-title {
+  color: var(--ink);
+  display: block;
+  font-size: 18px;
+  font-weight: var(--fw-medium);
+  line-height: 1;
+}
+
+.brand-subtitle {
+  color: var(--ink-4);
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  line-height: 1.3;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+.brand-word {
+  font-size: 21px;
+  font-variation-settings: "wdth" 100, "opsz" 18;
+  font-weight: var(--fw-medium);
+  letter-spacing: -0.02em;
+}
+
+/* ─────────────────────────────── Callouts ────────────────────────────── */
+
+.callout {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: var(--s-4);
+}
+
+.callout-success {
+  border-color: var(--accent-soft);
+}
+
+.callout-warn {
+  border-color: var(--warn-line);
+}
+
+.error-callout {
+  background: var(--warn-soft);
+  border: 1px solid var(--warn-line);
+  border-radius: var(--r-sm);
+  color: var(--warn);
+  font-size: var(--fs-body-sm);
+  padding: 10px 12px;
+}
+
+/* ───────────────────────── App-shell scaffolding ─────────────────────── */
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-main {
+  margin: 0 auto;
+  max-width: var(--maxw);
+  padding: var(--s-8) var(--pad) var(--s-10);
+  width: 100%;
+}
+
+/* ────────────────────────── Animations & misc ────────────────────────── */
+
+.loading-block {
+  animation: motive-pulse-soft 1.6s var(--ease) infinite;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+}
+
+@keyframes motive-pulse-soft {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.hl-anim {
+  animation: motive-hl-in 720ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  animation-delay: var(--d, 0ms);
+  filter: blur(8px);
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+@keyframes motive-hl-in {
+  to {
+    filter: blur(0);
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hl-anim {
+    animation: none;
+    filter: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hl-accent {
+  color: var(--acid);
+}
+
+.hl-cyan {
+  color: var(--acid-2);
+}

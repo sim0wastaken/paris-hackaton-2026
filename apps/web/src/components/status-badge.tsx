@@ -1,11 +1,13 @@
+import { Tag } from "@motive/ds/primitives";
+
 type BadgeStatus = "available" | "blocked" | "complete" | "current" | "failed";
 
-const statusClasses: Record<BadgeStatus, string> = {
-  available: "tag tag-outline",
-  blocked: "tag tag-warn",
-  complete: "tag tag-acid",
-  current: "tag tag-cyan",
-  failed: "tag tag-warn"
+const toneMap: Record<BadgeStatus, { tone: React.ComponentProps<typeof Tag>["tone"]; dot?: React.ComponentProps<typeof Tag>["dot"] }> = {
+  available: { tone: "outline" },
+  blocked: { tone: "warn" },
+  complete: { tone: "acid" },
+  current: { tone: "cyan", dot: "pulse" },
+  failed: { tone: "warn" }
 };
 
 export function StatusBadge({
@@ -15,10 +17,10 @@ export function StatusBadge({
   children: React.ReactNode;
   status: BadgeStatus;
 }) {
+  const { tone, dot } = toneMap[status];
   return (
-    <span className={statusClasses[status]}>
-      {status === "current" ? <span className="dot pulse" /> : null}
+    <Tag dot={dot} tone={tone}>
       {children}
-    </span>
+    </Tag>
   );
 }

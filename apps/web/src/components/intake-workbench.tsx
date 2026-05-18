@@ -4,6 +4,16 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Link as LinkIcon, Sparkles } from "lucide-react";
 
+import {
+  Button,
+  Callout,
+  Cluster,
+  Input,
+  Switch,
+  Text,
+  Textarea,
+} from "@motive/ds/primitives";
+
 import { buildDemoResetHeaders, readBrowserDemoOperatorToken } from "@/lib/motive/demo-reset-client";
 import { MAX_EXTRA_CONTEXT_CHARS, normalizeBrandUrl } from "@/lib/motive/projects";
 
@@ -62,13 +72,9 @@ export function IntakeWorkbench() {
       <label className="field">
         <span className="field-label">Brand URL</span>
         <span className="field-control">
-          <LinkIcon
-            aria-hidden="true"
-            className="field-icon"
-            size={17}
-          />
-          <input
-            className="input has-icon"
+          <LinkIcon aria-hidden="true" className="field-icon" size={17} />
+          <Input
+            hasIcon
             onChange={(event) => setBrandUrl(event.target.value)}
             placeholder="example.com"
             type="text"
@@ -78,11 +84,9 @@ export function IntakeWorkbench() {
       </label>
 
       <label className="field">
-        <span className="field-label">
-          Optional context
-        </span>
-        <textarea
-          className="textarea min-h-36"
+        <span className="field-label">Optional context</span>
+        <Textarea
+          className="min-h-36"
           onChange={(event) => setContext(event.target.value)}
           placeholder="Paste product notes, positioning, markdown, or audience constraints."
           value={context}
@@ -90,33 +94,26 @@ export function IntakeWorkbench() {
       </label>
 
       <label className="field">
-        <span className="field-label">
-          Product feed sample
-        </span>
-        <textarea
-          className="textarea min-h-24 font-mono text-xs leading-5"
+        <span className="field-label">Product feed sample</span>
+        <Textarea
+          className="min-h-24 font-mono text-xs leading-5"
           onChange={(event) => setProductFeed(event.target.value)}
           placeholder="id,title,price"
           value={productFeed}
         />
       </label>
 
-      <label className="flex items-center gap-3 text-sm text-[var(--ink-2)]">
-        <span className="switch">
-          <input
-            checked={demoMode}
-            onChange={(event) => setDemoMode(event.target.checked)}
-            type="checkbox"
-          />
-          <span className="switch-slider" />
-        </span>
-        <span>Seed demo source</span>
-      </label>
+      <Switch
+        isSelected={demoMode}
+        label="Seed demo source"
+        onChange={setDemoMode}
+      />
 
-      <div className="rounded-md border border-[#d9dfd8] bg-[#f6f8f5] p-3">
-        <button
-          className="inline-flex items-center gap-2 rounded-md border border-[#195b8f] bg-white px-3 py-2 text-sm font-medium text-[#195b8f] disabled:cursor-not-allowed disabled:opacity-60"
+      <Callout>
+        <Button
           disabled={openingDemo || submitting}
+          iconLeft={<Sparkles aria-hidden="true" size={16} />}
+          loading={openingDemo}
           onClick={async () => {
             setOpeningDemo(true);
             setError(null);
@@ -140,32 +137,29 @@ export function IntakeWorkbench() {
               setOpeningDemo(false);
             }
           }}
+          size="sm"
           type="button"
+          variant="ghost"
         >
-          <Sparkles aria-hidden="true" size={16} />
-          {openingDemo ? "Opening..." : "Use demo project"}
-        </button>
-      </div>
+          {openingDemo ? "Opening…" : "Use demo project"}
+        </Button>
+      </Callout>
 
-      {error ? (
-        <p className="error-callout">
-          {error}
-        </p>
-      ) : null}
+      {error ? <p className="error-callout">{error}</p> : null}
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="t-caption">
+      <Cluster justify="between" wrap>
+        <Text variant="caption">
           {context.length > 0 ? `${context.length} context characters` : "No context added"}
-        </p>
-        <button
-          className="btn btn-primary"
+        </Text>
+        <Button
           disabled={!canSubmit || submitting}
+          iconRight={<ArrowRight aria-hidden="true" size={16} />}
+          loading={submitting}
           type="submit"
         >
-          {submitting ? "Creating..." : "Open workspace"}
-          <ArrowRight aria-hidden="true" size={16} />
-        </button>
-      </div>
+          {submitting ? "Creating…" : "Open workspace"}
+        </Button>
+      </Cluster>
     </form>
   );
 }

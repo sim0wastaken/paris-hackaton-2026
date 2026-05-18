@@ -1,3 +1,5 @@
+import { Card, Heading, Kicker, Stack } from "@motive/ds/primitives";
+
 export function EmptyState({
   action,
   children,
@@ -10,13 +12,13 @@ export function EmptyState({
   title: string;
 }) {
   return (
-    <section className="card empty-state">
-      <p className="kicker muted">
-        {eyebrow}
-      </p>
-      <h1 className="t-h4 mt-3">{title}</h1>
-      <div className="mt-3">{children}</div>
-      {action ? <div className="mt-5">{action}</div> : null}
-    </section>
+    <Card as="section" className="empty-state">
+      <Stack gap={3}>
+        <Kicker tone="muted">{eyebrow}</Kicker>
+        <Heading level={4}>{title}</Heading>
+        {children ? <div>{children}</div> : null}
+        {action ? <div className="pt-2">{action}</div> : null}
+      </Stack>
+    </Card>
   );
 }

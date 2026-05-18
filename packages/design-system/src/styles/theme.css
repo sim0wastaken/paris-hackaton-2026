@@ -1,0 +1,40 @@
+/* Bridge design tokens into Tailwind v4 utilities.
+   Lets you write `bg-acid`, `text-ink-3`, `rounded-pill`, `font-display`, etc. */
+@theme inline {
+  --font-sans: var(--font-display);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ink-4: var(--ink-4);
+  --color-ink-5: var(--ink-5);
+
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-line-3: var(--line-3);
+
+  --color-acid: var(--acid);
+  --color-acid-2: var(--acid-2);
+  --color-acid-on: var(--acid-on);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+
+  --radius-xs: var(--r-xs);
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+  --radius-pill: var(--r-pill);
+
+  --shadow-soft: var(--shadow-sm);
+  --shadow-pop: var(--shadow-md);
+  --shadow-stage: var(--shadow-lg);
+}

@@ -1,0 +1,119 @@
+/* Motive design tokens — single source of truth.
+   Editorial dark theme, acid yellow accent. Consumed by all Motive apps. */
+:root {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --bg: #0a0b0d;
+  --bg-2: #101216;
+  --surface: #16191f;
+  --surface-2: #1f2329;
+  --surface-3: #292e36;
+
+  /* Ink (warm whites → grays) */
+  --ink: #f3f1ea;
+  --ink-2: #d4d0c6;
+  --ink-3: #95918a;
+  --ink-4: #5e5c57;
+  --ink-5: #3a3933;
+
+  /* Hairlines */
+  --line: rgba(243, 241, 234, 0.08);
+  --line-2: rgba(243, 241, 234, 0.04);
+  --line-3: rgba(243, 241, 234, 0.14);
+
+  /* Accent — acid yellow + cyan secondary */
+  --acid: #d4ff3a;
+  --acid-2: #5df2d6;
+  --acid-on: #0a0b0d;
+  --accent: var(--acid);
+  --accent-on: var(--acid-on);
+  --accent-soft: rgba(212, 255, 58, 0.14);
+  --accent-glow: rgba(212, 255, 58, 0.45);
+
+  /* Status */
+  --warn: #ffb99e;
+  --warn-soft: rgba(255, 124, 80, 0.22);
+  --warn-line: rgba(255, 124, 80, 0.3);
+  --success: var(--acid);
+  --info: var(--acid-2);
+
+  /* Typography */
+  --font-display: var(--font-bricolage), "Bricolage Grotesque", "Sohne", "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", "SF Mono", ui-monospace, Menlo, monospace;
+
+  --fs-h1: clamp(38px, 4.8vw, 64px);
+  --fs-h2: clamp(30px, 3.4vw, 44px);
+  --fs-h3: 28px;
+  --fs-h4: 22px;
+  --fs-lede: 20px;
+  --fs-body: 16px;
+  --fs-body-sm: 14.5px;
+  --fs-caption: 13px;
+  --fs-mono: 11px;
+  --fs-mono-sm: 10.5px;
+
+  --tr-display: -0.035em;
+  --tr-h1: -0.035em;
+  --tr-h2: -0.028em;
+  --tr-h3: -0.02em;
+  --tr-h4: -0.015em;
+  --tr-body: -0.005em;
+  --tr-mono: 0.14em;
+
+  --fw-display: 500;
+  --fw-medium: 500;
+  --fw-semi: 600;
+  --fw-regular: 400;
+
+  /* Spacing (4px base) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-7: 32px;
+  --s-8: 40px;
+  --s-9: 56px;
+  --s-10: 72px;
+  --maxw: 1280px;
+  --pad: 56px;
+
+  /* Radii */
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+  --r-pill: 999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.35), 0 12px 28px -16px rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 1px 0 rgba(0, 0, 0, 0.35), 0 30px 60px -24px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 1px 0 rgba(0, 0, 0, 0.35), 0 60px 120px -40px rgba(0, 0, 0, 0.8);
+  --shadow-glow: 0 0 0 4px var(--accent-soft);
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-1: 150ms;
+  --dur-2: 250ms;
+  --dur-3: 450ms;
+  --dur-4: 720ms;
+
+  /* Z-index */
+  --z-nav: 50;
+}
+
+@media (max-width: 1080px) {
+  :root {
+    --pad: 36px;
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --pad: 24px;
+  }
+}
