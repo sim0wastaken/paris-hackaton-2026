@@ -88,6 +88,15 @@ export function createSupabaseIntakeRepository(): SupabaseIntakeRepository {
       if (error) throw error;
       return data as SourceRecord;
     },
+    async appendChildSource(projectId, parentSourceId, source) {
+      const { data, error } = await supabase
+        .from("sources")
+        .insert({ ...source, project_id: projectId, parent_source_id: parentSourceId })
+        .select("*")
+        .single();
+      if (error) throw error;
+      return data as SourceRecord;
+    },
     async getProjectWorkspace(projectId) {
       return getProjectWorkspaceById(supabase, projectId);
     },

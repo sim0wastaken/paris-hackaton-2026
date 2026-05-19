@@ -1,25 +1,25 @@
-import type { IntakeEventSink, SourceRecord } from "./projects";
+import {
+  type BrandDiscoverer,
+  discoverBrandSources
+} from "./brand-discovery";
+import type { IntakeEventSink, SourceInsertDraft, SourceRecord } from "./projects";
 
 export type SourceIngestionRepository = {
   getSource(sourceId: string): Promise<SourceRecord | null>;
   updateSource(sourceId: string, patch: Partial<SourceRecord>): Promise<SourceRecord>;
-};
-
-export type UrlExtractor = {
-  isConfigured(): boolean;
-  extractUrl(url: string): Promise<{
-    content: string;
-    providerResponse: Record<string, unknown>;
-    failureReason?: string;
-  }>;
+  appendChildSource(
+    projectId: string,
+    parentSourceId: string,
+    source: SourceInsertDraft
+  ): Promise<SourceRecord>;
 };
 
 export async function processSourceIngestion(
-  input: { projectId: string; sourceId: string },
+  input: { projectId: string; sourceId: string; requestId?: string },
   deps: {
     repository: SourceIngestionRepository;
     events: IntakeEventSink;
-    extractor: UrlExtractor;
+    discoverer: BrandDiscoverer;
   }
 ): Promise<SourceRecord> {
   const source = await deps.repository.getSource(input.sourceId);
@@ -29,61 +29,26 @@ export async function processSourceIngestion(
   }
   if (source.type !== "url") return source;
 
-  if (!source.uri) {
-    return deps.repository.updateSource(source.id, {
-      status: "failed",
-      error: "missing_source_uri"
-    });
-  }
-
-  if (!deps.extractor.isConfigured()) {
-    return deps.repository.updateSource(source.id, {
-      status: "skipped",
-      error: "tavily_not_configured",
-      provider_response_json: {
-        skipped: true,
-        reason: "TAVILY_API_KEY is not configured"
-      }
-    });
-  }
-
-  await deps.repository.updateSource(source.id, {
-    status: "processing",
-    error: null
-  });
-
   try {
-    const extracted = await deps.extractor.extractUrl(source.uri);
-    const content = extracted.content.trim();
-    if (!content) {
-      const reason = extracted.failureReason
-        ? `tavily_empty_content: ${extracted.failureReason}`
-        : "tavily_empty_content";
-      return deps.repository.updateSource(source.id, {
-        status: "failed",
-        error: reason,
-        provider_response_json: extracted.providerResponse
-      });
-    }
-
-    const processed = await deps.repository.updateSource(source.id, {
-      status: "processed",
-      raw_text: content,
-      extracted_text: content,
-      error: null,
-      provider_response_json: extracted.providerResponse,
-      metadata: {
-        ...source.metadata,
-        character_count: content.length,
-        processed_at: new Date().toISOString()
+    const result = await discoverBrandSources(
+      {
+        projectId: input.projectId,
+        parentSource: source,
+        requestId: input.requestId ?? crypto.randomUUID()
+      },
+      {
+        repository: deps.repository,
+        events: {
+          sendExtractionRequested: deps.events.sendExtractionRequested
+        },
+        discoverer: deps.discoverer
       }
-    });
-    await deps.events.sendExtractionRequested(input.projectId, [processed.id], false);
-    return processed;
+    );
+    return result.parent;
   } catch (error) {
     return deps.repository.updateSource(source.id, {
       status: "failed",
-      error: error instanceof Error ? error.message : "tavily_extract_failed",
+      error: error instanceof Error ? error.message : "tavily_discover_failed",
       provider_response_json: { failed: true }
     });
   }
