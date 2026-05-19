@@ -40,3 +40,4 @@ Rules:
 - [2026-05-19 10:48] COMMIT [commit e8bbd1b] refactor(motive): split data-access into .server.ts and add .client.ts subscriptions
 - [2026-05-19 10:48] COMMIT [commit f4760c9] chore(lint): retarget no-cross-layer-import to .server/.client and promote to error
 - [2026-05-19 10:48] COMMIT [commit c226155] chore(dx): add pnpm setup:env to bootstrap apps/web/.env.local from local supabase
+- [2026-05-19 10:59] COMMIT [commit 09ce227] refactor(providers): adopt @tavily/core SDK in tavily wrapper
