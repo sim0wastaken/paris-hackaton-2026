@@ -16,11 +16,17 @@
 
 ## How to bring it up
 
+First-time setup:
+
 ```sh
 npx pnpm@11.1.2 install
-cp .env.example .env.local
+npx pnpm@11.1.2 db:start         # start local Supabase (Docker)
+npx pnpm@11.1.2 setup:env        # writes apps/web/.env.local from .env.example + supabase status
+# fill in remaining `replace_me` values (OPENAI_API_KEY, etc.)
 npx pnpm@11.1.2 dev
 ```
+
+`setup:env` is idempotent — it refuses to overwrite a non-empty `.env.local` unless you pass `--force`.
 
 ## Live-verified golden path
 
