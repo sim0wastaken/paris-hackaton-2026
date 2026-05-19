@@ -22,7 +22,10 @@ export type ProviderResult<T> =
       requestId: string;
     };
 
+import type { TavilyClient } from "@tavily/core";
+
 export type ProviderOptions = {
   apiKey?: string;
   fetcher?: typeof fetch;
+  tavilyClient?: TavilyClient;
 };

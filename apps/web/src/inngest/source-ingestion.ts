@@ -13,7 +13,8 @@ import {
   searchBrandContext,
   getTavilyPageContent,
   extractTavilyFailureReason,
-  extractUrlWithTavily
+  extractUrlWithTavily,
+  type TavilyCrawlPage
 } from "@/lib/providers/tavily";
 
 export const sourceIngestion = inngest.createFunction(
@@ -140,9 +141,7 @@ function buildTavilyDiscoverer(requestId: string): BrandDiscoverer {
   };
 }
 
-function compactCrawlPages(
-  results: Array<{ url: string; raw_content?: string | null; rawContent?: string | null; content?: string | null }>
-): DiscoveredPage[] {
+function compactCrawlPages(results: TavilyCrawlPage[]): DiscoveredPage[] {
   const seen = new Set<string>();
   const pages: DiscoveredPage[] = [];
   for (const page of results) {

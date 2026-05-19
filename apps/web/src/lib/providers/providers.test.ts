@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { generateFalImage } from "./fal";
 import { generateOpenAIStructuredObject, generateOpenAIText } from "./openai";
-import { extractUrlWithTavily } from "./tavily";
+import { extractUrlWithTavily, type TavilyClient } from "./tavily";
 import { z } from "zod";
 
 describe("provider client boundaries", () => {
@@ -263,23 +263,26 @@ describe("provider client boundaries", () => {
     }
   });
 
-  it("calls Tavily Extract through the provider wrapper", async () => {
-    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
-      new Response(JSON.stringify({ results: [{ raw_content: "Homepage copy" }] }), {
-        status: 200,
-        headers: { "content-type": "application/json" }
-      })
-    );
+  it("calls Tavily Extract through the SDK client", async () => {
+    const extract = vi.fn().mockResolvedValue({
+      results: [{ url: "https://example.com", title: null, rawContent: "Homepage copy" }],
+      failedResults: [],
+      responseTime: 0.1,
+      requestId: "req_002"
+    });
+    const tavilyClient = { extract, crawl: vi.fn(), search: vi.fn() } as unknown as TavilyClient;
 
     const result = await extractUrlWithTavily(
       { url: "https://example.com", requestId: "req_002" },
-      { apiKey: "tvly_key", fetcher }
+      { tavilyClient }
     );
 
     expect(result.status).toBe("ready");
     expect(result.provider).toBe("tavily");
-    expect(fetcher).toHaveBeenCalledOnce();
-    expect(fetcher.mock.calls[0]?.[0]).toBe("https://api.tavily.com/extract");
+    if (result.status === "ready") expect(result.data.content).toBe("Homepage copy");
+    expect(extract).toHaveBeenCalledOnce();
+    expect(extract.mock.calls[0]?.[0]).toEqual(["https://example.com"]);
+    expect(extract.mock.calls[0]?.[1]).toMatchObject({ extractDepth: "basic", format: "markdown" });
   });
 
   it("skips fal asset generation when no key is configured", async () => {
