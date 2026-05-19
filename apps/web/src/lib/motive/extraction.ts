@@ -177,7 +177,7 @@ export async function runExtractionPipeline(
     promptVersion?: string;
   }
 ): Promise<ExtractionPipelineResult> {
-  const model = deps.model ?? process.env.OPENAI_EXTRACTION_MODEL ?? process.env.OPENAI_MODEL ?? "gpt-5-mini";
+  const model = deps.model ?? process.env.OPENAI_EXTRACTION_MODEL ?? process.env.OPENAI_MODEL ?? "gpt-5.5";
   const promptVersion = deps.promptVersion ?? process.env.OPENAI_EXTRACTION_PROMPT_VERSION ?? "2026-05-16-v2";
   const promptVersionByPhase = Object.fromEntries(
     SPEC_04_PHASES.map((phase) => [phase, `${phase}.${promptVersion}`])
@@ -289,7 +289,7 @@ function buildPhaseInput(
     type: source.type,
     name: source.name,
     uri: source.uri,
-    text: (source.extracted_text ?? source.raw_text ?? "").slice(0, 12_000),
+    text: (source.extracted_text ?? source.raw_text ?? "").slice(0, 10_000),
     metadata: source.metadata
   }));
 
