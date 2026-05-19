@@ -14,7 +14,7 @@ export const extractionPipeline = inngest.createFunction(
   async ({ event, step }) => {
     return step.run("run-spec-04-extraction-pipeline", async () => {
       const { runExtractionPipeline } = await import("@/lib/motive/extraction");
-      const { createSupabaseExtractionRepository } = await import("@/lib/motive/supabase-extraction");
+      const { createSupabaseExtractionRepository } = await import("@/lib/motive/extraction.server");
       const { generateOpenAIStructuredObject } = await import("@/lib/providers/openai");
 
       return runExtractionPipeline(

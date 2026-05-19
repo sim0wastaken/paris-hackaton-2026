@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { StatusBadge } from "@/components/status-badge";
 import { getProjectShell } from "@/lib/motive/projects";
-import { createSupabaseIntakeRepository } from "@/lib/motive/supabase-projects";
+import { createSupabaseIntakeRepository } from "@/lib/motive/projects.server";
 
 export default async function ProjectPage({
   params

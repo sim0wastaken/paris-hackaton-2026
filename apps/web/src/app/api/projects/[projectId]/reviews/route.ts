@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { parseReviewActionInput, ReviewValidationError } from "@/lib/motive/reviews";
-import { createSupabaseReviewRepository } from "@/lib/motive/supabase-reviews";
+import { createSupabaseReviewRepository } from "@/lib/motive/reviews.server";
 
 type RouteContext = {
   params: Promise<{ projectId: string }> | { projectId: string };

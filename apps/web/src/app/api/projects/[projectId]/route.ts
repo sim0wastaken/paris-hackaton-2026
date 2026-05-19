@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createSupabaseIntakeRepository } from "@/lib/motive/supabase-projects";
+import { createSupabaseIntakeRepository } from "@/lib/motive/projects.server";
 
 type RouteContext = {
   params: Promise<{ projectId: string }> | { projectId: string };

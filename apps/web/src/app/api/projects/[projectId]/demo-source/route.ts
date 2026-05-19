@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { createBestEffortIntakeEventSink } from "@/lib/motive/intake-events";
 import { addSeededDemoSource } from "@/lib/motive/projects";
-import { createSupabaseIntakeRepository } from "@/lib/motive/supabase-projects";
+import { createSupabaseIntakeRepository } from "@/lib/motive/projects.server";
 
 type RouteContext = {
   params: Promise<{ projectId: string }> | { projectId: string };

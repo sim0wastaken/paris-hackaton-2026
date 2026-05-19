@@ -7,17 +7,9 @@ import { Activity, BarChart3, Check, Rocket, RotateCcw, RotateCw } from "lucide-
 import { EmptyState } from "./empty-state";
 import { StatusBadge } from "./status-badge";
 import type { MonitoringData } from "@/lib/motive/deployments";
+import { subscribeToMonitoring } from "@/lib/motive/deployments.client";
 import { buildDemoResetHeaders, readBrowserDemoOperatorToken } from "@/lib/motive/demo-reset-client";
 import type { CreativeVariant, PerformanceSnapshot } from "@/lib/motive/types";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-
-type MonitoringTable =
-  | "deployments"
-  | "performance_snapshots"
-  | "creative_variants"
-  | "ad_groups"
-  | "campaigns"
-  | "human_reviews";
 
 type DeployResponse = {
   message?: string;
@@ -91,30 +83,16 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
   }, [connection, refresh]);
 
   useEffect(() => {
-    const supabase = createSupabaseBrowserClient();
-    const merge = (table: MonitoringTable, row: unknown) => {
-      if (!row || typeof row !== "object" || !("id" in row)) return;
-      setData((current) => ({
-        ...current,
-        [table]: upsertById(current[table] as Array<Record<string, unknown>>, row as Record<string, unknown>)
-      }));
-    };
-
-    const channel = supabase
-      .channel(`motive-monitoring-${projectId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "deployments", filter: `project_id=eq.${projectId}` }, (payload) => merge("deployments", payload.new))
-      .on("postgres_changes", { event: "*", schema: "public", table: "performance_snapshots", filter: `project_id=eq.${projectId}` }, (payload) => merge("performance_snapshots", payload.new))
-      .on("postgres_changes", { event: "*", schema: "public", table: "creative_variants", filter: `project_id=eq.${projectId}` }, (payload) => merge("creative_variants", payload.new))
-      .on("postgres_changes", { event: "*", schema: "public", table: "ad_groups", filter: `project_id=eq.${projectId}` }, (payload) => merge("ad_groups", payload.new))
-      .on("postgres_changes", { event: "*", schema: "public", table: "campaigns", filter: `project_id=eq.${projectId}` }, (payload) => merge("campaigns", payload.new))
-      .on("postgres_changes", { event: "*", schema: "public", table: "human_reviews", filter: `project_id=eq.${projectId}` }, (payload) => merge("human_reviews", payload.new))
-      .subscribe((status) => {
-        setConnection(status === "SUBSCRIBED" ? "live" : "polling");
-      });
-
-    return () => {
-      void supabase.removeChannel(channel);
-    };
+    return subscribeToMonitoring(
+      projectId,
+      (table, row) => {
+        setData((current) => ({
+          ...current,
+          [table]: upsertById(current[table] as Array<Record<string, unknown>>, row)
+        }));
+      },
+      setConnection
+    );
   }, [projectId]);
 
   async function fakeDeploy() {

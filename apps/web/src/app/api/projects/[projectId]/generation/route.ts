@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createSupabaseProjectExplorerRepository } from "@/lib/motive/supabase-project-explorer";
+import { createSupabaseProjectExplorerRepository } from "@/lib/motive/project-explorer.server";
 
 type RouteContext = {
   params: Promise<{ projectId: string }> | { projectId: string };

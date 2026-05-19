@@ -13,7 +13,7 @@ export const seededDemoReplay = inngest.createFunction(
   },
   async ({ event, step }) => {
     const { runSeededDemoReplay } = await import("@/lib/motive/demo");
-    const { createSupabaseDemoRepository } = await import("@/lib/motive/supabase-demo");
+    const { createSupabaseDemoRepository } = await import("@/lib/motive/demo.server");
     let sleepIndex = 0;
 
     return runSeededDemoReplay(

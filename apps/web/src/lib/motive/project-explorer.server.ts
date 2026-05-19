@@ -4,7 +4,7 @@ import { createSupabaseServiceRoleClient } from "@/lib/supabase/service-role";
 
 import type { ProjectGenerationPreview, ProjectExplorerInput, ProjectExplorerSummary } from "./project-explorer";
 import { buildProjectExplorerSummary, sortProjectExplorerSummaries } from "./project-explorer";
-import { createSupabaseDeploymentRepository } from "./supabase-deployments";
+import { createSupabaseDeploymentRepository } from "./deployments.server";
 
 type SupabaseError = {
   code?: string;

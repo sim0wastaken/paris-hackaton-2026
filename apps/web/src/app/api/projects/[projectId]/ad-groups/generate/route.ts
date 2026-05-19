@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { runAdGroupGeneration, AdGroupGenerationError } from "@/lib/motive/ad-groups";
-import { createSupabaseAdGroupGenerationRepository } from "@/lib/motive/supabase-ad-groups";
+import { createSupabaseAdGroupGenerationRepository } from "@/lib/motive/ad-groups.server";
 import { generateOpenAIStructuredObject } from "@/lib/providers/openai";
 
 const generateAdGroupsRequestSchema = z.object({

@@ -6,7 +6,7 @@ import {
   type CreativeAssetProvider
 } from "./creatives";
 import type { ExtractionRunRecord } from "./extraction";
-import { getExtractionReviewData } from "./supabase-extraction";
+import { getExtractionReviewData } from "./extraction.server";
 import type { CreativeVariant } from "./types";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/service-role";
 

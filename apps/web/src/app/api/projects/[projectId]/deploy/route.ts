@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { FakeDeployError, runFakeDeploy } from "@/lib/motive/deployments";
-import { createSupabaseDeploymentRepository } from "@/lib/motive/supabase-deployments";
+import { createSupabaseDeploymentRepository } from "@/lib/motive/deployments.server";
 import { generateOpenAIStructuredObject } from "@/lib/providers/openai";
 
 const deployRequestSchema = z.object({

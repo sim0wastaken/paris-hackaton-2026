@@ -23,7 +23,7 @@ export const sourceIngestion = inngest.createFunction(
   },
   async ({ event, step }) => {
     return step.run("process-source-ingestion", async () => {
-      const { createSupabaseIntakeRepository } = await import("@/lib/motive/supabase-projects");
+      const { createSupabaseIntakeRepository } = await import("@/lib/motive/projects.server");
       const projectId = String(event.data.projectId);
       const sourceId = String(event.data.sourceId);
       const requestId = String(event.data.requestId ?? crypto.randomUUID());

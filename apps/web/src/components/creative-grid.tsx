@@ -20,9 +20,7 @@ import { StatusBadge } from "./status-badge";
 import type { ExtractionReviewData } from "@/lib/motive/extraction";
 import type { ReviewActionResult } from "@/lib/motive/reviews";
 import type { AdGroup, CreativeVariant, ReviewAction } from "@/lib/motive/types";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-
-type CreativeTable = "extraction_runs" | "ad_groups" | "creative_variants" | "human_reviews";
+import { subscribeToCreatives } from "@/lib/motive/creatives.client";
 
 type ReviewSubmitInput = {
   entityId: string;
@@ -92,28 +90,16 @@ export function CreativeGrid({ initialData }: { initialData: ExtractionReviewDat
   }, [connection, refresh]);
 
   useEffect(() => {
-    const supabase = createSupabaseBrowserClient();
-    const merge = (table: CreativeTable, row: unknown) => {
-      if (!row || typeof row !== "object" || !("id" in row)) return;
-      setData((current) => ({
-        ...current,
-        [table]: upsertById(current[table] as Array<Record<string, unknown>>, row as Record<string, unknown>)
-      }));
-    };
-
-    const channel = supabase
-      .channel(`motive-creatives-${projectId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "extraction_runs", filter: `project_id=eq.${projectId}` }, (payload) => merge("extraction_runs", payload.new))
-      .on("postgres_changes", { event: "*", schema: "public", table: "ad_groups", filter: `project_id=eq.${projectId}` }, (payload) => merge("ad_groups", payload.new))
-      .on("postgres_changes", { event: "*", schema: "public", table: "creative_variants", filter: `project_id=eq.${projectId}` }, (payload) => merge("creative_variants", payload.new))
-      .on("postgres_changes", { event: "*", schema: "public", table: "human_reviews", filter: `project_id=eq.${projectId}` }, (payload) => merge("human_reviews", payload.new))
-      .subscribe((status) => {
-        setConnection(status === "SUBSCRIBED" ? "live" : "polling");
-      });
-
-    return () => {
-      void supabase.removeChannel(channel);
-    };
+    return subscribeToCreatives(
+      projectId,
+      (table, row) => {
+        setData((current) => ({
+          ...current,
+          [table]: upsertById(current[table] as Array<Record<string, unknown>>, row)
+        }));
+      },
+      setConnection
+    );
   }, [projectId]);
 
   async function generateCreatives(adGroupIds: string[], regenerate = false) {

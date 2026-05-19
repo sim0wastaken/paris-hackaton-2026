@@ -5,7 +5,7 @@ import { inngest } from "@/inngest/client";
 import { MOTIVE_EVENTS } from "@/inngest/functions";
 import { requireServerEnv } from "@/lib/env";
 import { runDemoReset } from "@/lib/motive/demo";
-import { createSupabaseDemoRepository } from "@/lib/motive/supabase-demo";
+import { createSupabaseDemoRepository } from "@/lib/motive/demo.server";
 import { demoResetGuard } from "../demo-guard";
 
 const resetRequestSchema = z.object({

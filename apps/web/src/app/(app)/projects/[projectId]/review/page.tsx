@@ -1,7 +1,7 @@
 import { EmptyState } from "@/components/empty-state";
 import { LiveReviewWorkspace } from "@/components/live-review-workspace";
-import { createSupabaseExtractionRepository } from "@/lib/motive/supabase-extraction";
-import { createSupabaseIntakeRepository } from "@/lib/motive/supabase-projects";
+import { createSupabaseExtractionRepository } from "@/lib/motive/extraction.server";
+import { createSupabaseIntakeRepository } from "@/lib/motive/projects.server";
 
 export default async function ReviewPage({
   params

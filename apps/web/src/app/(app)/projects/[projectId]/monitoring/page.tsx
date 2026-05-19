@@ -1,6 +1,6 @@
 import { EmptyState } from "@/components/empty-state";
 import { MonitoringDashboard } from "@/components/monitoring-dashboard";
-import { createSupabaseDeploymentRepository } from "@/lib/motive/supabase-deployments";
+import { createSupabaseDeploymentRepository } from "@/lib/motive/deployments.server";
 
 export default async function MonitoringPage({
   params

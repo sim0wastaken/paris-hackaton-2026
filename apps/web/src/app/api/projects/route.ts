@@ -3,8 +3,8 @@ import { ZodError } from "zod";
 
 import { createBestEffortIntakeEventSink } from "@/lib/motive/intake-events";
 import { createProjectIntake } from "@/lib/motive/projects";
-import { createSupabaseProjectExplorerRepository } from "@/lib/motive/supabase-project-explorer";
-import { createSupabaseIntakeRepository } from "@/lib/motive/supabase-projects";
+import { createSupabaseProjectExplorerRepository } from "@/lib/motive/project-explorer.server";
+import { createSupabaseIntakeRepository } from "@/lib/motive/projects.server";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);

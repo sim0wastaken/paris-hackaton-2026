@@ -7,21 +7,11 @@ import { AlertCircle, Check, CheckCheck, CheckCircle2, Layers3, Pencil, RefreshC
 import { ExtractionPhaseRail } from "./extraction-phase-rail";
 import { SourceStatusPanel } from "./source-status-panel";
 import { StatusBadge } from "./status-badge";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { subscribeToReview, type ReviewTable } from "@/lib/motive/reviews.client";
 import type { ExtractionReviewData } from "@/lib/motive/extraction";
 import type { ProjectWorkspace } from "@/lib/motive/projects";
 import type { ReviewActionResult, ReviewableEntityType } from "@/lib/motive/reviews";
 import type { ReviewAction } from "@/lib/motive/types";
-
-type ReviewTable =
-  | "extraction_runs"
-  | "brand_features"
-  | "conversations"
-  | "landing_gaps"
-  | "campaigns"
-  | "ad_groups"
-  | "creative_variants"
-  | "human_reviews";
 
 type ReviewSubmitInput = {
   entityType: ReviewableEntityType;
@@ -156,32 +146,16 @@ export function LiveReviewWorkspace({
   }, [refresh]);
 
   useEffect(() => {
-    const supabase = createSupabaseBrowserClient();
-    const merge = (table: ReviewTable, row: unknown) => {
-      if (!row || typeof row !== "object" || !("id" in row)) return;
-      setData((current) => ({
-        ...current,
-        [table]: upsertById(current[table] as Array<Record<string, unknown>>, row as Record<string, unknown>)
-      }));
-    };
-
-    const channel = supabase
-      .channel(`motive-review-${projectId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "extraction_runs", filter: `project_id=eq.${projectId}` }, (payload) => merge("extraction_runs", payload.new))
-      .on("postgres_changes", { event: "*", schema: "public", table: "brand_features", filter: `project_id=eq.${projectId}` }, (payload) => merge("brand_features", payload.new))
-      .on("postgres_changes", { event: "*", schema: "public", table: "conversations", filter: `project_id=eq.${projectId}` }, (payload) => merge("conversations", payload.new))
-      .on("postgres_changes", { event: "*", schema: "public", table: "landing_gaps", filter: `project_id=eq.${projectId}` }, (payload) => merge("landing_gaps", payload.new))
-      .on("postgres_changes", { event: "*", schema: "public", table: "campaigns", filter: `project_id=eq.${projectId}` }, (payload) => merge("campaigns", payload.new))
-      .on("postgres_changes", { event: "*", schema: "public", table: "ad_groups", filter: `project_id=eq.${projectId}` }, (payload) => merge("ad_groups", payload.new))
-      .on("postgres_changes", { event: "*", schema: "public", table: "creative_variants", filter: `project_id=eq.${projectId}` }, (payload) => merge("creative_variants", payload.new))
-      .on("postgres_changes", { event: "*", schema: "public", table: "human_reviews", filter: `project_id=eq.${projectId}` }, (payload) => merge("human_reviews", payload.new))
-      .subscribe((status) => {
-        setConnection(status === "SUBSCRIBED" ? "live" : "polling");
-      });
-
-    return () => {
-      void supabase.removeChannel(channel);
-    };
+    return subscribeToReview(
+      projectId,
+      (table, row) => {
+        setData((current) => ({
+          ...current,
+          [table]: upsertById(current[table] as Array<Record<string, unknown>>, row)
+        }));
+      },
+      setConnection
+    );
   }, [projectId]);
 
   const submitReview = useCallback(async (input: ReviewSubmitInput) => {

@@ -7,7 +7,7 @@ import {
   type AdGroupGenerationRepository
 } from "./ad-groups";
 import type { ExtractionRunRecord } from "./extraction";
-import { getExtractionReviewData } from "./supabase-extraction";
+import { getExtractionReviewData } from "./extraction.server";
 import type { AdGroup, Campaign } from "./types";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/service-role";
 

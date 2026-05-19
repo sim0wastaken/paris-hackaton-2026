@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { CreativeGenerationError, runCreativeGeneration } from "@/lib/motive/creatives";
-import { createSupabaseCreativeGenerationRepository } from "@/lib/motive/supabase-creatives";
+import { createSupabaseCreativeGenerationRepository } from "@/lib/motive/creatives.server";
 import { generateFalImage } from "@/lib/providers/fal";
 import { generateOpenAIStructuredObject } from "@/lib/providers/openai";
 

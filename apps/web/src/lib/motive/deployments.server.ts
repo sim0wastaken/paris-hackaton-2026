@@ -2,7 +2,7 @@ import "server-only";
 
 import type { FakeDeployRepository, MonitoringData } from "./deployments";
 import type { Deployment, PerformanceSnapshot } from "./types";
-import { getExtractionReviewData } from "./supabase-extraction";
+import { getExtractionReviewData } from "./extraction.server";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/service-role";
 
 type SupabaseAny = {

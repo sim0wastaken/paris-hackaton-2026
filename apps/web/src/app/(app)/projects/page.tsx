@@ -1,5 +1,5 @@
 import { PastProjectsExplorer } from "@/components/past-projects-explorer";
-import { createSupabaseProjectExplorerRepository } from "@/lib/motive/supabase-project-explorer";
+import { createSupabaseProjectExplorerRepository } from "@/lib/motive/project-explorer.server";
 
 export const dynamic = "force-dynamic";
 

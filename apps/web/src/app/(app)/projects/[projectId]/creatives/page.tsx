@@ -1,6 +1,6 @@
 import { EmptyState } from "@/components/empty-state";
 import { CreativeGrid } from "@/components/creative-grid";
-import { createSupabaseExtractionRepository } from "@/lib/motive/supabase-extraction";
+import { createSupabaseExtractionRepository } from "@/lib/motive/extraction.server";
 
 export default async function CreativesPage({
   params
