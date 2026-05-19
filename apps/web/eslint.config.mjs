@@ -20,7 +20,7 @@ const eslintConfig = [
     files: ["src/**/*.{ts,tsx,js,jsx,mjs}"],
     plugins: { motive: motivePlugin },
     rules: {
-      "motive/no-cross-layer-import": "warn",
+      "motive/no-cross-layer-import": "error",
     },
   },
   {

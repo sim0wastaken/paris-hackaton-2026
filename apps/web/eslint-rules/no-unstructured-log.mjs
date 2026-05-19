@@ -12,7 +12,7 @@
 const FORBIDDEN_METHODS = new Set(["log", "warn", "error", "info", "debug"]);
 
 /** @type {import("eslint").Rule.RuleModule} */
-export default {
+const rule = {
   meta: {
     type: "problem",
     docs: {
@@ -51,3 +51,5 @@ export default {
     };
   },
 };
+
+export default rule;

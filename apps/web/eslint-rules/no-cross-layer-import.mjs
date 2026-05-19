@@ -1,38 +1,34 @@
 // Enforce Motive's layered architecture (see ARCHITECTURE.md § Domain layers).
 //
+// File-suffix convention:
+//   - lib/motive/<domain>.ts         — pure, isomorphic (types + business logic)
+//   - lib/motive/<domain>.server.ts  — server data-access (imports "server-only")
+//   - lib/motive/<domain>.client.ts  — browser-only helpers (Realtime, etc.)
+//
 // Allowed import edges:
-//   - app/         may import from: components/, lib/motive/<domain>.ts, lib/supabase/, inngest/
-//   - components/  may import from: lib/motive/<domain>.ts
-//   - lib/motive/<domain>.ts → lib/motive/supabase-<domain>.ts, lib/supabase/, inngest/, peers
-//   - lib/motive/supabase-<domain>.ts → lib/supabase/, types
-//   - inngest/ → lib/motive/, lib/supabase/
+//   - app/         may import from: components/, lib/motive/<domain>.ts, lib/motive/<domain>.server.ts, lib/supabase/, inngest/
+//   - components/  may import from: lib/motive/<domain>.ts, lib/motive/<domain>.client.ts
+//   - <domain>.server.ts → lib/supabase/, peer <domain>.server.ts, pure peers
+//   - <domain>.client.ts → lib/supabase/browser, pure peers
+//   - inngest/     → lib/motive/, lib/supabase/
 //
 // Disallowed (this rule flags them):
-//   - app/         importing lib/motive/supabase-*.ts directly
-//   - components/  importing lib/motive/supabase-*.ts, lib/supabase/*, inngest/*
-//   - lib/motive/supabase-*.ts importing app/ or components/
-//
-// Severity is "warn" by default so legacy code can be migrated incrementally.
-// Each violation message references ARCHITECTURE.md § Domain layers.
+//   - components/        importing *.server.ts, lib/supabase/*, inngest/*
+//   - *.client.ts        importing *.server.ts (would drag server code into client bundle)
+//   - *.server.ts        importing app/, components/, or *.client.ts (back-edge / bundle leak)
 
 const DISALLOWED = [
   {
-    sourceMatcher: /\/src\/app\//,
-    importMatcher: /\/lib\/motive\/supabase-/,
-    message:
-      "Routes/pages must not import lib/motive/supabase-*.ts directly. Go through lib/motive/<domain>.ts. See ARCHITECTURE.md § Domain layers.",
-  },
-  {
     sourceMatcher: /\/src\/components\//,
-    importMatcher: /\/lib\/motive\/supabase-/,
+    importMatcher: /\/lib\/motive\/[^/]+\.server(?:\.ts)?$/,
     message:
-      "Components must not import lib/motive/supabase-*.ts directly. Go through lib/motive/<domain>.ts. See ARCHITECTURE.md § Domain layers.",
+      "Components must not import lib/motive/*.server.ts. Use the matching *.client.ts or pure module. See ARCHITECTURE.md § Domain layers.",
   },
   {
     sourceMatcher: /\/src\/components\//,
     importMatcher: /\/lib\/supabase\//,
     message:
-      "Components must not import lib/supabase/* directly. Use a domain service in lib/motive/. See ARCHITECTURE.md § Domain layers.",
+      "Components must not import lib/supabase/* directly. Use a domain *.client.ts helper. See ARCHITECTURE.md § Domain layers.",
   },
   {
     sourceMatcher: /\/src\/components\//,
@@ -41,15 +37,27 @@ const DISALLOWED = [
       "Components must not import from inngest/. Send events via a server action or route handler. See ARCHITECTURE.md § Domain layers.",
   },
   {
-    sourceMatcher: /\/src\/lib\/motive\/supabase-/,
+    sourceMatcher: /\/src\/lib\/motive\/[^/]+\.client\.ts$/,
+    importMatcher: /\/lib\/motive\/[^/]+\.server(?:\.ts)?$/,
+    message:
+      "Client modules (*.client.ts) must not import server modules (*.server.ts) — that would bundle server code into the client. See ARCHITECTURE.md § Domain layers.",
+  },
+  {
+    sourceMatcher: /\/src\/lib\/motive\/[^/]+\.server\.ts$/,
     importMatcher: /\/(app|components)\//,
     message:
-      "Data-access layer (lib/motive/supabase-*.ts) must not import from app/ or components/ — that is a back-edge. See ARCHITECTURE.md § Domain layers.",
+      "Data-access layer (*.server.ts) must not import from app/ or components/ — that is a back-edge. See ARCHITECTURE.md § Domain layers.",
+  },
+  {
+    sourceMatcher: /\/src\/lib\/motive\/[^/]+\.server\.ts$/,
+    importMatcher: /\/lib\/motive\/[^/]+\.client(?:\.ts)?$/,
+    message:
+      "Server modules (*.server.ts) must not import client modules (*.client.ts). See ARCHITECTURE.md § Domain layers.",
   },
 ];
 
 /** @type {import("eslint").Rule.RuleModule} */
-export default {
+const noCrossLayerImport = {
   meta: {
     type: "problem",
     docs: {
@@ -106,3 +114,5 @@ export default {
     };
   },
 };
+
+export default noCrossLayerImport;
