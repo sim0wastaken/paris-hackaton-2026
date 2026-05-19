@@ -22,6 +22,12 @@
   --line-2: rgba(243, 241, 234, 0.04);
   --line-3: rgba(243, 241, 234, 0.14);
 
+  /* Semantic indirection (sets up future light theme without shipping one) */
+  --fg: var(--ink);
+  --fg-muted: var(--ink-3);
+  --fg-subtle: var(--ink-4);
+  --surface-elevated: #1d2027;
+
   /* Accent — acid yellow + cyan secondary */
   --acid: #d4ff3a;
   --acid-2: #5df2d6;
@@ -35,8 +41,11 @@
   --warn: #ffb99e;
   --warn-soft: rgba(255, 124, 80, 0.22);
   --warn-line: rgba(255, 124, 80, 0.3);
+  --warn-on: #1a0f08;
   --success: var(--acid);
+  --success-on: var(--acid-on);
   --info: var(--acid-2);
+  --info-on: var(--acid-on);
 
   /* Typography */
   --font-display: var(--font-bricolage), "Bricolage Grotesque", "Sohne", "Inter Tight", ui-sans-serif, system-ui, sans-serif;
@@ -44,20 +53,33 @@
 
   --fs-h1: clamp(38px, 4.8vw, 64px);
   --fs-h2: clamp(30px, 3.4vw, 44px);
-  --fs-h3: 28px;
-  --fs-h4: 22px;
-  --fs-lede: 20px;
+  --fs-h3: clamp(22px, 2.4vw, 30px);
+  --fs-h4: clamp(19px, 1.8vw, 23px);
+  --fs-h5: 18px;
+  --fs-h6: 16px;
+  --fs-title: clamp(20px, 2vw, 26px);
+  --fs-lede: clamp(17px, 1.6vw, 20px);
   --fs-body: 16px;
   --fs-body-sm: 14.5px;
   --fs-caption: 13px;
   --fs-mono: 11px;
   --fs-mono-sm: 10.5px;
 
+  /* Line-height tokens */
+  --lh-tight: 1.05;
+  --lh-snug: 1.18;
+  --lh-normal: 1.5;
+  --lh-relaxed: 1.65;
+  --lh-loose: 1.85;
+
   --tr-display: -0.035em;
   --tr-h1: -0.035em;
   --tr-h2: -0.028em;
   --tr-h3: -0.02em;
   --tr-h4: -0.015em;
+  --tr-h5: -0.01em;
+  --tr-h6: -0.005em;
+  --tr-title: -0.018em;
   --tr-body: -0.005em;
   --tr-mono: 0.14em;
 
@@ -88,11 +110,36 @@
   --r-xl: 24px;
   --r-pill: 999px;
 
-  /* Shadows */
+  /* Shadows — Apple 3-layer (ambient + key + contact) */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.35), 0 12px 28px -16px rgba(0, 0, 0, 0.6);
   --shadow-md: 0 1px 0 rgba(0, 0, 0, 0.35), 0 30px 60px -24px rgba(0, 0, 0, 0.7);
   --shadow-lg: 0 1px 0 rgba(0, 0, 0, 0.35), 0 60px 120px -40px rgba(0, 0, 0, 0.8);
+  --shadow-elevated: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 24px -8px rgba(0, 0, 0, 0.5), 0 30px 60px -24px rgba(0, 0, 0, 0.6);
+  --shadow-hover: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 8px rgba(0, 0, 0, 0.4), 0 24px 48px -12px rgba(0, 0, 0, 0.55), 0 50px 100px -32px rgba(0, 0, 0, 0.7);
   --shadow-glow: 0 0 0 4px var(--accent-soft);
+
+  /* Blur */
+  --blur-sm: 8px;
+  --blur-md: 16px;
+  --blur-lg: 24px;
+  --blur-xl: 40px;
+
+  /* Icon sizes */
+  --icon-xs: 12px;
+  --icon-sm: 14px;
+  --icon-md: 16px;
+  --icon-lg: 20px;
+  --icon-xl: 24px;
+
+  /* Container-query breakpoints */
+  --cq-sm: 480px;
+  --cq-md: 720px;
+  --cq-lg: 1024px;
+  --cq-xl: 1280px;
+
+  /* Real breakpoint where structure flips (mobile↔desktop) */
+  --bp-md: 768px;
 
   /* Motion — Apple-tier easing + a 7-step duration scale */
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -116,6 +163,8 @@
 
   /* Z-index */
   --z-nav: 50;
+  --z-sheet: 60;
+  --z-toast: 80;
 }
 
 @media (max-width: 1080px) {

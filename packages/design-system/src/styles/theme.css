@@ -17,6 +17,11 @@
   --color-ink-4: var(--ink-4);
   --color-ink-5: var(--ink-5);
 
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-surface-elevated: var(--surface-elevated);
+
   --color-line: var(--line);
   --color-line-2: var(--line-2);
   --color-line-3: var(--line-3);
@@ -26,6 +31,11 @@
   --color-acid-on: var(--acid-on);
   --color-warn: var(--warn);
   --color-warn-soft: var(--warn-soft);
+  --color-warn-on: var(--warn-on);
+  --color-success: var(--success);
+  --color-success-on: var(--success-on);
+  --color-info: var(--info);
+  --color-info-on: var(--info-on);
 
   --radius-xs: var(--r-xs);
   --radius-sm: var(--r-sm);
@@ -37,4 +47,12 @@
   --shadow-soft: var(--shadow-sm);
   --shadow-pop: var(--shadow-md);
   --shadow-stage: var(--shadow-lg);
+  --shadow-elevated: var(--shadow-elevated);
+  --shadow-hover: var(--shadow-hover);
+  --shadow-xs: var(--shadow-xs);
+
+  --blur-sm: var(--blur-sm);
+  --blur-md: var(--blur-md);
+  --blur-lg: var(--blur-lg);
+  --blur-xl: var(--blur-xl);
 }

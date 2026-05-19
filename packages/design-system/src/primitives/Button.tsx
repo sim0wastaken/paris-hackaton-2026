@@ -20,6 +20,9 @@ const buttonVariants = cva("btn motive-focus-ring", {
       quiet: "btn-quiet",
       danger: "btn-danger",
       success: "btn-success",
+      outline: "btn-outline",
+      secondary: "btn-secondary",
+      link: "btn-link",
     },
     size: {
       sm: "btn-sm",

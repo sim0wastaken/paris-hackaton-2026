@@ -7,7 +7,10 @@
 .t-h1,
 .t-h2,
 .t-h3,
-.t-h4 {
+.t-h4,
+.t-h5,
+.t-h6,
+.t-title {
   color: var(--ink);
   font-weight: var(--fw-medium);
   margin: 0;
@@ -18,47 +21,68 @@
   font-size: var(--fs-h1);
   font-variation-settings: "wdth" 100, "opsz" 48;
   letter-spacing: var(--tr-h1);
-  line-height: 1.02;
+  line-height: var(--lh-tight);
 }
 
 .t-h2 {
   font-size: var(--fs-h2);
   font-variation-settings: "wdth" 100, "opsz" 36;
   letter-spacing: var(--tr-h2);
-  line-height: 1.08;
+  line-height: var(--lh-tight);
 }
 
 .t-h3 {
   font-size: var(--fs-h3);
   font-variation-settings: "wdth" 100, "opsz" 28;
   letter-spacing: var(--tr-h3);
-  line-height: 1.15;
+  line-height: var(--lh-snug);
 }
 
 .t-h4 {
   font-size: var(--fs-h4);
   font-variation-settings: "wdth" 100, "opsz" 22;
   letter-spacing: var(--tr-h4);
-  line-height: 1.18;
+  line-height: var(--lh-snug);
+}
+
+.t-h5 {
+  font-size: var(--fs-h5);
+  font-variation-settings: "wdth" 100, "opsz" 18;
+  letter-spacing: var(--tr-h5);
+  line-height: var(--lh-snug);
+}
+
+.t-h6 {
+  font-size: var(--fs-h6);
+  font-variation-settings: "wdth" 100, "opsz" 16;
+  letter-spacing: var(--tr-h6);
+  line-height: var(--lh-snug);
+}
+
+.t-title {
+  font-size: var(--fs-title);
+  font-variation-settings: "wdth" 100, "opsz" 22;
+  letter-spacing: var(--tr-title);
+  line-height: var(--lh-snug);
 }
 
 .t-lede {
   color: var(--ink-2);
   font-size: var(--fs-lede);
-  line-height: 1.45;
+  line-height: var(--lh-normal);
   letter-spacing: -0.012em;
 }
 
 .t-small {
   color: var(--ink-2);
   font-size: var(--fs-body-sm);
-  line-height: 1.5;
+  line-height: var(--lh-normal);
 }
 
 .t-caption {
   color: var(--ink-3);
   font-size: var(--fs-caption);
-  line-height: 1.45;
+  line-height: var(--lh-normal);
 }
 
 .mono,
@@ -102,9 +126,14 @@
 
 .card,
 .card-inset,
-.card-feature {
+.card-feature,
+.card-elevated,
+.card-glass,
+.card-gradient {
   border: 1px solid var(--line);
   box-shadow: var(--shadow-sm);
+  container-type: inline-size;
+  position: relative;
 }
 
 .card {
@@ -126,8 +155,83 @@
   padding: var(--s-8);
 }
 
+.card-elevated {
+  background: var(--surface-elevated);
+  border-color: var(--line-3);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-elevated);
+  padding: var(--s-6);
+}
+
+.card-glass {
+  background: color-mix(in srgb, var(--surface) 56%, transparent);
+  -webkit-backdrop-filter: blur(var(--blur-lg)) saturate(160%);
+  backdrop-filter: blur(var(--blur-lg)) saturate(160%);
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--s-6);
+}
+
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .card-glass {
+    background: var(--surface);
+  }
+}
+
+.card-gradient {
+  background:
+    radial-gradient(120% 100% at 0% 0%, var(--accent-soft) 0%, transparent 60%),
+    radial-gradient(120% 100% at 100% 100%, rgba(93, 242, 214, 0.12) 0%, transparent 55%),
+    var(--surface);
+  border-color: var(--line-3);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-md);
+  padding: var(--s-8);
+}
+
 .card-padless {
   padding: 0;
+}
+
+/* Interactive — hover-lift + shadow grow + focus-visible accent.
+   Wrapped in (hover: hover) so touch devices don't get sticky hover state. */
+.card-interactive {
+  cursor: pointer;
+  transform-origin: center bottom;
+  transition:
+    transform var(--dur-2) var(--ease),
+    box-shadow var(--dur-2) var(--ease),
+    border-color var(--dur-2) var(--ease),
+    background-color var(--dur-2) var(--ease);
+}
+
+@media (hover: hover) {
+  .card-interactive:hover {
+    border-color: var(--line-3);
+    box-shadow: var(--shadow-hover);
+    transform: translateY(var(--hover-lift)) scale(1.005);
+  }
+}
+
+.card-interactive:focus-visible {
+  border-color: var(--acid);
+  box-shadow: var(--shadow-glow), var(--shadow-hover);
+  outline: none;
+}
+
+.card-interactive:active {
+  transform: scale(var(--press-scale-soft));
+  transition-duration: var(--dur-instant);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-interactive,
+  .card-interactive:hover,
+  .card-interactive:active {
+    transform: none;
+    transition: none;
+  }
 }
 
 /* ─────────────────────────────── Tags ────────────────────────────────── */
