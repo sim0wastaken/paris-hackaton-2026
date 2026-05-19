@@ -37,3 +37,6 @@ Rules:
 - [2026-05-18 12:41] DONE Motive design system v2: rebuilt on React Aria Components + motion with full state surface (idle/hover/pressed/focus-visible/disabled/loading/success/error). Added primitives Dialog, Popover, Tooltip, Menu, Select, Combobox, Tabs (motion layoutId indicator), Progress, Slider, Skeleton, Accordion, Spinner, IconButton, Toast (Sonner). Added motion utilities Reveal, Press, Magnetic, AutoAnimate. Wired QueryProvider (TanStack Query), Zustand UI store, MotiveProviders shell, useAsyncAction hook. Showcase at /design-system. Verified typecheck/lint/test (57/57)/build clean plus live dialog + toast smoke.
 - [2026-05-19 10:40] COMMIT [commit c394529] feat(intake): tavily crawl+search brand-discovery pipeline
 - [2026-05-19 10:40] COMMIT [commit 3fc5d26] docs(intake): ADR-0006 + brand-discovery spec; flip deferred note
+- [2026-05-19 10:48] COMMIT [commit e8bbd1b] refactor(motive): split data-access into .server.ts and add .client.ts subscriptions
+- [2026-05-19 10:48] COMMIT [commit f4760c9] chore(lint): retarget no-cross-layer-import to .server/.client and promote to error
+- [2026-05-19 10:48] COMMIT [commit c226155] chore(dx): add pnpm setup:env to bootstrap apps/web/.env.local from local supabase
