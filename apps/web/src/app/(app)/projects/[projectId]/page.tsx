@@ -32,7 +32,7 @@ export default async function ProjectPage({
             </div>
             <StatusBadge status="current">{workspace.project.status}</StatusBadge>
           </div>
-          <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-3">
+          <div className="mt-6 stat-grid">
             {stats.map((stat) => (
               <div
                 className="stat-card"

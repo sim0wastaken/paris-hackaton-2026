@@ -503,7 +503,7 @@ function ConversationPanel({
       status={phaseStatus(data, "conversation_map")}
       title="Buyer conversations"
     >
-      <div className="data-table-wrap">
+      <div className="data-table-wrap data-table-wide">
         <table className="min-w-full border-separate border-spacing-0 text-left text-sm">
           <thead className="text-xs uppercase text-[var(--ink-3)]">
             <tr>
@@ -521,7 +521,7 @@ function ConversationPanel({
                 <td className="border-b border-[var(--line)] px-3 py-3 text-[var(--ink-2)]">{conversation.stage || "intent pending"}</td>
                 <td className="border-b border-[var(--line)] px-3 py-3 text-[var(--ink-2)]">{conversation.intent_type || "intent pending"}</td>
                 <td className="border-b border-[var(--line)] px-3 py-3 text-[var(--ink-2)]">{conversation.buyer_role ?? "unknown"}</td>
-                <td className="min-w-[260px] border-b border-[var(--line)] pl-3 py-3">
+                <td className="border-b border-[var(--line)] pl-3 py-3 align-top w-px whitespace-nowrap">
                   <ReviewActionControls
                     buildPatch={(draft) => ({
                       text: draft.text,

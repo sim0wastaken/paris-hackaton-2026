@@ -204,7 +204,7 @@ export function DesignSystemShowcase() {
             title="Form controls with full RAC state"
             lede="Inputs expose data-focused, data-hovered, data-invalid, data-disabled. Field wires label + hint + error via aria-describedby and aria-errormessage."
           />
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 mt-6">
+          <div className="grid gap-5 mt-6 [grid-template-columns:repeat(auto-fit,minmax(min(20rem,100%),1fr))]">
             <Field label="Workspace name" hint="Visible across the team.">
               <Input placeholder="motive.ai" />
             </Field>
@@ -356,7 +356,7 @@ export function DesignSystemShowcase() {
             title="Progress, Slider, Skeleton, Spinner"
             lede="Loading is never a static spinner — gradients, shimmer, and motion are all baked in."
           />
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 mt-6">
+          <div className="grid gap-6 mt-6 [grid-template-columns:repeat(auto-fit,minmax(min(20rem,100%),1fr))]">
             <Stack gap={3}>
               <Progress label="Generating ad groups" value={progress} />
               <Cluster gap={2}>
@@ -430,7 +430,7 @@ export function DesignSystemShowcase() {
             title="AutoAnimate + Press"
             lede="Lists FLIP without ceremony; cards spring under touch."
           />
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 mt-6">
+          <div className="grid gap-6 mt-6 [grid-template-columns:repeat(auto-fit,minmax(min(20rem,100%),1fr))]">
             <Stack gap={3}>
               <Cluster gap={2}>
                 <Button

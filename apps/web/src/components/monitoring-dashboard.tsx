@@ -254,7 +254,7 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
             Refresh
           </button>
         </div>
-        <div className="mt-4 grid gap-2 md:grid-cols-2">
+        <div className="mt-4 grid gap-2 [grid-template-columns:repeat(auto-fit,minmax(min(18rem,100%),1fr))]">
           {deployableCreatives.map((creative) => {
             const adGroup = data.ad_groups.find((group) => group.id === creative.ad_group_id);
             const checked = selectedIds.includes(creative.id);
@@ -297,7 +297,7 @@ export function MonitoringDashboard({ initialData }: { initialData: MonitoringDa
         <KpiCard label="Avg quality" value={stats.averageQuality ? String(stats.averageQuality) : "-"} />
       </div>
 
-      <section className="grid grid-cols-1 gap-4 min-w-0 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+      <section className="grid gap-4 min-w-0 [grid-template-columns:repeat(auto-fit,minmax(min(22rem,100%),1fr))]">
         <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
             <BarChart3 aria-hidden="true" className="text-[var(--acid-2)]" size={18} />

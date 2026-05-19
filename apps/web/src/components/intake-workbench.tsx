@@ -86,7 +86,7 @@ export function IntakeWorkbench() {
       <label className="field">
         <span className="field-label">Optional context</span>
         <Textarea
-          className="min-h-36"
+          className="min-h-[clamp(6rem,18vw,9rem)]"
           onChange={(event) => setContext(event.target.value)}
           placeholder="Paste product notes, positioning, markdown, or audience constraints."
           value={context}
@@ -96,7 +96,7 @@ export function IntakeWorkbench() {
       <label className="field">
         <span className="field-label">Product feed sample</span>
         <Textarea
-          className="min-h-24 font-mono text-xs leading-5"
+          className="min-h-[clamp(4.5rem,12vw,7rem)] font-mono text-xs leading-5"
           onChange={(event) => setProductFeed(event.target.value)}
           placeholder="id,title,price"
           value={productFeed}

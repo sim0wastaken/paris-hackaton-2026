@@ -213,7 +213,7 @@ export function PastProjectsExplorer({
               </Link>
             </div>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-4">
+            <div className="mt-5 grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(9rem,100%),1fr))]">
               <Metric label="Sources" value={`${selectedProject.counts.processed_sources}/${selectedProject.counts.sources}`} />
               <Metric label="Runs" value={selectedProject.counts.extraction_runs} />
               <Metric label="Creatives" value={selectedProject.counts.creatives} />
@@ -270,7 +270,7 @@ function PreviewContent({
   if (activeTab === "overview") {
     return (
       <PreviewShell icon={<FileText aria-hidden="true" size={18} />} title="Overview">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(12rem,100%),1fr))]">
           <Metric label="Review rows" value={project.counts.approved_review_rows} />
           <Metric label="Approved creatives" value={project.counts.approved_creatives} />
           <Metric label="Deployments" value={project.counts.deployments} />
@@ -290,7 +290,7 @@ function PreviewContent({
   if (activeTab === "review") {
     return (
       <PreviewShell icon={<Eye aria-hidden="true" size={18} />} title="Review">
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+        <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(16rem,100%),1fr))]">
           <PreviewList title="Features" rows={preview.brand_features.map((item) => item.title)} />
           <PreviewList title="Conversations" rows={preview.conversations.map((item) => item.text)} />
           <PreviewList title="Landing gaps" rows={preview.landing_gaps.map((item) => item.description)} />
@@ -302,7 +302,7 @@ function PreviewContent({
   if (activeTab === "creatives") {
     return (
       <PreviewShell icon={<Sparkles aria-hidden="true" size={18} />} title="Creatives">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(18rem,100%),1fr))]">
           {preview.creative_variants.slice(0, 6).map((creative) => (
             <div className="preview-row" key={creative.id}>
               <p className="font-semibold text-[var(--ink)]">{creative.title}</p>

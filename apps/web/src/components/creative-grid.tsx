@@ -13,6 +13,8 @@ import {
   X
 } from "lucide-react";
 
+import NextImage from "next/image";
+
 import { EmptyState } from "./empty-state";
 import { StatusBadge } from "./status-badge";
 import type { ExtractionReviewData } from "@/lib/motive/extraction";
@@ -264,7 +266,7 @@ export function CreativeGrid({ initialData }: { initialData: ExtractionReviewDat
                   No creative variants yet for this ad group.
                 </p>
               ) : (
-                <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(20rem,100%),1fr))]">
                   {variants.map((variant) => (
                     <CreativeCard
                       adGroup={group}
@@ -364,10 +366,17 @@ function CreativeCard({
           </div>
         </div>
 
-        <div className="aspect-square overflow-hidden rounded-md border border-[var(--line)] bg-[var(--bg-2)]">
+        <div className="relative aspect-square overflow-hidden rounded-md border border-[var(--line)] bg-[var(--bg-2)]">
           {renderableAssetUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img alt="" className="h-full w-full object-cover" onError={() => setImageFailed(true)} src={renderableAssetUrl} />
+            <NextImage
+              alt=""
+              src={renderableAssetUrl}
+              fill
+              sizes="(max-width: 48rem) 100vw, (max-width: 80rem) 50vw, 33vw"
+              className="object-cover"
+              onError={() => setImageFailed(true)}
+              unoptimized
+            />
           ) : (
             <div className="flex h-full flex-col justify-between gap-4 p-4">
               <ImageIcon aria-hidden="true" className="text-[var(--acid-2)]" size={24} />
