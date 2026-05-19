@@ -1,6 +1,6 @@
 # paris-hackaton-2026 — Motive OpenAI-first campaign workbench
 
-> Project codename: **Motive**. Goal: ship a Paris AI Hackathon demo where a user drops in a brand link, OpenAI extraction phases stream into the HITL workspace, every artifact is persisted, HITL review shapes ad groups, creatives are generated, and a fake deploy/story monitoring dashboard closes the loop. Pioneer is downstream of v1, not on the critical path. This file is the **north-star briefing** that must survive context compaction.
+> Project codename: **Motive**. Goal: ship a Paris AI Hackathon demo where a user drops in a brand link, OpenAI extraction phases stream into the HITL workspace, every artifact is persisted, HITL review shapes ad groups, creatives are generated, and a fake deploy/story monitoring dashboard closes the loop. Pioneer is downstream of v1, not on the critical path. This file is the **north-star briefing** that must survive context compaction. Currrent status: Hackathon finished, we are foudner mode to launch this and make it the next gen GEO unicorn. No hackathon mode. Best practices only.
 
 ## Where to look first
 
@@ -48,7 +48,7 @@
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **paris-hackaton-2026** (3069 symbols, 4911 relationships, 154 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **paris-hackaton-2026** (3468 symbols, 5526 relationships, 165 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

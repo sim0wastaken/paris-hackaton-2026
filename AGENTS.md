@@ -62,7 +62,7 @@ Cached llms.txt-style docs in `docs/references/`. Use Context7 (`mcp__plugin_con
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **paris-hackaton-2026** (3069 symbols, 4911 relationships, 154 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **paris-hackaton-2026** (3468 symbols, 5526 relationships, 165 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
