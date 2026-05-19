@@ -1,6 +1,6 @@
 # Post-Hackathon Deferred — Tavily Ingestion Strategy
 
-**Status:** Deferred (not in hackathon scope)
+**Status:** Shipped 2026-05-19 — see [ADR-0006](../agent-memory/DECISIONS.md) and [the 2026-05-19 brand-discovery spec](../superpowers/specs/2026-05-19-brand-discovery-tavily-spec.md). What landed: a `tavily.crawl` + `tavily.search` orchestrator (`apps/web/src/lib/motive/brand-discovery.ts`), per-page markdown pruning, Zod-validated responses, single-page `tavily.extract` fallback, N child `sources` rows linked via `parent_source_id`. The notes below are kept for historical reference; future polish items (rate-limit observability, deep-scan crawl flag) remain open.
 **Captured:** 2026-05-16
 **Owner (post-hackathon):** TBD
 **Related code:**

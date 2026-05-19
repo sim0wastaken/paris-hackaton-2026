@@ -46,7 +46,7 @@ Pinned versions for every dep. Updated whenever a dep lands. Consult before runn
 |----------|---------------------|------------|-------|
 | OpenAI | GPT-5-class extraction / generation | Source recap, feature map, conversations, landing gaps, ad groups, creative text | Critical path for v1. Persist every input/output. |
 | Pioneer | Fine-tuning, inference, GLiNER2, Adaptive Inference | After-v1 classifier and future feedback loop | Not critical path for first product iteration. |
-| Tavily | Search / extract / crawl | Source context from URL, shop, social profiles | Hackathon docs include Tavily guide. |
+| Tavily | Search / extract / crawl (REST `/crawl`, `/search`, `/extract`) | Brand discovery via `crawlBrandSite` + `searchBrandContext` in `apps/web/src/lib/providers/tavily.ts`. ADR-0006. | Direct `fetch` against `https://api.tavily.com` (no SDK); responses Zod-validated. Configured via `TAVILY_API_KEY`, `TAVILY_CRAWL_MAX_DEPTH=2`, `TAVILY_CRAWL_LIMIT=12`, `TAVILY_SEARCH_MAX_RESULTS=5`. |
 | fal.ai | Generative media | Creative image/video assets | Downstream from creative angle selection. |
 
 ## Infrastructure images
