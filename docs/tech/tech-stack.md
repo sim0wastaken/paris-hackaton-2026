@@ -25,6 +25,15 @@ PROVIDERS:
 - Fal.ai (creatives)
 - Pioneer (after-v1 classifier / GLiNER2 constraints extraction / future Adaptive Inference)
 - Tavily (web extraction / crawling for source context)
+- Scrapegraph AI scraping
+
+SDKs:
+- Vercel AI SDK + ai-elements -> useful for AI and agents out of the box
+- Anthropic Agents SDK -> useful for anthropic ecosystem and complex multi agents
+- Google Agents SDK -> useful for gcp ecosystem and agents platform 
+Choose Vercel for Web Apps, complex systems with little code and provider-agnostic for quick MVPs
+Choose Anthropic for Anthropic-lock-in for complex multi agentic system and long running workflows
+Choose Google for leveraging the google ecosystem and betting on maintenance and development, but gemini models suck for now.
 
 HACKATHON BUILD ORDER:
 - First ship the OpenAI-first product loop: streaming extraction, persistence, HITL review, ad groups, creatives, fake deploy, story-driven monitoring.
