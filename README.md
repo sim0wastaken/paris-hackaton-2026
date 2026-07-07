@@ -1,5 +1,11 @@
 # Motive — Paris AI Hackathon 2026
 
+> **⚠ Archived (2026-07-07).** This repo is the hackathon artifact and pattern
+> reference. The product continues in **[`sim0wastaken/motive`](https://github.com/sim0wastaken/motive)** —
+> all salvageable surfaces were ported there (see ADR-0008 in
+> `docs/agent-memory/DECISIONS.md` and `docs/PORT-PLAN.md` in the motive repo).
+> No further feature work lands here.
+
 Motive is an intent infrastructure demo for AI-native acquisition. It ingests a brand link and extra context, streams OpenAI extraction results into a HITL workspace, persists every artifact, generates ad-group creatives, and shows a story-driven monitoring dashboard.
 
 ## Hackathon Thesis

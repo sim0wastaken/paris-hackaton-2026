@@ -40,3 +40,12 @@ Format:
 **Resolution / stub:** Build Supabase Realtime + Inngest/background job updates for extraction phases. Generate story-driven `performance_snapshots` with insights and recommended actions.
 **Follow-up (post-demo):** Replace simulated snapshots with real ad-platform outcomes.
 ---
+
+## 2026-07-07 — Closure pass: all three entries dispositioned by the motive port (ADR-0008)
+**What:** Founder-mode closure of every open blocker, in place of further work in this repo.
+**Resolution:**
+- *Self-improving loop (2026-05-16):* CLOSED — permanently scoped as labeled training exhaust, never a live loop. In `sim0wastaken/motive` the plumbing exists as `providerEvents` (every provider request/response persisted), intent/ad-group HITL reviews, and simulated `performanceSnapshots`; no self-improvement is claimed anywhere (motive `docs/ARCHITECTURE.md` Invariant 6). Drift detection, canary, rollback, and real ad-platform KPI ingestion stay out of MVP scope.
+- *Pioneer classifier (2026-05-16):* CLOSED — permanently descoped from the product critical path per ADR-0008. The training corpus it would need keeps accumulating in motive's `providerEvents`/review/snapshot tables; a classifier is a post-traction experiment, not a blocker.
+- *Demo UX risks (2026-05-16):* CLOSED — both invariants carried into motive structurally: Convex live queries make streaming-not-spinner the default (statuses, intents, checks, kit rows, and forecast rows insert one-by-one), and the launch forecast is deterministic story-KPI scoring (`src/lib/campaign.ts`, tested for determinism) with an LLM pass allowed to touch prose only.
+**Follow-up:** None in this repo. Future work happens in `sim0wastaken/motive`.
+---
