@@ -19,9 +19,9 @@ Pinned versions for every dep. Updated whenever a dep lands. Consult before runn
 
 | Package | Version | Manifest | Notes |
 |---------|---------|----------|-------|
-| next | 16.2.6 | `apps/web/package.json` | App Router runtime. |
-| react | 19.2.6 | `apps/web/package.json` | UI runtime. |
-| react-dom | 19.2.6 | `apps/web/package.json` | UI rendering. |
+| next | 16.4.2 | `apps/web/package.json` | App Router runtime. |
+| react | 19.2.9 | `apps/web/package.json` | UI runtime. |
+| react-dom | 19.2.9 | `apps/web/package.json` | UI rendering. |
 | zod | 4.4.3 | `apps/web/package.json` | Runtime validation. |
 | @supabase/supabase-js | 2.105.4 | `apps/web/package.json` | Supabase service-role client. |
 | @supabase/ssr | 0.10.3 | `apps/web/package.json` | Browser/server SSR clients. |
@@ -35,7 +35,7 @@ Pinned versions for every dep. Updated whenever a dep lands. Consult before runn
 | postcss | 8.5.14 | `apps/web/package.json` | CSS processing. |
 | typescript | 6.0.3 | `apps/web/package.json` | Strict typechecking. |
 | eslint | 9.39.4 | `apps/web/package.json` | Linting; pinned to ESLint 9 because React plugin in `eslint-config-next` is not ESLint 10-safe. |
-| eslint-config-next | 16.2.6 | `apps/web/package.json` | Next.js lint config. |
+| eslint-config-next | 16.4.2 | `apps/web/package.json` | Next.js lint config. |
 | vitest | 4.1.6 | `apps/web/package.json` | Unit tests. |
 | @types/node | 25.8.0 | `apps/web/package.json` | Node types. |
 | @types/react | 19.2.14 | `apps/web/package.json` | React types. |
