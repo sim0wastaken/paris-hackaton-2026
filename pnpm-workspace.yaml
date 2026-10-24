@@ -7,3 +7,11 @@ allowBuilds:
   sharp: true
   supabase: true
   unrs-resolver: true
+overrides:
+  # CVE-2026-59892 (propagator-jaeger) / CVE-2026-104872 (instrumentation-*): fixed in the 0.81 line.
+  # inngest allows ">=0.66 <1", but 0.82+ moves to the OTel 3.x SDK that inngest's own "<3" OTel ranges
+  # reject, so hold the last 2.x-line release. Remove when inngest widens its OTel ranges to 3.x.
+  "inngest>@opentelemetry/auto-instrumentations-node": 0.81.0
+  # CVE-2026-39244 / CVE-2026-92000 / CVE-2026-77301 / CVE-2026-114102: inngest-cli pins adm-zip ^0.5.10;
+  # 0.6.1 keeps the AdmZip(buffer).extractAllTo API its postinstall uses. Remove when inngest-cli allows ^0.6.1.
+  "inngest-cli>adm-zip": 0.6.1
