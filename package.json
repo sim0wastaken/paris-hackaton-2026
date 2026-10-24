@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "inngest-cli": "1.19.4",
-    "supabase": "2.98.2"
+    "supabase": "2.122.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

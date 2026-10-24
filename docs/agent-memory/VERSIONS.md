@@ -8,7 +8,7 @@ Pinned versions for every dep. Updated whenever a dep lands. Consult before runn
 |------|---------|------------|-------|
 | Node.js | 25.9.0 | Local runtime | Used for this scaffold verification. Choose deployment LTS before production packaging. |
 | pnpm | 11.1.2 | Root `packageManager` and `npx pnpm@11.1.2` | Workspace package manager. |
-| Supabase CLI | 2.98.2 | Root `package.json` | Local DB commands. |
+| Supabase CLI | 2.122.0 | Root `package.json` | Local DB commands. |
 | Inngest CLI | 1.19.4 | Root `package.json` | Local Inngest Dev Server. |
 | Vercel CLI | 54.1.0 | Installed globally via `npm i -g vercel@54.1.0` | Deploys + env management + Marketplace integration installs. |
 | psql | 14.22 (Homebrew) | System | Used to push remote Supabase migrations + seed (skips `supabase login` flow). |
@@ -22,7 +22,7 @@ Pinned versions for every dep. Updated whenever a dep lands. Consult before runn
 | next | 16.4.2 | `apps/web/package.json` | App Router runtime. |
 | react | 19.2.9 | `apps/web/package.json` | UI runtime. |
 | react-dom | 19.2.9 | `apps/web/package.json` | UI rendering. |
-| zod | 4.4.3 | `apps/web/package.json` | Runtime validation. |
+| zod | 4.6.7 | `apps/web/package.json` | Runtime validation. |
 | @supabase/supabase-js | 2.105.4 | `apps/web/package.json` | Supabase service-role client. |
 | @supabase/ssr | 0.10.3 | `apps/web/package.json` | Browser/server SSR clients. |
 | inngest | 4.4.0 | `apps/web/package.json` | Event client and function registry. |
@@ -32,14 +32,23 @@ Pinned versions for every dep. Updated whenever a dep lands. Consult before runn
 | server-only | 0.0.1 | `apps/web/package.json` | Server-only import guard for service-role client. |
 | tailwindcss | 4.3.0 | `apps/web/package.json` | Styling. |
 | @tailwindcss/postcss | 4.3.0 | `apps/web/package.json` | Tailwind PostCSS plugin. |
-| postcss | 8.5.14 | `apps/web/package.json` | CSS processing. |
+| postcss | 8.5.31 | `apps/web/package.json` | CSS processing. |
 | typescript | 6.0.3 | `apps/web/package.json` | Strict typechecking. |
 | eslint | 9.39.4 | `apps/web/package.json` | Linting; pinned to ESLint 9 because React plugin in `eslint-config-next` is not ESLint 10-safe. |
 | eslint-config-next | 16.4.2 | `apps/web/package.json` | Next.js lint config. |
-| vitest | 4.1.6 | `apps/web/package.json` | Unit tests. |
+| vitest | 4.1.12 | `apps/web/package.json` | Unit tests. |
 | @types/node | 25.8.0 | `apps/web/package.json` | Node types. |
 | @types/react | 19.2.14 | `apps/web/package.json` | React types. |
 | @types/react-dom | 19.2.3 | `apps/web/package.json` | React DOM types. |
+
+## pnpm overrides
+
+Declared in `pnpm-workspace.yaml` with the advisory and removal condition beside each entry.
+
+| Selector | Version | Why | Remove when |
+|----------|---------|-----|-------------|
+| `inngest>@opentelemetry/auto-instrumentations-node` | 0.81.0 | Patched OTel 2.x line (CVE-2026-59892, CVE-2026-104872); 0.82+ needs OTel 3.x, which inngest's `<3` ranges reject. | inngest accepts OTel 3.x. |
+| `inngest-cli>adm-zip` | 0.6.1 | adm-zip 0.5.x advisories (CVE-2026-39244, CVE-2026-92000, CVE-2026-77301, CVE-2026-114102); inngest-cli pins `^0.5.10`. | inngest-cli allows `^0.6.1`. |
 
 ## Provider APIs
 
