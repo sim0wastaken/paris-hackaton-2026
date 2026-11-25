@@ -59,7 +59,6 @@ function checkBlockerTags() {
       ".turbo",
       "dist",
       "build",
-      ".gitnexus",
       ".claude",
       ".codex",
       ".agents",

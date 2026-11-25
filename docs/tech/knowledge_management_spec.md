@@ -10,7 +10,7 @@
 >
 > **Audience.** A long-running agent (Claude Opus / Sonnet, Claude Code CLI, or equivalent) with write access to the target repo, Bash, git, and the MCP servers listed below.
 >
-> **Non-negotiable outcome.** After the agent applies this spec, the target repo can absorb arbitrary multi-hour agentic work with: (a) deterministic session re-hydration after compaction; (b) impact-aware edits via GitNexus; (c) commit-per-subsystem discipline auto-logged to an append-only progress file; (d) safety hooks blocking destructive Bash; (e) spec → plan → execute discipline under the superpowers skills; (f) a per-user Claude auto-memory directory for persistent facts across sessions.
+> **Non-negotiable outcome.** After the agent applies this spec, the target repo can absorb arbitrary multi-hour agentic work with: (a) deterministic session re-hydration after compaction; (b) impact-aware edits using current source references; (c) commit-per-subsystem discipline auto-logged to an append-only progress file; (d) safety hooks blocking destructive Bash; (e) spec → plan → execute discipline under the superpowers skills; (f) a per-user Claude auto-memory directory for persistent facts across sessions.
 
 ---
 
@@ -24,9 +24,9 @@ The system has **five cooperating layers**. Each layer has one job. Do not colla
 | **2. North-star (CLAUDE.md / AGENTS.md)** | In-context operating rules re-loaded on every turn. | Repo root | Agent drifts from non-negotiables. |
 | **3. Agent memory (persistent session state)** | What is done / decided / blocked / versioned. | `docs/agent-memory/` | Compaction erases progress; agent redoes work. |
 | **4. Spec → Plan (superpowers)** | Design docs per subsystem + ordered implementation plan. | `docs/superpowers/{specs,plans}/` | Agent builds unscoped, unordered mush. |
-| **5. Code intelligence (GitNexus) + hooks** | Impact analysis, change detection, safety gates. | `.gitnexus/`, `.claude/{hooks,settings.json,skills}` | Agent breaks callers silently; destructive Bash slips through. |
+| **5. Source checks + hooks** | Impact analysis, change detection, safety gates. | `.claude/{hooks,settings.json}` | Agent breaks callers silently; destructive Bash slips through. |
 
-On top of these, an **MCP plane** (GitNexus, Context7, GitHub, Chrome DevTools, Playwright, Supabase, Sourcegraph) extends the agent with live capabilities, and the **superpowers skill pack** supplies process discipline (brainstorm, TDD, plan, execute, code-review, verification).
+On top of these, an **MCP plane** (Context7, GitHub, Chrome DevTools, Playwright, Supabase, Sourcegraph) extends the agent with live capabilities, and the **superpowers skill pack** supplies process discipline (brainstorm, TDD, plan, execute, code-review, verification).
 
 A **Claude auto-memory** directory (`~/.claude/projects/<slug>/memory/`) persists user/project/feedback/reference facts across conversations. This is global to the machine, not the repo; the agent writes entries there when user preferences or non-obvious project facts surface.
 
@@ -37,10 +37,10 @@ A **Claude auto-memory** directory (`~/.claude/projects/<slug>/memory/`) persist
 ```
 <target-repo>/
   CLAUDE.md                          # north-star briefing (layer 2)
-  AGENTS.md                          # GitNexus MUST/NEVER rules (layer 2, auto-managed section)
+  AGENTS.md                          # pointer to authoritative repository instructions
   README.md
   RUNBOOK.md                         # what runs, what is stubbed, next-N-hour priorities
-  .gitignore                         # must include .gitnexus/lbug, .claude/settings.local.json
+  .gitignore                         # must include .claude/settings.local.json
   .claude/
     settings.json                    # hooks config (committed)
     settings.local.json              # per-machine permissions (gitignored)
@@ -48,16 +48,6 @@ A **Claude auto-memory** directory (`~/.claude/projects/<slug>/memory/`) persist
       log_commit_to_progress.sh      # PostToolUse git-commit auto-logger
       remind_tests_on_stop.sh       # Stop hook reminding to run tests
     skills/
-      gitnexus/                      # six GitNexus skills (see §7)
-        gitnexus-cli/SKILL.md
-        gitnexus-exploring/SKILL.md
-        gitnexus-debugging/SKILL.md
-        gitnexus-refactoring/SKILL.md
-        gitnexus-impact-analysis/SKILL.md
-        gitnexus-guide/SKILL.md
-  .gitnexus/                         # GitNexus index (generated; lbug file is the DB)
-    meta.json
-    lbug                             # gitignored (large binary)
   docs/
     briefing-files/                  # immutable inputs
     agent-memory/
@@ -95,7 +85,6 @@ Notes:
 5. **Build order** — numbered list of milestones. This is what the agent resumes from after compaction.
 6. **Acceptance criteria** — testable. If a named test command passes (`make test`, `pnpm test`, `cargo test`, `go test ./...`, etc.), the milestone is done. If not, it is not.
 7. **Operating rules (quick reference)** — package managers, language versions, commit cadence, logging rules.
-8. **Auto-managed GitNexus block** delimited by `<!-- gitnexus:start -->` / `<!-- gitnexus:end -->` containing the MUST-do/NEVER-do rules (see §5). This block is identical in `CLAUDE.md` and `AGENTS.md` so both file-name conventions work.
 
 **Template structure:**
 
@@ -124,10 +113,7 @@ Session-local memory:
 ## N Acceptance criteria …
 ## Operating rules (quick reference) …
 
-<!-- gitnexus:start -->
-# GitNexus — Code Intelligence
-… (see §5)
-<!-- gitnexus:end -->
+
 ```
 
 ---
@@ -224,56 +210,9 @@ Each spec/plan filename is date-prefixed so the directory reads as a timeline.
 
 ---
 
-## 5. `AGENTS.md` and the GitNexus block
+## 5. Agent instructions
 
-`AGENTS.md` contains **only** the auto-managed GitNexus block (with the same `<!-- gitnexus:start -->` / `<!-- gitnexus:end -->` delimiters) so non-Claude agents that honour `AGENTS.md` get the same rules. The identical block is embedded inside `CLAUDE.md`.
-
-Canonical content of the block (substitute `<repo>` and the stats from `.gitnexus/meta.json`):
-
-```markdown
-<!-- gitnexus:start -->
-# GitNexus — Code Intelligence
-
-This project is indexed by GitNexus as **<repo>** (<N> symbols, <M> relationships, <K> execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
-
-> If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
-
-## Always Do
-- **MUST run impact analysis before editing any symbol.** Run `gitnexus_impact({target: "symbolName", direction: "upstream"})` and report blast radius to the user.
-- **MUST run `gitnexus_detect_changes()` before committing** to verify scope.
-- **MUST warn the user** if impact analysis returns HIGH or CRITICAL risk.
-- Use `gitnexus_query({query: "concept"})` to find execution flows instead of grepping.
-- Use `gitnexus_context({name: "symbolName"})` for full symbol context.
-
-## Never Do
-- NEVER edit a function/class/method without running `gitnexus_impact` on it first.
-- NEVER ignore HIGH or CRITICAL risk warnings.
-- NEVER rename symbols with find-and-replace — use `gitnexus_rename`.
-- NEVER commit without running `gitnexus_detect_changes()`.
-
-## Resources
-| Resource | Use for |
-|----------|---------|
-| `gitnexus://repo/<repo>/context`   | Codebase overview, check index freshness |
-| `gitnexus://repo/<repo>/clusters`  | All functional areas |
-| `gitnexus://repo/<repo>/processes` | All execution flows |
-| `gitnexus://repo/<repo>/process/{name}` | Step-by-step execution trace |
-
-## CLI
-| Task | Read this skill file |
-|------|---------------------|
-| "How does X work?"           | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md` |
-| "What breaks if I change X?" | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
-| "Why is X failing?"          | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md` |
-| Rename / extract / refactor  | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
-| Tools, schema reference      | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
-| Index / status / wiki CLI    | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
-<!-- gitnexus:end -->
-```
-
-**Initial indexing:** after first install, run `npx gitnexus analyze` at repo root. This creates `.gitnexus/lbug` (the graph DB) and `.gitnexus/meta.json`. Add `.gitnexus/lbug` to `.gitignore`; commit `.gitnexus/meta.json`.
-
----
+Keep AGENTS.md as a short pointer to the authoritative repository instructions. Inspect current-checkout callers and contracts, and run relevant verification.
 
 ## 6. Hooks — safety, auto-logging, reminders
 
@@ -340,7 +279,6 @@ Adapt the path globs and test command per target-repo language:
 
 | MCP | Purpose | When to use |
 |---|---|---|
-| **gitnexus** | Code-graph intelligence (impact, context, rename, detect_changes). | Before every non-trivial edit; before commit. |
 | **context7** | Live library documentation. | Anytime a library/framework/SDK/CLI is involved. Prefer over web search for docs. |
 | **github** | Read/write GitHub (issues, PRs, checks). Auth via `github__authenticate`. | Opening/commenting PRs and issues. |
 | **chrome-devtools** | Chrome automation for perf, a11y, LCP debugging, screenshots. | Frontend verification, performance work. |
@@ -351,7 +289,7 @@ Adapt the path globs and test command per target-repo language:
 
 Document in the target repo's `RUNBOOK.md` which MCPs are required and which are optional.
 
-### 7.2 Skills (superpowers + gitnexus + domain)
+### 7.2 Skills (superpowers + domain)
 
 **Superpowers process skills (required):**
 - `superpowers:using-superpowers` — auto-loaded session start.
@@ -368,15 +306,6 @@ Document in the target repo's `RUNBOOK.md` which MCPs are required and which are
 - `superpowers:using-git-worktrees` — for isolated multi-branch work.
 - `superpowers:dispatching-parallel-agents` — 2+ independent tasks.
 - `superpowers:writing-skills` — when extending the skill library.
-
-**GitNexus skills (required, installed under `.claude/skills/gitnexus/`):**
-- `gitnexus-exploring` — "how does X work?"
-- `gitnexus-impact-analysis` — "what breaks if I change X?"
-- `gitnexus-debugging` — "why is X failing?"
-- `gitnexus-refactoring` — rename/extract/split/move.
-- `gitnexus-pr-review` — pre-merge risk assessment.
-- `gitnexus-cli` — index/status/clean/wiki.
-- `gitnexus-guide` — tools + schema reference.
 
 **Domain / optional skills:**
 - `graphify` — input → knowledge graph (HTML + JSON + audit). Trigger `/graphify`. Useful for turning briefing files into an explorable graph before planning.
@@ -404,16 +333,11 @@ Skills are triggered by the Skill tool with the exact name. Never invent names.
 2. Read `docs/agent-memory/PROGRESS.md` — find the last non-COMMIT `DONE`/`STUB` line; that is the current milestone.
 3. Read `docs/agent-memory/BLOCKERS.md` — know what is deferred.
 4. Read the most recent plan in `docs/superpowers/plans/` — resume from the first non-completed step.
-5. If any GitNexus tool reports "stale index", run `npx gitnexus analyze` and re-read `meta.json` stats.
 6. Only then do anything else.
 
-### 8.2 Before editing any symbol
+### 8.2 Before changing shared behavior
 
-- Run `mcp__gitnexus__impact({ target: "<symbol>", direction: "upstream" })`.
-- Report blast radius (direct callers, affected processes, risk level) to the user.
-- If risk is **HIGH** or **CRITICAL**, warn and request confirmation (or, in auto mode, only proceed on low-risk changes).
-- For rename/extract, use `mcp__gitnexus__rename` — never find-and-replace.
-- For architecture exploration, prefer `mcp__gitnexus__query` / `mcp__gitnexus__context` over grep.
+Inspect affected callers and contracts in the current checkout. Report material risks. Prefer language-server rename where available and verify remaining references.
 
 ### 8.3 TDD per subsystem
 
@@ -427,7 +351,7 @@ Skills are triggered by the Skill tool with the exact name. Never invent names.
 
 - One commit per subsystem (not per file).
 - Meaningful message following repo convention: `<type>(<scope>): <subject>`.
-- Before commit: run `mcp__gitnexus__detect_changes()` and confirm scope matches intent.
+- Before commit: run `git diff --cached` and confirm scope matches intent.
 - The `log_commit_to_progress.sh` hook appends the commit to `PROGRESS.md`. The agent does **not** also write a `COMMIT` line by hand.
 - Optional: write a `DONE` line to `PROGRESS.md` when closing a subsystem milestone larger than one commit.
 
@@ -457,7 +381,7 @@ The harness may compact the conversation at any point. The survival protocol:
 2. Reload `PROGRESS.md` — pick up at the last `DONE` / `STUB`.
 3. Reload `BLOCKERS.md`.
 4. If mid-plan, reload the current plan file and resume at the first non-completed step.
-5. If mid-edit, run `git diff` to see uncommitted work and `mcp__gitnexus__detect_changes()` to see affected scope.
+5. If mid-edit, run `git diff` to see uncommitted work and `git diff --cached` to see affected scope.
 
 ### 8.8 Long-horizon loops
 
@@ -503,14 +427,12 @@ This is what a fresh agent (or a human on-call) reads after `CLAUDE.md` and `PRO
 
 Execute in order. Commit after each step with a meaningful message.
 
-1. **Create base layout.** Ensure `docs/{briefing-files,agent-memory,superpowers/{specs,plans}}` and `.claude/{hooks,skills/gitnexus}` exist. Commit.
+1. **Create base layout.** Ensure `docs/{briefing-files,agent-memory,superpowers/{specs,plans}}` and `.claude/{hooks,skills}` exist. Commit.
 2. **Seed agent-memory files.** Create `PROGRESS.md`, `DECISIONS.md`, `BLOCKERS.md`, `VERSIONS.md`, `STACK.md` with the headers from §3 but empty bodies. Commit.
-3. **Write `CLAUDE.md`.** Use the template in §2. Populate non-negotiables from the target project's brief. Leave the GitNexus block as a placeholder until step 7. Commit.
-4. **Write `AGENTS.md`.** Contains only the `<!-- gitnexus:start -->…<!-- gitnexus:end -->` placeholder for now. Commit.
+3. **Write `CLAUDE.md`.** Use the template in §2. Populate non-negotiables from the target project's brief. Commit.
+4. **Write `AGENTS.md`.** Point to the authoritative repository instructions. Commit.
 5. **Install hook scripts.** Copy/write the three scripts into `.claude/hooks/`, `chmod +x`. Write `.claude/settings.json` from §6.1. Adapt path globs in `remind_tests_on_stop.sh` to the target's language (Python / Node / Go / etc.). Commit.
-6. **Install GitNexus skill files.** Six files under `.claude/skills/gitnexus/*/SKILL.md`. Copy from the official GitNexus skill pack (or a reference repo where they already exist) — they are stack-agnostic. Commit.
-7. **Index with GitNexus.** Run `npx gitnexus analyze` at repo root. Read `.gitnexus/meta.json` for the `(nodes, edges, processes)` stats. Fill those numbers into the GitNexus block in both `CLAUDE.md` and `AGENTS.md`. Add `.gitnexus/lbug` to `.gitignore`. Commit.
-8. **Provision MCP servers.** Configure at harness level: gitnexus, context7, github, chrome-devtools, playwright, sourcegraph (+ optional supabase/prisma). Verify each responds. List required ones in `RUNBOOK.md`.
+8. **Provision MCP servers.** Configure at harness level: context7, github, chrome-devtools, playwright, sourcegraph (+ optional supabase/prisma). Verify each responds. List required ones in `RUNBOOK.md`.
 9. **Verify hooks fire.** Make a no-op commit; confirm `PROGRESS.md` gained a `COMMIT` line. Attempt a dangerous command like `rm -rf ~/tmp_test_never` (non-existent dir) in Bash — the PreToolUse hook must block it. Revert/cleanup. Commit.
 10. **Record versions.** Run the language toolchain's version commands (`python --version`, `node --version`, `uv --version`, `pnpm --version`, Docker image tags from `docker-compose.yml`) and populate `VERSIONS.md`. Commit.
 11. **Draft the first plan.** Invoke `superpowers:writing-plans` against the user's current goal. Output `docs/superpowers/plans/YYYY-MM-DD-<milestone>-plan.md`. Commit.
@@ -520,9 +442,8 @@ Execute in order. Commit after each step with a meaningful message.
 Acceptance for the setup itself:
 
 - `git log` shows 10+ meaningful commits from steps 1-13.
-- `CLAUDE.md`, `AGENTS.md`, `RUNBOOK.md`, all six `docs/agent-memory/*.md` files, `.claude/settings.json`, three hook scripts, six GitNexus `SKILL.md` files, and `.gitnexus/meta.json` all exist.
+- `CLAUDE.md`, `AGENTS.md`, `RUNBOOK.md`, all six `docs/agent-memory/*.md` files, `.claude/settings.json`, three hook scripts all exist.
 - A trivial commit triggers a new line in `PROGRESS.md` (hook verified).
-- `mcp__gitnexus__context` returns non-empty stats for the repo.
 - `docs/superpowers/plans/` has at least one plan ready to execute.
 
 ---
@@ -532,7 +453,7 @@ Acceptance for the setup itself:
 | Risk | Mitigation |
 |---|---|
 | Agent forgets project goals after compaction | `CLAUDE.md` reloaded every turn; `PROGRESS.md` + `BLOCKERS.md` rehydrate state. |
-| Agent breaks callers silently | `gitnexus_impact` MUST precede edits; `gitnexus_detect_changes` MUST precede commits. |
+| Agent breaks callers silently | current-checkout caller/contract checks MUST precede edits; `git diff --cached` MUST precede commits. |
 | Agent runs `rm -rf /` or `git push --force` | PreToolUse hook blocks the known dangerous forms. |
 | Agent claims "done" without running tests | `verification-before-completion` skill + Stop hook reminder. |
 | Commit history drifts from progress | PostToolUse hook auto-appends every commit to `PROGRESS.md`. |
@@ -566,7 +487,6 @@ Record the pinned tags + rationale in `VERSIONS.md § Infrastructure images`.
 
 - Do not add memory files for code patterns, architecture, or git history — those belong in `STACK.md` / `DECISIONS.md` / `git log`, not Claude auto-memory.
 - Do not commit `.claude/settings.local.json` (per-machine permissions).
-- Do not commit `.gitnexus/lbug` (large binary; regenerate locally).
 - Do not add speculative skills "in case we need them later" — skill bloat hurts skill selection accuracy.
 - Do not copy briefing-files from another project — briefings are project-specific.
 - Do not write `COMMIT` lines by hand in `PROGRESS.md` — the hook does it.
@@ -580,10 +500,9 @@ Record the pinned tags + rationale in `VERSIONS.md § Infrastructure images`.
 - `.claude/settings.json` (the hook wiring)
 - `.claude/hooks/log_commit_to_progress.sh`
 - `.claude/hooks/remind_tests_on_stop.sh` (adjust path globs + test command per §6.4)
-- `.claude/skills/gitnexus/*/SKILL.md` (six files)
 - `docs/agent-memory/*.md` **headers only** — empty bodies
-- Structure (not contents) of `CLAUDE.md` §Read-this-first, §Non-negotiables, §Build-order, §Operating-rules, §GitNexus-block
-- Structure of `AGENTS.md` (just the GitNexus block)
+- Structure (not contents) of `CLAUDE.md` §Read-this-first, §Non-negotiables, §Build-order, §Operating-rules
+- Structure of `AGENTS.md` (a short pointer to the authoritative instructions)
 - This spec itself (`docs/KNOWLEDGE_MGMT_SETUP_SPEC.md`)
 
 **Always project-specific** — must be written fresh against the target repo's actual goals:
@@ -632,9 +551,6 @@ volumes/
 *.key
 secrets/
 
-# === GitNexus index (regenerable; commit only meta.json) ===
-.gitnexus/*
-!.gitnexus/meta.json
 
 # === Generated code (schemas-as-source-of-truth; ignore generated clients) ===
 # Add your codegen output dirs here
@@ -871,15 +787,15 @@ When handing this spec to the agent that will install the system into a new repo
 ## 16. Ongoing-use rules (after install, for every future session)
 
 1. **Session 1 of every day:** read `CLAUDE.md` → `PROGRESS.md` → `BLOCKERS.md` → `RUNBOOK.md § Next N hours`. Only then start work.
-2. **Before any edit:** `gitnexus_impact` on the target symbol; warn on HIGH/CRITICAL.
-3. **Before any commit:** `gitnexus_detect_changes`; run the relevant test tier.
+2. **Before any edit:** current-checkout caller/contract checks on the target symbol; warn on HIGH/CRITICAL.
+3. **Before any commit:** `git diff --cached`; run the relevant test tier.
 4. **After any commit:** confirm the hook appended to `PROGRESS.md`; write a `DONE` line manually when closing a milestone.
 5. **On any library question:** Context7 MCP first; web search only if Context7 has no entry.
 6. **On any library doc that changed:** update `VERSIONS.md` (and `FRONTEND_NOTES.md` on major framework bumps).
 7. **On any >30-min stall:** stub + `TODO(blocker)` + `BLOCKERS.md` entry + continue.
 8. **On any architectural decision:** new ADR in `DECISIONS.md` with Context / Decision / Consequences.
 9. **Before shipping a milestone:** `superpowers:verification-before-completion` evidence run; `code-review:code-review` on the diff; append a `DONE` line to `PROGRESS.md`; update `RUNBOOK.md`.
-10. **Periodic maintenance:** `claude-md-management:claude-md-improver` monthly; `npx gitnexus analyze` after large refactors; `fewer-permission-prompts` after every few sessions to reduce prompt noise.
+10. **Periodic maintenance:** `claude-md-management:claude-md-improver` monthly; `fewer-permission-prompts` after every few sessions to reduce prompt noise.
 11. **Per-feature gate (§17.11):** PR is incomplete without spec + plan + test + docs update. Trivial changes flagged with `chore:` prefix; author self-assesses.
 12. **Per-dep gate (§17.12):** before pinning a new dep, Context7 MCP + registry check → `VERSIONS.md` update → ADR if major bump.
 13. **Per-mutation gate (§17.1-17.2):** any new write path threads `request_id` and emits an `audit_log` row. Reviewers reject silently-writing code.
@@ -889,7 +805,7 @@ When handing this spec to the agent that will install the system into a new repo
 
 ## 17. Production-readiness invariants (past MVP)
 
-Once the repo moves out of "skeleton that compiles" into "real users hit this", a second tier of non-negotiables activates. These are **additive** to the core rules (TDD, commit-per-subsystem, GitNexus-before-edit) and apply uniformly regardless of domain, stack, or deployment target.
+Once the repo moves out of "skeleton that compiles" into "real users hit this", a second tier of non-negotiables activates. These are **additive** to the core rules (TDD, commit-per-subsystem, reference checks before edits) and apply uniformly regardless of domain, stack, or deployment target.
 
 The spec enforces them by making each one a **pattern with a concrete seat** (file, table, middleware, ADR), not a policy statement. Policy statements without a seat rot.
 
@@ -1055,12 +971,9 @@ Before pinning any new dep:
 
 Challenge: "latest stable" is not always right — betas with a specific bug-fix, pre-releases pinned to a CVE patch, or vendor LTS lines (Node 20, Python 3.12) can be the correct choice. Document the why in the ADR.
 
-### 17.13 Impact analysis threshold
+### 17.13 Impact analysis
 
-- **Symbols with 0-1 callers**: GitNexus impact optional (blast radius is trivial).
-- **Symbols with 2+ callers**: `gitnexus_impact` mandatory; log risk level in PR description.
-- **HIGH / CRITICAL risk**: open a `BLOCKERS.md` entry pre-emptively (even if no blocker yet) documenting the rollback plan + user confirmation trail (or, in autonomous mode, the self-imposed gating).
-- Public API, migrations, cross-service contracts: **always** HIGH by default regardless of caller count.
+Inspect current source references before changing shared behavior. Scope verification to the affected contracts and user outcomes.
 
 ### 17.14 Commit cadence survives long runs
 

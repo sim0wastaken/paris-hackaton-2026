@@ -65,7 +65,7 @@ Guardrails:
 
 | Stub | Where | Cross-ref | Lift when |
 |------|-------|-----------|-----------|
-| MCP servers | Configured at harness, not in-repo | Spec §7.1 | Provision gitnexus, context7, github, chrome-devtools, playwright, sourcegraph |
+| MCP servers | Configured at harness, not in-repo | Spec §7.1 | Provision context7, github, chrome-devtools, playwright, sourcegraph |
 | Live OpenAI provider calls | `apps/web/src/lib/providers/openai.ts` | Spec 04 | Add `OPENAI_API_KEY` and optional `OPENAI_EXTRACTION_MODEL`; demo replay works without keys |
 | Real ad-platform deployment | Fake deploy only | OpenAI-first hackathon plan | After demo workflow works |
 | Pioneer classifier / retraining | Deferred out of critical path | OpenAI-first hackathon plan | After stored extraction + HITL data exists |
