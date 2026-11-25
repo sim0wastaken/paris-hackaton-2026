@@ -45,7 +45,6 @@ A **Claude auto-memory** directory (`~/.claude/projects/<slug>/memory/`) persist
     settings.json                    # hooks config (committed)
     settings.local.json              # per-machine permissions (gitignored)
     hooks/
-      block_dangerous_bash.sh        # PreToolUse Bash safety gate
       log_commit_to_progress.sh      # PostToolUse git-commit auto-logger
       remind_tests_on_stop.sh       # Stop hook reminding to run tests
     skills/
@@ -278,7 +277,7 @@ This project is indexed by GitNexus as **<repo>** (<N> symbols, <M> relationship
 
 ## 6. Hooks — safety, auto-logging, reminders
 
-Hooks run in the Claude Code harness, not inside Claude. They are the only component that can enforce discipline **unconditionally**. Three hooks are required.
+Hooks run in the Claude Code harness, not inside Claude. They are the only component that can enforce discipline **unconditionally**. Two hooks are required.
 
 ### 6.1 `.claude/settings.json`
 
@@ -286,14 +285,6 @@ Hooks run in the Claude Code harness, not inside Claude. They are the only compo
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          { "type": "command", "command": ".claude/hooks/block_dangerous_bash.sh", "timeout": 5, "statusMessage": "Safety gate…" }
-        ]
-      }
-    ],
     "PostToolUse": [
       {
         "matcher": "Bash",
@@ -315,12 +306,9 @@ Hooks run in the Claude Code harness, not inside Claude. They are the only compo
 
 Commit this file. Per-machine permission overrides go to `.claude/settings.local.json` (gitignored).
 
-### 6.2 `.claude/hooks/block_dangerous_bash.sh` (PreToolUse, Bash)
+### 6.2 No repo-level Bash guard
 
-Reads the hook JSON from stdin, extracts `.tool_input.command`, and denies if it matches any of:
-`rm -rf /`, `rm -rf ~`, `rm -rf /*`, `rm -fr /`, `git push --force`, `git push -f `, `DROP DATABASE`, `TRUNCATE DATABASE`, `docker compose down -v` / `docker-compose down -v`, `:(){ :|:& };:`, `mkfs.`, `dd if=/dev/zero of=/dev/`, `chmod -R 777 /`.
-
-On deny, emits `{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:"..."}}`. On allow, emits the same object with `"allow"`. Implementation: pure Bash + `jq`. Must `chmod +x`.
+Dangerous-command blocking is left to the harness (its permission mode and classifier). Do not install a repo-level Bash denylist hook: substring guards block valid work and drift between providers.
 
 ### 6.3 `.claude/hooks/log_commit_to_progress.sh` (PostToolUse, Bash)
 
@@ -590,7 +578,6 @@ Record the pinned tags + rationale in `VERSIONS.md § Infrastructure images`.
 **Safe to copy verbatim across any repo** (stack-agnostic):
 
 - `.claude/settings.json` (the hook wiring)
-- `.claude/hooks/block_dangerous_bash.sh`
 - `.claude/hooks/log_commit_to_progress.sh`
 - `.claude/hooks/remind_tests_on_stop.sh` (adjust path globs + test command per §6.4)
 - `.claude/skills/gitnexus/*/SKILL.md` (six files)
@@ -1153,7 +1140,7 @@ When a framework is N/A, write "N/A — [one-line why]". Explicit > omitted.
 
 ### 18.5 Backups, DR, and the "one command away from disaster" check
 
-A useful invariant: `docker compose down -v`, `DROP DATABASE`, and `gcloud projects delete` all have explicit confirmations or are blocked by hooks (already in `block_dangerous_bash.sh`). Past that, the recovery story must be real:
+A useful invariant: `docker compose down -v`, `DROP DATABASE`, and `gcloud projects delete` all need an explicit confirmation from the harness permission mode. Past that, the recovery story must be real:
 
 - **Backups** configured in infra-as-code, not by clicking in a console.
 - **Restore drill** runs at least quarterly (schedulable via the `schedule` skill). The drill restores into a scratch project and asserts `/health` + key `/entity` queries.
