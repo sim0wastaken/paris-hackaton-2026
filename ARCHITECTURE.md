@@ -16,7 +16,7 @@ User pastes a brand URL into Motive. The intake service ingests sources (URL, PD
 
 ```
 paris-hackaton-2026/
-  CLAUDE.md                 # north-star (non-negotiables, GitNexus block)
+  CLAUDE.md                 # north-star (non-negotiables block)
   AGENTS.md                 # TOC for any agent (Claude or other)
   ARCHITECTURE.md           # this file
   RELIABILITY.md            # invariants the system must preserve
@@ -49,7 +49,6 @@ paris-hackaton-2026/
   .claude/                  # Claude harness (hooks, skills, settings)
   .codex/                   # Codex hook scripts (non-Claude agents)
   .agents/                  # Codex-flavored skill copies (non-Claude agents)
-  .gitnexus/                # generated index (lbug gitignored, meta.json committed)
 ```
 
 ---

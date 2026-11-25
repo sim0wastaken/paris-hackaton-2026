@@ -35,8 +35,5 @@ secrets/
 # === Claude per-machine settings ===
 .claude/settings.local.json
 
-# === GitNexus index (regenerable; commit only meta.json) ===
-.gitnexus/*
-!.gitnexus/meta.json
 .vercel
 .env*.local

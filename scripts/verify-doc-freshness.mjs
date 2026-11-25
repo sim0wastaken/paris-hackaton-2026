@@ -10,7 +10,7 @@
 //
 // CI invokes this as `node scripts/verify-doc-freshness.mjs`.
 
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -21,7 +21,6 @@ const problems = [];
 
 // 1. db-schema.md vs migrations.
 function checkSchemaFreshness() {
-  const migrationsDir = join(repoRoot, "supabase", "migrations");
   const schemaDoc = join(repoRoot, "docs", "generated", "db-schema.md");
   if (!existsSync(schemaDoc)) {
     problems.push(
@@ -29,18 +28,9 @@ function checkSchemaFreshness() {
     );
     return;
   }
-  const schemaMtime = statSync(schemaDoc).mtimeMs;
-  let newestMigration = 0;
-  for (const name of readdirSync(migrationsDir)) {
-    if (!name.endsWith(".sql")) continue;
-    const m = statSync(join(migrationsDir, name)).mtimeMs;
-    if (m > newestMigration) newestMigration = m;
-  }
-  if (newestMigration > schemaMtime) {
-    problems.push(
-      `[freshness] migrations are newer than db-schema.md — run \`pnpm db:schema:doc\`.`,
-    );
-  }
+  // Content freshness is checked by `pnpm db:schema:doc:check` (generator --check).
+  // File mtimes are not compared: a fresh CI checkout gives every file the same
+  // checkout time, so an mtime comparison is noise there.
 }
 
 // 2. TODO(blocker: ...) tags in code must be present in BLOCKERS.md.
@@ -59,7 +49,6 @@ function checkBlockerTags() {
       ".turbo",
       "dist",
       "build",
-      ".gitnexus",
       ".claude",
       ".codex",
       ".agents",

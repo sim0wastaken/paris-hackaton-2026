@@ -55,7 +55,7 @@ For each worklist item the user approves, open a small fix-up PR. Each PR is one
 
 ## Coordination with other skills
 
-- Use `gitnexus-impact-analysis` SKILL on any symbol referenced before suggesting a refactor (Pillar 4 of the harness plan).
+- Inspect current-checkout callers and contracts before suggesting a refactor; state the affected scope and verification needed.
 - Use `superpowers:verification-before-completion` SKILL before claiming any fix-up PR is done.
 
 ## When not to use this skill
